@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Advisory until the recorded strict-mode baseline (docs/superpowers/plans/
+      # w0-typecheck-baseline.txt) is cleared by later workstreams. Flip to a
+      # blocking step (remove continue-on-error) once that file reaches 0 errors.
+      - name: Typecheck (advisory)
+        continue-on-error: true
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Secret-leak guard (no server secrets in the client bundle)
+        run: |
+          set -euo pipefail
+          # Unambiguous server-only markers that must NEVER reach the browser.
+          if grep -rEl 'sk_live|sk_test|rk_live|service_role|whsec_' dist/; then
+            echo "::error::Server-secret pattern found in dist/ — aborting."
+            exit 1
+          fi
+          # Google API keys look like AIzaSy<33 chars>. The Firebase *web* API key
+          # is public by design and remains until Firebase is removed (W2); allow
+          # only it. Any other AIzaSy key (e.g. the Gemini key) is a real leak.
+          FIREBASE_WEB_KEY='AIzaSyBsR6oi1Z-7SrFW-JEX7BycpD3nSelRzu4'
+          if grep -rhoE 'AIzaSy[0-9A-Za-z_-]{33}' dist/ | grep -vx "$FIREBASE_WEB_KEY" | head -n1 | grep -q .; then
+            echo "::error::A non-Firebase Google API key (likely the Gemini key) leaked into dist/."
+            exit 1
+          fi
+          echo "Secret-leak guard passed."
