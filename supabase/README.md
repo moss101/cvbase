@@ -17,6 +17,21 @@ supabase stop       # stops the stack
 `anon key`. Those are **local-only dev values**, safe to paste into a local
 `.env` — they are NOT the cloud project's secrets.
 
+### Verified local endpoints (W0)
+The stack was booted and verified on 2026-06-22. Local URLs (stable across runs):
+
+| Service | URL |
+|---------|-----|
+| API | http://127.0.0.1:54321 |
+| Studio | http://127.0.0.1:54323 |
+| Postgres | postgresql://postgres:postgres@127.0.0.1:54322/postgres |
+| Inbucket (email) | http://127.0.0.1:54324 |
+
+The local `anon` / `service_role` keys printed by `supabase status` are the
+standard public **`supabase-demo`** dev keys — identical on every machine, not
+secrets. `supabase_imgproxy` and `supabase_pooler` show as stopped; both are
+optional (image transforms / connection pooler) and not required for local dev.
+
 ## Migrations
 ```bash
 supabase migration new <name>     # create a migration file
