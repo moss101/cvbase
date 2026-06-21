@@ -1,0 +1,6 @@
+{
+  "name": "CVBase",
+  "description": "An intelligent, modern resume builder that helps you create a professional resume with ease. Features AI-powered suggestions, real-time preview, and multiple customization options to make your CV stand out.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,41 @@
+{
+  "name": "cvbase-final",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "mobile:build": "npm run build && npx cap sync",
+    "mobile:open:android": "npx cap open android",
+    "mobile:open:ios": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.4.0",
+    "@google/genai": "^1.29.1",
+    "@tiptap/extension-list-keymap": "^3.10.7",
+    "@tiptap/extension-placeholder": "^3.10.7",
+    "@tiptap/extension-underline": "^3.10.7",
+    "@tiptap/react": "^3.10.7",
+    "@tiptap/starter-kit": "^3.10.7",
+    "firebase": "^12.14.0",
+    "fs": "^0.0.1-security",
+    "mammoth": "^1.12.0",
+    "motion": "^12.40.0",
+    "path": "^0.12.7",
+    "pdfjs-dist": "^5.6.205",
+    "puppeteer": "^24.34.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/ios": "^8.4.0",
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}

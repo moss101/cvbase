@@ -1,0 +1,90 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with personal, career, and core technical credentials.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The unique Firebase Authentication UID of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The registered email address of the user."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "First name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Last name of the user."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Primary contact number."
+        },
+        "jobTitle": {
+          "type": "string",
+          "description": "Current target job title (e.g. Frontend Engineer, Registered Nurse, etc.)"
+        },
+        "industry": {
+          "type": "string",
+          "description": "The industry vertical, e.g. Technology, Healthcare, Creative, etc."
+        },
+        "experienceYears": {
+          "type": "string",
+          "description": "Years of professional experience in their career domain."
+        },
+        "bio": {
+          "type": "string",
+          "description": "A summary or professional statement about their career and values."
+        },
+        "careSpecialties": {
+          "type": "array",
+          "description": "A list of core skills, specialties, or expertise tags."
+        },
+        "certifications": {
+          "type": "array",
+          "description": "Active certifications like AWS, PMP, RN, CPA, scrum."
+        },
+        "availability": {
+          "type": "string",
+          "description": "Work mode preference (e.g., Full-Time, Remote, Hybrid, Part-Time)."
+        },
+        "licensedState": {
+          "type": "string",
+          "description": "States or locations in which the user is authorized to practice or reside."
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "Professional LinkedIn profile URL."
+        },
+        "github": {
+          "type": "string",
+          "description": "GitHub profile or personal website URL."
+        },
+        "portfolio": {
+          "type": "string",
+          "description": "Interactive portfolio website URL."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of the last edit."
+        }
+      },
+      "required": [
+        "userId",
+        "email"
+      ]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User accounts containing personalized career and care portfolios."
+    }
+  }
+}

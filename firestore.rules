@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default-deny Catch-all Security Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidUserProfile(data) {
+      return data.userId is string 
+          && data.userId.size() <= 128
+          && data.email is string
+          && data.email.size() <= 128
+          // Enforce size/type boundaries on other optional career and care properties
+          && (!('firstName' in data) || (data.firstName is string && data.firstName.size() <= 100))
+          && (!('lastName' in data) || (data.lastName is string && data.lastName.size() <= 100))
+          && (!('phone' in data) || (data.phone is string && data.phone.size() <= 50))
+          && (!('jobTitle' in data) || (data.jobTitle is string && data.jobTitle.size() <= 120))
+          && (!('industry' in data) || (data.industry is string && data.industry.size() <= 120))
+          && (!('experienceYears' in data) || (data.experienceYears is string && data.experienceYears.size() <= 20))
+          && (!('bio' in data) || (data.bio is string && data.bio.size() <= 2000))
+          && (!('availability' in data) || (data.availability is string && data.availability.size() <= 100))
+          && (!('licensedState' in data) || (data.licensedState is string && data.licensedState.size() <= 120))
+          && (!('linkedin' in data) || (data.linkedin is string && data.linkedin.size() <= 200))
+          && (!('github' in data) || (data.github is string && data.github.size() <= 200))
+          && (!('portfolio' in data) || (data.portfolio is string && data.portfolio.size() <= 200))
+          && (!('careSpecialties' in data) || (data.careSpecialties is list && data.careSpecialties.size() <= 50))
+          && (!('certifications' in data) || (data.certifications is list && data.certifications.size() <= 50));
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId)
+                    && isValidId(userId)
+                    && isValidUserProfile(request.resource.data)
+                    && request.resource.data.userId == userId
+                    && request.resource.data.keys().hasAll(['userId', 'email'])
+                    && request.resource.data.keys().size() <= 20;
+
+      allow update: if isOwner(userId)
+                    && isValidId(userId)
+                    && isValidUserProfile(request.resource.data)
+                    && request.resource.data.userId == userId
+                    && request.resource.data.email == resource.data.email; // Immutable email address
+
+      allow delete: if isOwner(userId);
+
+      // Subscription/billing state — single document owned by the user.
+      match /billing/{docId} {
+        allow read, write: if isOwner(userId) && docId == 'state';
+      }
+    }
+  }
+}

@@ -1,0 +1,326 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>CVBase — The CV builder that gets you shortlisted</title>
+    <meta name="description" content="Build an ATS-proof, recruiter-ready CV in minutes. 75+ professional templates, an AI writing assistant, and pixel-perfect PDF export — free to start." />
+    <meta property="og:title" content="CVBase — The CV builder that gets you shortlisted" />
+    <meta property="og:description" content="Build an ATS-proof, recruiter-ready CV in minutes. 75+ templates, AI writing assistant, pixel-perfect PDF export." />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#FAF7F2" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231B1713'/%3E%3Ctext x='16' y='21.5' font-family='Georgia,serif' font-size='14' font-weight='600' fill='%23FAF7F2' text-anchor='middle'%3ECV%3C/text%3E%3Ccircle cx='25' cy='25' r='3' fill='%23C8442C'/%3E%3C/svg%3E" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                DEFAULT: '#008080', // Transformative Teal
+                light: '#E0F2F1',
+                dark: '#004D40',
+              },
+              secondary: {
+                DEFAULT: '#7582FC', // Blue Aura
+                light: '#EEF0FF',
+                dark: '#4F46E5',
+              },
+              glass: {
+                border: 'rgba(255, 255, 255, 0.5)',
+                surface: 'rgba(255, 255, 255, 0.75)',
+                highlight: 'rgba(255, 255, 255, 0.9)',
+              },
+              success: '#4db8a8',
+              warning: '#ffc34a',
+              danger: '#ff4444',
+              dark: '#1e293b',
+              light: '#f8fafc',
+              border: '#e2e8f0',
+              /* Editorial landing palette — ink on paper with one vermilion accent */
+              paper: {
+                DEFAULT: '#FAF7F2',
+                deep: '#F2EDE3',
+                bright: '#FFFDF8',
+              },
+              ink: {
+                DEFAULT: '#1B1713',
+                soft: '#5A5247',
+                faint: '#8B8274',
+              },
+              ember: {
+                DEFAULT: '#C8442C',
+                deep: '#A8351F',
+                tint: '#F6E5DD',
+              },
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              display: ['Fraunces', 'Georgia', 'serif'],
+              body: ['"Instrument Sans"', 'system-ui', 'sans-serif'],
+              label: ['"Spline Sans Mono"', 'ui-monospace', 'monospace'],
+            },
+            boxShadow: {
+              'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.05)',
+              'glass-hover': '0 12px 40px 0 rgba(0, 0, 0, 0.10)',
+              'glow': '0 0 20px rgba(117, 130, 252, 0.3)',
+            }
+          }
+        }
+      }
+    </script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .glass-panel {
+          @apply bg-glass-surface backdrop-blur-2xl border border-glass-border shadow-glass transition-all duration-300;
+        }
+        .glass-card {
+          @apply bg-white/60 backdrop-blur-xl border border-white/50 shadow-sm transition-all duration-300 hover:bg-white/80 hover:shadow-glass-hover hover:-translate-y-1 hover:border-white/80;
+        }
+        .text-gradient {
+          @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+        }
+        .glass-button {
+          @apply bg-white/20 hover:bg-white/40 border border-white/30 backdrop-blur-md transition-all duration-200 active:scale-95;
+        }
+        /* CRITICAL FOR PDF: Avoid splitting items across pages */
+        .pdf-item {
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+        /* Beautiful custom-styled bullet lists inside all compiled resume templates */
+        [id^="resume-preview"] ul, .resume-preview ul {
+          list-style-type: disc !important;
+          margin-left: 1.25rem !important;
+          padding-left: 0.25rem !important;
+          margin-top: 0.35rem !important;
+          margin-bottom: 0.35rem !important;
+        }
+        [id^="resume-preview"] ol, .resume-preview ol {
+          list-style-type: decimal !important;
+          margin-left: 1.25rem !important;
+          padding-left: 0.25rem !important;
+          margin-top: 0.35rem !important;
+          margin-bottom: 0.35rem !important;
+        }
+        [id^="resume-preview"] li, .resume-preview li {
+          margin-bottom: 0.25rem !important;
+          line-height: 1.5 !important;
+          display: list-item !important;
+        }
+        /* Ensure responsive grid stability for internal resume text headers */
+        [id^="resume-preview"] h1, [id^="resume-preview"] h2, [id^="resume-preview"] h3 {
+          letter-spacing: -0.015em;
+          line-height: 1.25;
+        }
+      }
+      body {
+        /* Organic Gradient Background */
+        background: 
+          radial-gradient(at 0% 0%, hsla(176, 60%, 85%, 1) 0, transparent 50%), 
+          radial-gradient(at 100% 0%, hsla(245, 60%, 90%, 1) 0, transparent 50%), 
+          radial-gradient(at 100% 100%, hsla(176, 60%, 90%, 1) 0, transparent 50%), 
+          radial-gradient(at 0% 100%, hsla(245, 60%, 85%, 1) 0, transparent 50%),
+          #f8fafc;
+        background-attachment: fixed;
+        min-height: 100vh;
+      }
+      /* Hide scrollbar for clean UI but keep functionality */
+      .no-scrollbar::-webkit-scrollbar {
+          display: none;
+      }
+      .no-scrollbar {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+      }
+      /* Custom Scrollbar for content areas */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: rgba(0,0,0,0.1);
+        border-radius: 20px;
+      }
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+      }
+      @keyframes marquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+      }
+      .animate-marquee {
+        animation: marquee 32s linear infinite;
+      }
+      .animate-marquee:hover {
+        animation-play-state: paused;
+      }
+      @keyframes shimmer-bar {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+      .animate-shimmer {
+        background: linear-gradient(90deg, #e2e8f0 25%, #bfdbfe 50%, #e2e8f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer-bar 2.2s ease-in-out infinite;
+      }
+      /* Warm ink-on-paper shimmer for the editorial landing page */
+      .animate-shimmer-warm {
+        background: linear-gradient(90deg, #E9E2D5 25%, #F0C9BC 50%, #E9E2D5 75%);
+        background-size: 200% 100%;
+        animation: shimmer-bar 2.2s ease-in-out infinite;
+      }
+      @keyframes blink-caret {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+      }
+      .animate-caret {
+        animation: blink-caret 1s step-end infinite;
+      }
+      .animate-float {
+        animation: float 6s ease-in-out infinite;
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* =========================================
+         EXPERT PRINT & HIGH-FIDELITY PDF STYLES
+         ========================================= */
+      @media print {
+        @page {
+          size: A4 portrait;
+          margin: 0; /* Erases all default browser headers, footers, page titles, and URLs */
+        }
+
+        html, body {
+          height: auto !important;
+          min-height: auto !important;
+          overflow: visible !important;
+          background: #ffffff !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
+
+        /* Completely hide standard interactive screen elements (sidebar, forms, buttons) */
+        #root, .fixed, .absolute, button, nav, header, footer, .glass-panel, [id="profile-integration-block"], [id="hydrate-resume-action"] {
+          display: none !important;
+          visibility: hidden !important;
+        }
+
+        body > *:not(#print-resume-container) {
+          display: none !important;
+        }
+
+        /* Ensure the print container overrides parent hidden styles */
+        #print-resume-container {
+          display: block !important;
+          visibility: visible !important;
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
+          width: 210mm !important; /* Exact A4 Width */
+          height: auto !important; /* Dynamically expands to contain multi-page text */
+          min-height: 297mm !important;
+          overflow: visible !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          z-index: 999999 !important;
+          background: #ffffff !important;
+          opacity: 1 !important;
+          pointer-events: auto !important;
+          transform: none !important;
+        }
+
+        #capture-root {
+          display: block !important;
+          visibility: visible !important;
+          width: 210mm !important;
+          height: auto !important;
+          min-height: 297mm !important;
+          overflow: visible !important;
+          background: #ffffff !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+
+        /* Enforce templates inside capture-root to expand infinitely and flow naturally */
+        #capture-root > div, [id^="resume-preview"], .resume-preview {
+          display: block !important;
+          visibility: visible !important;
+          width: 210mm !important; /* Ensure content scaling is exactly 1:1 on A4 paper */
+          min-height: 297mm !important;
+          height: auto !important; /* Allow growing naturally over page-breaks */
+          overflow: visible !important;
+          margin: 0 !important;
+          box-shadow: none !important;
+          border: none !important;
+          background: #ffffff !important;
+        }
+
+        /* Enforce exact background colors and graphics */
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
+
+        /* Prevent ugly page-breaks across critical sections (job, edu, projects) */
+        .break-inside-avoid, 
+        .pdf-item, 
+        section > div, 
+        section > p,
+        header,
+        section,
+        h2, h3, h4 {
+          break-inside: avoid-page !important;
+          page-break-inside: avoid !important;
+        }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.1",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "@tiptap/react": "https://aistudiocdn.com/@tiptap/react@^3.10.7",
+    "@tiptap/starter-kit": "https://aistudiocdn.com/@tiptap/starter-kit@^3.10.7",
+    "@tiptap/extension-underline": "https://aistudiocdn.com/@tiptap/extension-underline@^3.10.7",
+    "@tiptap/extension-placeholder": "https://aistudiocdn.com/@tiptap/extension-placeholder@^3.10.7",
+    "@tiptap/extension-list-keymap": "https://aistudiocdn.com/@tiptap/extension-list-keymap@^3.10.7"
+  }
+}
+</script>
+</head>
+  <body class="font-sans text-dark antialiased selection:bg-primary/20 selection:text-primary-dark">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
