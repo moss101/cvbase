@@ -1,25 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import type { ResumeData, JobApplication, JobStatus } from '../types';
 import mammoth from 'mammoth';
-import { 
-  analyzeJobScanMatch, 
-  optimizeLinkedInProfile, 
-  optimizeCoverLetter, 
+import {
+  optimizeLinkedInProfile,
+  optimizeCoverLetter,
   analyzeCareerTrajectory,
   parsePdfFileWithAi,
-  ResumeMatchResult, 
-  LinkedInOptimizeResult, 
+  ResumeMatchResult,
+  LinkedInOptimizeResult,
   CoverLetterOptimizeResult,
   CareerTrajectoryResult
 } from '../services/smartStudioService';
 import { useAuth } from './AuthProvider';
 import * as trackerRepo from '../services/repos/trackerRepo';
+import { callFn } from '../services/api';
+import type { AtsReport } from '../lib/ats';
 
 interface SmartStudioProps {
   resumeData?: ResumeData | null;
 }
 
 const SMART_STUDIO_JOBS_KEY = 'smart-studio-jobs-v1';
+
+// Map the deterministic AtsReport (from the metered ats-analyze function) into
+// the match tab's ResumeMatchResult shape. Replaces the deleted AI JobScan mock.
+function reportToMatch(report: AtsReport): ResumeMatchResult {
+  const check = (kw: RegExp) => {
+    const c = report.formatChecks.find((fc) => kw.test(fc.id) || kw.test(fc.label));
+    return c ? { pass: c.status === 'pass', feedback: c.detail } : { pass: true, feedback: 'Looks good.' };
+  };
+  return {
+    matchScore: Math.round(report.matchScore ?? report.atsScore),
+    matchingKeywords: report.matchedKeywords.map((k) => k.term),
+    missingKeywords: report.missingKeywords.map((k) => k.term),
+    roleCompatibility: report.roleFit?.verdict ?? 'Add a job description to see role alignment.',
+    improvedBullets: report.recommendations.slice(0, 5).map((r) => `${r.title}: ${r.detail}`),
+    formattingAnalysis: {
+      contactInfo: check(/contact/i),
+      education: check(/education|degree/i),
+      sectionNameComplexity: check(/section|header|heading/i),
+      quantificationRate: check(/quantif|metric|number/i),
+    },
+  };
+}
 
 export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
   // Navigation tabs of Smart Studio
@@ -341,8 +364,13 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
         skills: resumeText.match(/skills|expert|toolkit:\s*([^\n]+)/gi)?.[0]?.split(',') || []
       };
       
-      const result = await analyzeJobScanMatch(payload, targetJobDescription);
-      setMatchResult(result);
+      // Real, deterministic match via the server (metered ats-analyze) — replaces
+      // the deleted AI JobScan mock that returned identical canned data to everyone.
+      const { report } = await callFn<{ report: AtsReport }>('ats-analyze', {
+        resumeData: payload,
+        jobDescription: targetJobDescription,
+      });
+      setMatchResult(reportToMatch(report));
     } catch (e) {
       console.error(e);
     } finally {
