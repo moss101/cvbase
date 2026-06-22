@@ -12,19 +12,38 @@ export const ANTI_HALLUCINATION =
   'clearly-marked placeholder like [X], [ADD METRIC], or [COMPANY] — never invent specific ' +
   'facts. Keep output truthful, concise, and ATS-friendly.';
 
+/** Retry transient Gemini errors (503 high-demand, 429 rate limit) with backoff. */
+async function withRetry<T>(fn: () => Promise<T>, tries = 3): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < tries; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+      const msg = String((e as { message?: string })?.message ?? e);
+      const transient = /\b(503|429)\b|UNAVAILABLE|high demand|RESOURCE_EXHAUSTED|overloaded/i.test(msg);
+      if (!transient || i === tries - 1) throw e;
+      await new Promise((r) => setTimeout(r, 800 * (i + 1)));
+    }
+  }
+  throw lastErr;
+}
+
 /** Generate text (optionally JSON-schema-constrained). Returns the raw text. */
 export async function geminiText(
   prompt: string,
   opts: { model?: string; schema?: unknown; system?: string } = {},
 ): Promise<string> {
-  const res = await ai.models.generateContent({
-    model: opts.model ?? TEXT_MODEL,
-    contents: prompt,
-    config: {
-      systemInstruction: opts.system ?? ANTI_HALLUCINATION,
-      ...(opts.schema ? { responseMimeType: 'application/json', responseSchema: opts.schema } : {}),
-    },
-  });
+  const res = await withRetry(() =>
+    ai.models.generateContent({
+      model: opts.model ?? TEXT_MODEL,
+      contents: prompt,
+      config: {
+        systemInstruction: opts.system ?? ANTI_HALLUCINATION,
+        ...(opts.schema ? { responseMimeType: 'application/json', responseSchema: opts.schema } : {}),
+      },
+    }),
+  );
   return res.text ?? '';
 }
 
@@ -36,11 +55,13 @@ export async function geminiJson<T = unknown>(prompt: string, schema?: unknown, 
 
 /** Image-to-image (headshot). Returns base64 image data, or '' if none. */
 export async function geminiImage(prompt: string, imageBase64: string, mimeType: string): Promise<string> {
-  const res = await ai.models.generateContent({
-    model: IMAGE_MODEL,
-    contents: [{ role: 'user', parts: [{ inlineData: { data: imageBase64, mimeType } }, { text: prompt }] }],
-    config: { responseModalities: ['IMAGE'] },
-  });
+  const res = await withRetry(() =>
+    ai.models.generateContent({
+      model: IMAGE_MODEL,
+      contents: [{ role: 'user', parts: [{ inlineData: { data: imageBase64, mimeType } }, { text: prompt }] }],
+      config: { responseModalities: ['IMAGE'] },
+    }),
+  );
   const parts = res.candidates?.[0]?.content?.parts ?? [];
   for (const p of parts) if (p.inlineData?.data) return p.inlineData.data as string;
   return '';
@@ -53,9 +74,11 @@ export async function geminiFromFile(
   prompt: string,
   model: string = TEXT_MODEL,
 ): Promise<string> {
-  const res = await ai.models.generateContent({
-    model,
-    contents: [{ role: 'user', parts: [{ inlineData: { data: base64Data, mimeType } }, { text: prompt }] }],
-  });
+  const res = await withRetry(() =>
+    ai.models.generateContent({
+      model,
+      contents: [{ role: 'user', parts: [{ inlineData: { data: base64Data, mimeType } }, { text: prompt }] }],
+    }),
+  );
   return res.text ?? '';
 }
