@@ -284,6 +284,11 @@ enabled = false
 # Obtain from https://clerk.com/setup/supabase
 # domain = "example.clerk.accounts.dev"
 
+[functions.stripe-webhook]
+# Stripe calls this endpoint without a Supabase JWT; it authenticates via the
+# Stripe webhook signature instead.
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 # Configure one of the supported request policies: `oneshot`, `per_worker`.
