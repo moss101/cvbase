@@ -7,7 +7,7 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
-  const { signInWithEmail, signUpWithEmail, signInWithGoogle, loading, error, clearError } = useAuth();
+  const { signInWithEmail, signUpWithEmail, signInWithGoogle, resetPassword, loading, error, clearError } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,8 +15,32 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [verificationSent, setVerificationSent] = useState(false);
 
   if (!isOpen) return null;
+
+  if (verificationSent) {
+    return (
+      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 p-8 text-center">
+          <div className="inline-flex w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-2xl items-center justify-center shadow-lg mb-4">
+            <span className="material-symbols-outlined text-white text-2xl">mark_email_read</span>
+          </div>
+          <h2 className="text-2xl font-black text-slate-800 tracking-tight">Verify your email</h2>
+          <p className="text-slate-500 text-sm mt-2">
+            We sent a confirmation link to <strong>{email}</strong>. Click it to activate
+            your account, then sign in.
+          </p>
+          <button
+            onClick={() => { setVerificationSent(false); setIsSignUp(false); onClose(); }}
+            className="mt-6 w-full py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/25 hover:bg-primary-dark transition-all"
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,13 +70,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
     try {
       if (isSignUp) {
-        await signUpWithEmail(email, password, firstName, lastName);
+        const { needsEmailVerification } = await signUpWithEmail(email, password, firstName, lastName);
+        if (needsEmailVerification) { setVerificationSent(true); return; }
+        onClose();
       } else {
         await signInWithEmail(email, password);
+        onClose();
       }
-      onClose();
-    } catch (err: any) {
-      // Handled by context, but we can capture specific errors if needed
+    } catch (err) {
+      // Error surfaced via context `error`.
     }
   };
 
@@ -159,7 +185,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 <div className="flex justify-end mt-1">
                   <button 
                     type="button" 
-                    onClick={() => alert("Password reset is managed in your Firebase console. Simply enable the provider and trigger reset from your login sequence.")}
+                    onClick={async () => {
+                      if (!email) { setFormError('Enter your email above first, then click Forgot Password.'); return; }
+                      setFormError(null); clearError();
+                      try { await resetPassword(email); setFormError('Password reset link sent — check your email.'); }
+                      catch { /* error surfaced via context */ }
+                    }}
                     className="text-[11px] text-slate-400 hover:text-primary font-semibold"
                   >
                     Forgot Password?
@@ -233,7 +264,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         <div className="bg-slate-50 p-4 border-t border-slate-100 flex items-start gap-2.5">
           <span className="material-symbols-outlined text-slate-400 text-sm mt-0.5 shrink-0">info</span>
           <p className="text-[10px] text-slate-500 leading-normal font-medium">
-            <strong>Note:</strong> If authenticating via Email/Password for the first time, navigate to your Firebase Console under Authentication &gt; Sign-In Method to activate the Email/Password Auth Provider.
+            <strong>Note:</strong> New accounts require email verification. After signing up, check your inbox for a confirmation link before signing in.
           </p>
         </div>
       </div>
