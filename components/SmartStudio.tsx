@@ -12,6 +12,8 @@ import {
   CoverLetterOptimizeResult,
   CareerTrajectoryResult
 } from '../services/smartStudioService';
+import { useAuth } from './AuthProvider';
+import * as trackerRepo from '../services/repos/trackerRepo';
 
 interface SmartStudioProps {
   resumeData?: ResumeData | null;
@@ -206,24 +208,57 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
   const [newJobUrl, setNewJobUrl] = useState("");
   const [newJobNotes, setNewJobNotes] = useState("");
   const [showAddJobModal, setShowAddJobModal] = useState(false);
+  const { user } = useAuth();
 
-  // Load and Save Jobs Tracker from localStorage
+  // Load the tracker: authenticated users from Postgres (with a one-time import
+  // of any existing localStorage jobs); anonymous users from localStorage as before.
   useEffect(() => {
-    const rawJobs = localStorage.getItem(SMART_STUDIO_JOBS_KEY);
-    if (rawJobs) {
-      try {
-        setJobs(JSON.parse(rawJobs));
-      } catch (e) {
-        initializeDefaultJobs();
+    let cancelled = false;
+    (async () => {
+      if (user) {
+        try {
+          const cloud = await trackerRepo.list(user.id);
+          if (cancelled) return;
+          if (cloud.length > 0) { setJobs(cloud); return; }
+          const raw = localStorage.getItem(SMART_STUDIO_JOBS_KEY);
+          if (raw) {
+            const local: JobApplication[] = JSON.parse(raw);
+            const imported = local.map((j) => ({ ...j, id: crypto.randomUUID() }));
+            await Promise.all(imported.map((j) => trackerRepo.upsert(user.id, j)));
+            if (!cancelled) setJobs(imported);
+          } else if (!cancelled) {
+            setJobs([]);
+          }
+        } catch (e) {
+          console.error('Tracker cloud load failed', e);
+        }
+      } else {
+        const rawJobs = localStorage.getItem(SMART_STUDIO_JOBS_KEY);
+        if (rawJobs) {
+          try { setJobs(JSON.parse(rawJobs)); } catch (e) { initializeDefaultJobs(); }
+        } else {
+          initializeDefaultJobs();
+        }
       }
-    } else {
-      initializeDefaultJobs();
-    }
-  }, []);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
+  // Persist a full jobs array. Authenticated: reconcile Postgres (upsert all,
+  // delete removed). Anonymous: localStorage as before.
   const saveJobs = (updatedJobs: JobApplication[]) => {
+    const prev = jobs;
     setJobs(updatedJobs);
-    localStorage.setItem(SMART_STUDIO_JOBS_KEY, JSON.stringify(updatedJobs));
+    if (user) {
+      const nextIds = new Set(updatedJobs.map((j) => j.id));
+      Promise.all([
+        ...updatedJobs.map((j) => trackerRepo.upsert(user.id, j)),
+        ...prev.filter((j) => !nextIds.has(j.id)).map((j) => trackerRepo.remove(user.id, j.id)),
+      ]).catch((e) => console.error('Tracker cloud sync failed', e));
+    } else {
+      localStorage.setItem(SMART_STUDIO_JOBS_KEY, JSON.stringify(updatedJobs));
+    }
   };
 
   const initializeDefaultJobs = () => {
@@ -263,7 +298,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
     e.preventDefault();
     if (!newJobTitle.trim() || !newJobCompany.trim()) return;
     const item: JobApplication = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       jobTitle: newJobTitle,
       company: newJobCompany,
       jobUrl: newJobUrl,
