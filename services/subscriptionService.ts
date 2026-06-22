@@ -1,5 +1,3 @@
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { db } from './firebase';
 import type {
     BillingCycle,
     BillingState,
@@ -312,19 +310,13 @@ export const saveBillingState = (uid: string | null, state: BillingState): void 
     } catch {
         /* storage unavailable — state stays in memory */
     }
-    if (uid) {
-        // Best-effort cloud sync; rules may not be deployed everywhere.
-        setDoc(doc(db, 'users', uid, 'billing', 'state'), state as any).catch(() => {});
-    }
+    // Cloud billing sync removed with Firebase. Real subscription state will live
+    // in the Postgres `subscriptions` table (written by the Stripe webhook in W4).
 };
 
 export const fetchCloudBillingState = async (uid: string): Promise<BillingState | null> => {
-    try {
-        const snap = await getDoc(doc(db, 'users', uid, 'billing', 'state'));
-        if (snap.exists()) return reconcile(snap.data() as BillingState);
-    } catch {
-        /* offline or rules not deployed */
-    }
+    // No cloud billing store until W4 (Stripe -> Postgres `subscriptions`).
+    // Simulated billing is localStorage-only; callers fall back to local state.
     return null;
 };
 
