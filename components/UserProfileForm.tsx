@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from './FirebaseProvider';
+import { useAuth } from './AuthProvider';
 
 export const UserProfileForm: React.FC = () => {
   const { user, userProfile, updateUserProfile, loading, error } = useAuth();

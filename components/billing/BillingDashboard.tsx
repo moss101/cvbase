@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSubscription } from '../SubscriptionProvider';
-import { useAuth } from '../FirebaseProvider';
+import { useAuth } from '../AuthProvider';
 import {
     getPlan,
     formatMoney,

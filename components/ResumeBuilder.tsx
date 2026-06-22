@@ -14,7 +14,7 @@ import LanguagesForm from './forms/LanguagesForm';
 import FinalizeForm from './forms/FinalizeForm';
 import AIActionModal from './AIActionModal';
 import { exampleData } from '../exampleData';
-import { useAuth } from './FirebaseProvider';
+import { useAuth } from './AuthProvider';
 import AtsChecker from './AtsChecker';
 import AwardsForm from './forms/AwardsForm';
 import TrainingsForm from './forms/TrainingsForm';

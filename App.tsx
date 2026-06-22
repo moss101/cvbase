@@ -10,7 +10,7 @@ import CheckoutPage from './components/billing/CheckoutPage';
 import { exampleData } from './exampleData';
 import type { TemplateId, PlanId, BillingCycle } from './types';
 import { TranslationProvider } from './services/translationService';
-import { AuthProvider } from './components/FirebaseProvider';
+import { AuthProvider } from './components/AuthProvider';
 import { SubscriptionProvider } from './components/SubscriptionProvider';
 import type { DashboardTab } from './components/Dashboard';
 

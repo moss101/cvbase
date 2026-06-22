@@ -10,7 +10,7 @@ import {
     type PromoCode,
 } from '../../services/subscriptionService';
 import { useSubscription } from '../SubscriptionProvider';
-import { useAuth } from '../FirebaseProvider';
+import { useAuth } from '../AuthProvider';
 
 interface CheckoutPageProps {
     planId: PlanId;

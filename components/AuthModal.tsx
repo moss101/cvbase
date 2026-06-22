@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from './FirebaseProvider';
+import { useAuth } from './AuthProvider';
 
 interface AuthModalProps {
   isOpen: boolean;

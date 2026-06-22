@@ -4,7 +4,7 @@ import { DocumentIcon, HomeIcon, TemplateIcon, SparklesIcon } from './common/ico
 import { AVAILABLE_TEMPLATES } from '../constants';
 import type { ResumeData, TemplateId, SectionId, ResumeSettings } from '../types';
 import { exampleData } from '../exampleData';
-import { useAuth } from './FirebaseProvider';
+import { useAuth } from './AuthProvider';
 import { AuthModal } from './AuthModal';
 import { UserProfileForm } from './UserProfileForm';
 import { SmartStudio } from './SmartStudio';

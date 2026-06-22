@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { useAuth } from './FirebaseProvider';
+import { useAuth } from './AuthProvider';
 import type { BillingState, Plan, PlanId, BillingCycle } from '../types';
 import {
     PLANS,
@@ -43,7 +43,7 @@ export const useSubscription = () => {
 
 export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user } = useAuth();
-    const uid = user?.uid || null;
+    const uid = user?.id || null;
     const [billing, setBilling] = useState<BillingState>(() => loadBillingState(null));
 
     // Reload when the signed-in user changes; prefer the freshest copy from the cloud.
