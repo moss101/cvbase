@@ -15,6 +15,7 @@ import FinalizeForm from './forms/FinalizeForm';
 import AIActionModal from './AIActionModal';
 import { exampleData } from '../exampleData';
 import { useAuth } from './AuthProvider';
+import * as resumeRepo from '../services/repos/resumeRepo';
 import AtsChecker from './AtsChecker';
 import AwardsForm from './forms/AwardsForm';
 import TrainingsForm from './forms/TrainingsForm';
@@ -247,6 +248,7 @@ interface ResumeBuilderProps {
 const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
     const { user, userProfile } = useAuth();
     const [isHydrated, setIsHydrated] = useState(false);
+    const [cloudLoaded, setCloudLoaded] = useState(false);
     const [activeSection, setActiveSection] = useState<SectionId>(loadActiveSection);
     const [formData, setFormData] = useState<ResumeData>(loadState);
     const [visibleSections, setVisibleSections] = useState<SectionId[]>(loadVisibleSections);
@@ -434,7 +436,43 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
         }
     }, [activeSection]);
 
-    // Unified auto-save effect triggered on any edits/changes to resume data or presentation parameters
+    // One-time cloud hydration: when authenticated, load the primary resume from
+    // Postgres (source of truth). On first sign-in (no cloud row yet) import the
+    // current localStorage-derived resume. `cloudLoaded` gates the cloud auto-save
+    // below so we never push INITIAL_STATE over real cloud data on a fresh device.
+    useEffect(() => {
+        if (!user) { setCloudLoaded(false); return; }
+        let cancelled = false;
+        (async () => {
+            try {
+                const cloud = await resumeRepo.getPrimary(user.id);
+                if (cancelled) return;
+                if (cloud) {
+                    setFormData({ ...INITIAL_STATE, ...cloud.data });
+                    if (cloud.visibleSections.length) setVisibleSections(cloud.visibleSections);
+                    if (cloud.settings && Object.keys(cloud.settings).length) {
+                        setSettings({ ...INITIAL_SETTINGS, ...cloud.settings });
+                    }
+                    if (cloud.templateId) setSelectedTemplate(cloud.templateId as TemplateId);
+                } else {
+                    await resumeRepo.upsertPrimary(user.id, {
+                        title: 'My Resume', data: formData, settings,
+                        visibleSections, templateId: selectedTemplate, isPrimary: true,
+                    });
+                }
+            } catch (err) {
+                console.error('Cloud resume load failed; using local copy', err);
+            } finally {
+                if (!cancelled) setCloudLoaded(true);
+            }
+        })();
+        return () => { cancelled = true; };
+        // Runs only when the authenticated user changes (import uses the loaded local copy).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user]);
+
+    // Unified auto-save: localStorage cache always (instant + anonymous source of
+    // truth); when authenticated and hydrated, debounce a write to Postgres.
     useEffect(() => {
         setSaveState('saving');
         try {
@@ -442,18 +480,30 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
             localStorage.setItem('cvbase-visible-sections', JSON.stringify(visibleSections));
             localStorage.setItem('cvbase-settings', JSON.stringify(settings));
             localStorage.setItem('cvbase-selected-template', selectedTemplate);
-            
-            const timer = setTimeout(() => {
-                setSaveState('saved');
-                const resetTimer = setTimeout(() => setSaveState('idle'), 1500);
-                return () => clearTimeout(resetTimer);
-            }, 300);
-             return () => clearTimeout(timer);
         } catch (err) {
             console.error("Could not save state to local storage", err);
-            setSaveState('idle');
         }
-    }, [formData, visibleSections, settings, selectedTemplate]);
+
+        let cloudTimer: ReturnType<typeof setTimeout> | null = null;
+        if (user && cloudLoaded) {
+            cloudTimer = setTimeout(() => {
+                resumeRepo.upsertPrimary(user.id, {
+                    title: 'My Resume', data: formData, settings,
+                    visibleSections, templateId: selectedTemplate, isPrimary: true,
+                }).catch((err) => console.error('Cloud save failed', err));
+            }, 600);
+        }
+
+        const timer = setTimeout(() => {
+            setSaveState('saved');
+            const resetTimer = setTimeout(() => setSaveState('idle'), 1500);
+            return () => clearTimeout(resetTimer);
+        }, 300);
+        return () => {
+            clearTimeout(timer);
+            if (cloudTimer) clearTimeout(cloudTimer);
+        };
+    }, [formData, visibleSections, settings, selectedTemplate, user, cloudLoaded]);
 
     const handleLoadExample = useCallback(() => {
         if (window.confirm("Are you sure you want to load the example data? This will overwrite your current progress.")) {
