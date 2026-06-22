@@ -39,8 +39,23 @@ export async function geminiImage(prompt: string, imageBase64: string, mimeType:
   const res = await ai.models.generateContent({
     model: IMAGE_MODEL,
     contents: [{ role: 'user', parts: [{ inlineData: { data: imageBase64, mimeType } }, { text: prompt }] }],
+    config: { responseModalities: ['IMAGE'] },
   });
   const parts = res.candidates?.[0]?.content?.parts ?? [];
   for (const p of parts) if (p.inlineData?.data) return p.inlineData.data as string;
   return '';
+}
+
+/** Extract text from an inline document/image (e.g. an image-only PDF). */
+export async function geminiFromFile(
+  base64Data: string,
+  mimeType: string,
+  prompt: string,
+  model: string = TEXT_MODEL,
+): Promise<string> {
+  const res = await ai.models.generateContent({
+    model,
+    contents: [{ role: 'user', parts: [{ inlineData: { data: base64Data, mimeType } }, { text: prompt }] }],
+  });
+  return res.text ?? '';
 }
