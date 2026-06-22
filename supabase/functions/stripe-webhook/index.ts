@@ -30,7 +30,10 @@ Deno.serve(async (req) => {
   }
 
   const svc = serviceClient();
-  const upsert = (row: Record<string, unknown>) => svc.from('subscriptions').upsert(row, { onConflict: 'user_id' });
+  const upsert = async (row: Record<string, unknown>) => {
+    const { error } = await svc.from('subscriptions').upsert(row, { onConflict: 'user_id' });
+    if (error) throw error; // -> 500 so Stripe retries instead of silently dropping the update
+  };
   try {
     if (event.type === 'checkout.session.completed') {
       const s = event.data.object as Record<string, any>;
