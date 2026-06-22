@@ -14,28 +14,31 @@ fail=0
 ok()  { echo "PASS: $1"; }
 bad() { echo "FAIL: $1"; fail=1; }
 
-mkuser() {  # $1=email -> echoes an access_token for a confirmed user
-  local email="$1" uid
-  curl -s -X POST "$API/auth/v1/signup" -H "apikey: $ANON_KEY" -H "Content-Type: application/json" \
-    -d "{\"email\":\"$email\",\"password\":\"test123456\"}" >/dev/null
-  uid=$(psql "$PSQL" -tA -c "select id from auth.users where email='$email';")
-  curl -s -X PUT "$API/auth/v1/admin/users/$uid" -H "apikey: $SERVICE_ROLE_KEY" \
+mkuser() {  # $1=email -> echoes an access_token for a pre-confirmed user
+  # Admin-create (already confirmed) to avoid the confirmation-email rate limit.
+  curl -s -X POST "$API/auth/v1/admin/users" -H "apikey: $SERVICE_ROLE_KEY" \
     -H "Authorization: Bearer $SERVICE_ROLE_KEY" -H "Content-Type: application/json" \
-    -d '{"email_confirm":true}' >/dev/null
+    -d "{\"email\":\"$1\",\"password\":\"test123456\",\"email_confirm\":true}" >/dev/null
   curl -s -X POST "$API/auth/v1/token?grant_type=password" -H "apikey: $ANON_KEY" \
-    -H "Content-Type: application/json" -d "{\"email\":\"$email\",\"password\":\"test123456\"}" \
+    -H "Content-Type: application/json" -d "{\"email\":\"$1\",\"password\":\"test123456\"}" \
     | python3 -c "import sys,json;print(json.load(sys.stdin).get('access_token',''))"
 }
 
-EA="rlsA${S}@example.com"; EB="rlsB${S}@example.com"
+# Clear any leftover rls* test users from earlier interrupted runs.
+psql "$PSQL" -tA -c "delete from auth.users where email like 'rls%@example.com';" >/dev/null 2>&1 || true
+
+# lowercase prefixes: GoTrue stores emails lowercased, so SQL uid lookups must match.
+EA="rlsa${S}@example.com"; EB="rlsb${S}@example.com"
 TA=$(mkuser "$EA"); TB=$(mkuser "$EB")
 { [ -n "$TA" ] && [ -n "$TB" ]; } && ok "two confirmed users + tokens" || bad "could not create users/tokens"
+UIDA=$(psql "$PSQL" -tA -c "select id from auth.users where email='$EA';")
+UIDB=$(psql "$PSQL" -tA -c "select id from auth.users where email='$EB';")
 
-# Each user inserts a resume + a job via their own JWT
-curl -s -X POST "$API/rest/v1/resumes" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $TA" -H "Content-Type: application/json" -H "Prefer: return=minimal" -d '{"title":"A resume","is_primary":true,"data":{"skills":["a"]}}' >/dev/null
-curl -s -X POST "$API/rest/v1/job_applications" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $TA" -H "Content-Type: application/json" -H "Prefer: return=minimal" -d '{"company":"AcmeA","role":"RN","status":"applied"}' >/dev/null
-curl -s -X POST "$API/rest/v1/resumes" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $TB" -H "Content-Type: application/json" -H "Prefer: return=minimal" -d '{"title":"B resume","is_primary":true}' >/dev/null
-curl -s -X POST "$API/rest/v1/job_applications" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $TB" -H "Content-Type: application/json" -H "Prefer: return=minimal" -d '{"company":"AcmeB","role":"MD","status":"offer"}' >/dev/null
+# Each user inserts a resume + a job via their own JWT (user_id set as the repos do)
+curl -s -X POST "$API/rest/v1/resumes" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $TA" -H "Content-Type: application/json" -H "Prefer: return=minimal" -d "{\"user_id\":\"$UIDA\",\"title\":\"A resume\",\"is_primary\":true,\"data\":{\"skills\":[\"a\"]}}" >/dev/null
+curl -s -X POST "$API/rest/v1/job_applications" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $TA" -H "Content-Type: application/json" -H "Prefer: return=minimal" -d "{\"user_id\":\"$UIDA\",\"company\":\"AcmeA\",\"role\":\"RN\",\"status\":\"applied\"}" >/dev/null
+curl -s -X POST "$API/rest/v1/resumes" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $TB" -H "Content-Type: application/json" -H "Prefer: return=minimal" -d "{\"user_id\":\"$UIDB\",\"title\":\"B resume\",\"is_primary\":true}" >/dev/null
+curl -s -X POST "$API/rest/v1/job_applications" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $TB" -H "Content-Type: application/json" -H "Prefer: return=minimal" -d "{\"user_id\":\"$UIDB\",\"company\":\"AcmeB\",\"role\":\"MD\",\"status\":\"offer\"}" >/dev/null
 
 # A reads only its own rows
 RA=$(curl -s "$API/rest/v1/resumes?select=title" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $TA" | python3 -c "import sys,json;d=json.load(sys.stdin);print(len(d),d[0]['title'] if d else '')")
