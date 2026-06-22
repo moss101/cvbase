@@ -40,7 +40,8 @@ Deno.serve(async (req) => {
     const signed = await svc.storage.from('headshots').createSignedUrl(path, 3600);
 
     await logAi(user.id, { function: 'ai-headshot', model: 'gemini-2.5-flash-image', status: 'ok' });
-    return ok({ path, signedUrl: signed.data?.signedUrl ?? null });
+    // Return base64 for immediate use as a data URL; path/signedUrl reference the stored copy.
+    return ok({ imageBase64: outB64, path, signedUrl: signed.data?.signedUrl ?? null });
   } catch (err) {
     if (userId) await logAi(userId, { function: 'ai-headshot', model: 'gemini-2.5-flash-image', status: 'error' });
     return fail(err);
