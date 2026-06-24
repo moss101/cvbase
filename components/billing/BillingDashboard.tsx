@@ -48,7 +48,7 @@ const STATUS_CHIP: Record<string, string> = {
 };
 
 const BillingDashboard: React.FC<BillingDashboardProps> = ({ onChangePlan }) => {
-    const { billing, plan, cancel, resume, removeMethod, setDefaultMethod } = useSubscription();
+    const { billing, plan, openPortal } = useSubscription();
     const { user, userProfile } = useAuth();
     const [confirmCancel, setConfirmCancel] = useState(false);
 
@@ -125,7 +125,7 @@ const BillingDashboard: React.FC<BillingDashboardProps> = ({ onChangePlan }) => 
                             <span className="flex items-center gap-2"><span className="material-symbols-outlined text-base">schedule</span>
                                 Scheduled: switching to <strong>{pendingPlan.name}</strong> on {fmtDate(sub.currentPeriodEnd)}.
                             </span>
-                            <button onClick={resume} className="text-xs font-bold text-amber-700 hover:underline shrink-0">Keep {plan.name}</button>
+                            <button onClick={openPortal} className="text-xs font-bold text-amber-700 hover:underline shrink-0">Keep {plan.name}</button>
                         </div>
                     )}
                     {sub.cancelAtPeriodEnd && (
@@ -133,7 +133,7 @@ const BillingDashboard: React.FC<BillingDashboardProps> = ({ onChangePlan }) => 
                             <span className="flex items-center gap-2"><span className="material-symbols-outlined text-base">info</span>
                                 Your plan is set to cancel. You keep {plan.name} features until {fmtDate(sub.currentPeriodEnd)}.
                             </span>
-                            <button onClick={resume} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition shrink-0">Resume plan</button>
+                            <button onClick={openPortal} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition shrink-0">Resume plan</button>
                         </div>
                     )}
 
@@ -148,7 +148,7 @@ const BillingDashboard: React.FC<BillingDashboardProps> = ({ onChangePlan }) => 
                             confirmCancel ? (
                                 <span className="flex items-center gap-2 text-sm">
                                     <span className={isFree ? 'text-gray-600' : 'text-slate-300'}>Cancel at period end?</span>
-                                    <button onClick={() => { cancel(); setConfirmCancel(false); }} className="px-3 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition">Yes, cancel</button>
+                                    <button onClick={() => { openPortal(); setConfirmCancel(false); }} className="px-3 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition">Yes, cancel</button>
                                     <button onClick={() => setConfirmCancel(false)} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${isFree ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-white/10 text-white hover:bg-white/20'}`}>Keep plan</button>
                                 </span>
                             ) : (
@@ -202,9 +202,9 @@ const BillingDashboard: React.FC<BillingDashboardProps> = ({ onChangePlan }) => 
                                         {m.isDefault ? (
                                             <span className="text-[10px] font-extrabold uppercase tracking-wide bg-primary/10 text-primary px-2 py-1 rounded-full">Default</span>
                                         ) : (
-                                            <button onClick={() => setDefaultMethod(m.id)} className="text-[11px] font-bold text-gray-400 hover:text-primary transition px-1.5">Make default</button>
+                                            <button onClick={openPortal} className="text-[11px] font-bold text-gray-400 hover:text-primary transition px-1.5">Make default</button>
                                         )}
-                                        <button onClick={() => removeMethod(m.id)} className="text-gray-300 hover:text-rose-500 transition p-1" title="Remove card">
+                                        <button onClick={openPortal} className="text-gray-300 hover:text-rose-500 transition p-1" title="Remove card">
                                             <span className="material-symbols-outlined text-base">delete</span>
                                         </button>
                                     </div>

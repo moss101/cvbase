@@ -6,27 +6,21 @@ import Dashboard from './components/Dashboard';
 import HeadlessPreview from './components/HeadlessPreview';
 import ResourcesPage from './components/ResourcesPage';
 import PricingPage from './components/billing/PricingPage';
-import CheckoutPage from './components/billing/CheckoutPage';
 import { exampleData } from './exampleData';
-import type { TemplateId, PlanId, BillingCycle } from './types';
+import type { TemplateId } from './types';
 import { TranslationProvider } from './services/translationService';
 import { AuthProvider } from './components/AuthProvider';
-import { SubscriptionProvider } from './components/SubscriptionProvider';
+import { SubscriptionProvider, useSubscription } from './components/SubscriptionProvider';
 import type { DashboardTab } from './components/Dashboard';
 
-type ViewState = 'landing' | 'dashboard' | 'builder' | 'resources' | 'pricing' | 'checkout';
-
-interface CheckoutIntent {
-    planId: PlanId;
-    cycle: BillingCycle;
-}
+type ViewState = 'landing' | 'dashboard' | 'builder' | 'resources' | 'pricing';
 
 function AppContent() {
     const [currentView, setCurrentView] = useState<ViewState>('landing');
     const [prevView, setPrevView] = useState<ViewState>('landing');
     const [previewMode, setPreviewMode] = useState<{template: TemplateId} | null>(null);
-    const [checkoutIntent, setCheckoutIntent] = useState<CheckoutIntent | null>(null);
     const [dashboardTab, setDashboardTab] = useState<DashboardTab>('dashboard');
+    const { startCheckout } = useSubscription();
 
     useEffect(() => {
         // specific route for puppeteer automation
@@ -63,11 +57,6 @@ function AppContent() {
         navigate('dashboard');
     };
 
-    const startCheckout = (planId: PlanId, cycle: BillingCycle) => {
-        setCheckoutIntent({ planId, cycle });
-        navigate('checkout');
-    };
-
     // Render headless preview for screenshot generation
     if (previewMode) {
         return <HeadlessPreview templateId={previewMode.template} data={exampleData} />;
@@ -101,16 +90,9 @@ function AppContent() {
             ) : currentView === 'pricing' ? (
                 <PricingPage
                     standalone
-                    onBack={() => setCurrentView(prevView === 'checkout' ? 'dashboard' : prevView)}
+                    onBack={() => setCurrentView(prevView)}
                     onCheckout={startCheckout}
                     onManageBilling={() => openDashboard('billing')}
-                />
-            ) : currentView === 'checkout' && checkoutIntent ? (
-                <CheckoutPage
-                    planId={checkoutIntent.planId}
-                    cycle={checkoutIntent.cycle}
-                    onSuccess={() => openDashboard('billing')}
-                    onBack={() => setCurrentView('pricing')}
                 />
             ) : (
                 <ResumeBuilder onBack={handleBackToDashboard} />
