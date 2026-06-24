@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -38,7 +39,7 @@ const ErasmusTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                     {summary.professionalSummary && (
                         <section>
                             <h2 className="text-base font-bold uppercase tracking-wider mb-3 border-b-2 pb-1" style={{ color: headerColor, borderColor: `${headerColor}40` }}>Summary</h2>
-                            <div className="text-sm leading-7 text-gray-600 text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                            <div className="text-sm leading-7 text-gray-600 text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                         </section>
                     )}
 
@@ -53,7 +54,7 @@ const ErasmusTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                                             <span className="text-xs font-medium text-gray-400">{exp.startDate} - {exp.endDate}</span>
                                         </div>
                                         <p className="text-xs font-semibold mb-2" style={{ color: headerColor }}>{exp.company}</p>
-                                        <div className="text-sm leading-6 text-gray-600" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                        <div className="text-sm leading-6 text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -71,7 +72,7 @@ const ErasmusTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                                             <span className="text-xs font-medium text-gray-400">{item.startDate} - {item.endDate}</span>
                                         </div>
                                         <p className="text-xs italic mb-1" style={{ color: headerColor }}>{item.technologies}</p>
-                                        <div className="text-sm leading-6 text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-sm leading-6 text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -104,7 +105,7 @@ const ErasmusTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                                             <span className="text-xs font-medium text-gray-400">{item.startDate} - {item.endDate}</span>
                                         </div>
                                         <p className="text-xs font-semibold mb-2" style={{ color: headerColor }}>{item.organization}</p>
-                                        <div className="text-sm leading-6 text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-sm leading-6 text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -121,7 +122,7 @@ const ErasmusTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                                             <span className="text-xs font-medium text-gray-400">{item.date}</span>
                                         </div>
                                         <p className="text-xs font-semibold mb-2" style={{ color: headerColor }}>{item.subtitle}</p>
-                                        <div className="text-sm leading-6 text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-sm leading-6 text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>

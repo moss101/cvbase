@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -44,7 +45,7 @@ const TecAtsTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                             <span className="material-symbols-outlined mr-2 text-xl" style={{ color: themeColor }}>person</span>
                             <h3 className="font-bold text-gray-800 tracking-wider uppercase text-sm">Professional Summary</h3>
                         </div>
-                        <div className="text-sm leading-relaxed text-justify text-gray-600" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-sm leading-relaxed text-justify text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -86,7 +87,7 @@ const TecAtsTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                             <div>{job.location}</div>
                                         </div>
                                     </div>
-                                    <div className="text-xs leading-relaxed text-gray-600 mt-2 pl-2 border-l-2 border-gray-100" dangerouslySetInnerHTML={{ __html: job.description }} />
+                                    <div className="text-xs leading-relaxed text-gray-600 mt-2 pl-2 border-l-2 border-gray-100" dangerouslySetInnerHTML={{ __html: sanitizeHtml(job.description) }} />
                                 </div>
                             ))}
                         </div>

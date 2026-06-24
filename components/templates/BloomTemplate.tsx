@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -122,7 +123,7 @@ const BloomTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                      {summary.professionalSummary && (
                         <div className="bg-white p-6 rounded-2xl shadow-sm">
                             <h2 className="font-bold text-sm uppercase tracking-wide mb-3" style={{ color: primaryColor }}>About Me</h2>
-                            <div className="text-xs leading-relaxed text-gray-600 text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                            <div className="text-xs leading-relaxed text-gray-600 text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                         </div>
                     )}
 
@@ -143,7 +144,7 @@ const BloomTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                                 {exp.startDate} — {exp.endDate}
                                             </span>
                                         </div>
-                                        <div className="text-xs leading-relaxed text-gray-600 pl-1" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600 pl-1" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -163,7 +164,7 @@ const BloomTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                             <span className="text-gray-400 font-normal">{item.startDate} - {item.endDate}</span>
                                         </div>
                                         <p className="text-[9px] font-bold mb-2" style={{ color: primaryColor }}>{item.technologies}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -183,7 +184,7 @@ const BloomTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                             <span className="text-gray-400 font-normal">{item.date}</span>
                                         </div>
                                         <p className="text-[9px] font-bold mb-2" style={{ color: primaryColor }}>{item.institution}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -203,7 +204,7 @@ const BloomTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                             <span className="text-gray-400 font-normal">{item.date}</span>
                                         </div>
                                         <p className="text-[9px] font-bold mb-2" style={{ color: primaryColor }}>{item.publisher}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -223,7 +224,7 @@ const BloomTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                             <span className="text-gray-400 font-normal">{item.startDate} - {item.endDate}</span>
                                         </div>
                                         <p className="text-[9px] font-bold mb-2" style={{ color: primaryColor }}>{item.organization}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -243,7 +244,7 @@ const BloomTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                             <span className="text-gray-400 font-normal">{item.date}</span>
                                         </div>
                                         <p className="text-[9px] font-bold mb-2" style={{ color: primaryColor }}>{item.subtitle}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>

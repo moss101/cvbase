@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -128,7 +129,7 @@ const CreativeV2Template: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                 </header>
                  <section className="mb-6">
                     <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>badge</span>SUMMARY</h2>
-                    <div className="text-xs leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: summaryText }} />
+                    <div className="text-xs leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summaryText) }} />
                 </section>
                  <section className="mb-6">
                     <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>work</span>EXPERIENCE</h2>
@@ -140,7 +141,7 @@ const CreativeV2Template: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                                     <p className="text-xs text-gray-500">{exp.startDate} - {exp.endDate}</p>
                                 </div>
                                 <p className="text-xs font-semibold">{exp.company}, {exp.location}</p>
-                                <div className="mt-1 text-xs text-gray-600" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                <div className="mt-1 text-xs text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                             </div>
                         ))}
                     </div>
@@ -156,7 +157,7 @@ const CreativeV2Template: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                                         <p className="text-xs text-gray-500">{item.startDate} - {item.endDate}</p>
                                     </div>
                                     <p className="text-xs font-semibold">{item.technologies}</p>
-                                    <div className="mt-1 text-xs text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="mt-1 text-xs text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>

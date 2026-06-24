@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -33,7 +34,7 @@ const VogueTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                 
                 {summary.professionalSummary && (
                     <section className="text-center max-w-2xl mx-auto">
-                        <div className="text-xs leading-7 font-serif italic text-gray-700 text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-xs leading-7 font-serif italic text-gray-700 text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -49,7 +50,7 @@ const VogueTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                     </div>
                                     <div className="col-span-9 border-l border-gray-200 pl-6">
                                         <h3 className="font-serif font-bold text-sm mb-2 italic">{exp.jobTitle}</h3>
-                                        <div className="font-sans text-gray-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                        <div className="font-sans text-gray-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                     </div>
                                 </div>
                             ))}
@@ -65,7 +66,7 @@ const VogueTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                 <div key={item.id} className="text-center">
                                     <h3 className="font-bold text-sm uppercase tracking-wide mb-1 font-sans">{item.name}</h3>
                                     <p className="text-[9px] font-sans text-gray-400 mb-2">{item.technologies}</p>
-                                    <div className="font-serif text-xs text-gray-600 italic" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="font-serif text-xs text-gray-600 italic" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -135,7 +136,7 @@ const TechV2Template: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                     {summary.professionalSummary && (
                         <section>
                             <h2 className="text-lg font-bold uppercase tracking-wide text-gray-800 mb-3 border-b border-gray-200 pb-2">Professional Summary</h2>
-                            <div className="text-sm leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                            <div className="text-sm leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                         </section>
                     )}
 
@@ -161,7 +162,7 @@ const TechV2Template: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="text-sm leading-relaxed text-gray-600 pl-2" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                        <div className="text-sm leading-relaxed text-gray-600 pl-2" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -198,7 +199,7 @@ const TechV2Template: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                             <span className="text-xs text-gray-500">{item.startDate} – {item.endDate}</span>
                                         </div>
                                         <p className="text-xs font-semibold text-gray-500 italic mb-1">{item.technologies}</p>
-                                        <div className="text-sm leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-sm leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -248,7 +249,7 @@ const TechV2Template: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                             <span className="text-xs text-gray-500">{item.startDate} - {item.endDate}</span>
                                         </div>
                                         <p className="text-xs font-medium mb-1" style={{ color: accentColor }}>{item.organization}</p>
-                                        <div className="text-sm leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-sm leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>

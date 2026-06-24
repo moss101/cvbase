@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -33,7 +34,7 @@ const CompactTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
             {summary.professionalSummary && (
                 <section className="mb-5">
                     <h2 className="text-xs font-bold uppercase border-b border-gray-300 mb-2 pb-1" style={{ color: themeColor }}>Professional Summary</h2>
-                    <div className="text-justify text-gray-700" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                    <div className="text-justify text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                 </section>
             )}
 
@@ -64,7 +65,7 @@ const CompactTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                                     <span>{exp.company}</span>
                                     <span>{exp.location}</span>
                                 </div>
-                                <div className="text-gray-700 pl-1" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                <div className="text-gray-700 pl-1" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                             </div>
                         ))}
                     </div>
@@ -83,7 +84,7 @@ const CompactTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                                     <span className="text-gray-600 text-[0.9em] font-medium">{item.startDate} – {item.endDate}</span>
                                 </div>
                                 {item.technologies && <p className="text-[0.9em] text-gray-600 italic mb-0.5">Tech: {item.technologies}</p>}
-                                <div className="text-gray-700 pl-1" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                <div className="text-gray-700 pl-1" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                             </div>
                         ))}
                     </div>

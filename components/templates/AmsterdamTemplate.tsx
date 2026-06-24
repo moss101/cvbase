@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -38,7 +39,7 @@ const AmsterdamTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                     {summary.professionalSummary && (
                         <section>
                             <h2 className="text-lg font-bold uppercase tracking-wider border-b-2 pb-1 mb-4" style={{ color: primaryColor, borderColor: primaryColor }}>Summary</h2>
-                            <div className="text-xs leading-6 text-gray-700 text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                            <div className="text-xs leading-6 text-gray-700 text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                         </section>
                     )}
 
@@ -56,7 +57,7 @@ const AmsterdamTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                             <span className="material-symbols-outlined text-[12px] ml-2">location_on</span>
                                             <span>{exp.location}</span>
                                         </div>
-                                        <div className="text-xs leading-relaxed text-gray-600 pl-2 border-l-2 border-gray-100" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600 pl-2 border-l-2 border-gray-100" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -71,7 +72,7 @@ const AmsterdamTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                     <div key={item.id}>
                                         <h3 className="text-sm font-bold text-gray-800">{item.name}</h3>
                                         <p className="text-xs font-medium text-gray-500 italic mb-1">{item.technologies}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -103,7 +104,7 @@ const AmsterdamTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                         <h3 className="text-sm font-bold text-gray-800">{item.role}</h3>
                                         <p className="text-xs text-[#60a5fa] font-medium" style={{ color: primaryColor }}>{item.organization}</p>
                                         <p className="text-gray-400 text-[9px]">{item.startDate} - {item.endDate}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600 pl-2 border-l-2 border-gray-100" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600 pl-2 border-l-2 border-gray-100" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -119,7 +120,7 @@ const AmsterdamTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                         <h3 className="text-sm font-bold text-gray-800">{item.title}</h3>
                                         <p className="text-xs text-[#60a5fa] font-medium" style={{ color: primaryColor }}>{item.subtitle}</p>
                                         <p className="text-gray-400 text-[9px]">{item.date}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600 pl-2 border-l-2 border-gray-100" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600 pl-2 border-l-2 border-gray-100" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>

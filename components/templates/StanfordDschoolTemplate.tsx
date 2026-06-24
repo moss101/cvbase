@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -49,7 +50,7 @@ const StanfordDschoolTemplate: React.FC<ResumePreviewProps> = ({ formData, isCar
                         <h2 className="text-xs font-black uppercase tracking-widest mb-1.5" style={{ color: accentColor }}>
                             Core Narrative
                         </h2>
-                        <div className="text-xs text-slate-700 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-xs text-slate-700 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -81,7 +82,7 @@ const StanfordDschoolTemplate: React.FC<ResumePreviewProps> = ({ formData, isCar
                                         <span className="text-[10px] text-slate-500 font-bold">{exp.startDate} – {exp.endDate}</span>
                                     </div>
                                     <p className="text-[10px] text-slate-400 italic mb-1.5">{exp.company}, {exp.location}</p>
-                                    <div className="text-xs text-slate-700 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="text-xs text-slate-700 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -105,7 +106,7 @@ const StanfordDschoolTemplate: React.FC<ResumePreviewProps> = ({ formData, isCar
                                     {proj.technologies && (
                                         <p className="text-[9.5px] font-semibold text-slate-500 tracking-wide uppercase mb-1">Stack: {proj.technologies}</p>
                                     )}
-                                    <div className="text-xs text-slate-650 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: proj.description }} />
+                                    <div className="text-xs text-slate-650 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
                                 </div>
                             ))}
                         </div>

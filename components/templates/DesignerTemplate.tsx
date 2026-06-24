@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -203,7 +204,7 @@ const DesignerTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                              <h2 className="text-[13px] font-bold designer-tracking-header uppercase text-right mb-2">PROFILE</h2>
                              <div className="w-[100px] h-[1px] bg-[#5C6168] ml-auto"></div>
                         </div>
-                        <div className="text-[10px] leading-[12px] text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-[10px] leading-[12px] text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -226,7 +227,7 @@ const DesignerTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                     {/* Company */}
                                     <p className="text-[10px] leading-[12px] italic mb-2" style={{ color: accentColor }}>{exp.company}, {exp.location}</p>
                                     {/* Description */}
-                                    <div className="text-[10px] leading-[12px]" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="text-[10px] leading-[12px]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -248,7 +249,7 @@ const DesignerTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                         <span className="text-[10px] leading-[12px] text-right w-1/3">{item.startDate} - {item.endDate}</span>
                                     </div>
                                     <p className="text-[10px] leading-[12px] italic mb-2" style={{ color: accentColor }}>{item.technologies}</p>
-                                    <div className="text-[10px] leading-[12px]" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="text-[10px] leading-[12px]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -93,7 +94,7 @@ const ModernTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                     <section className="mb-6">
                         <h2 className="text-[1.4em] font-bold uppercase tracking-wider" style={{ color: accentColor }}>PROFESSIONAL SUMMARY</h2>
                         <div className="w-16 h-1 bg-gray-200 my-2"></div>
-                        <div className="leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -109,7 +110,7 @@ const ModernTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <p className="text-[0.9em] text-gray-500">{exp.startDate} - {exp.endDate}</p>
                                     </div>
                                     <p className="font-semibold text-gray-600">{exp.company || 'Company'} | {exp.location}</p>
-                                    <div className="mt-1 text-gray-700" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="mt-1 text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -128,7 +129,7 @@ const ModernTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <p className="text-[0.9em] text-gray-500">{item.startDate} - {item.endDate}</p>
                                     </div>
                                     <p className="font-semibold text-gray-600">{item.technologies}</p>
-                                    <div className="mt-1 text-gray-700" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="mt-1 text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -201,7 +202,7 @@ const ModernTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <p className="text-[0.9em] text-gray-500">{item.startDate} - {item.endDate}</p>
                                     </div>
                                     <p className="font-semibold text-gray-600">{item.organization}</p>
-                                    <div className="mt-1 text-gray-700" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="mt-1 text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -220,7 +221,7 @@ const ModernTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <p className="text-[0.9em] text-gray-500">{item.date}</p>
                                     </div>
                                     <p className="font-semibold text-gray-600">{item.subtitle}</p>
-                                    <div className="mt-1 text-gray-700" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="mt-1 text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -85,7 +86,7 @@ const GoldenTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                 <h2 className="text-[24px] font-bold tracking-[0.4px] mb-[5px]" style={{ color: darkText }}>SUMMARY</h2>
                                 <div className="h-[1px] w-full" style={{ backgroundColor: goldColor }}></div>
                             </div>
-                            <div className="text-[16px] leading-[1.4] font-normal break-words" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                            <div className="text-[16px] leading-[1.4] font-normal break-words" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                         </section>
                     )}
 
@@ -174,7 +175,7 @@ const GoldenTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                             <span className="text-[15px] font-normal tracking-[-0.25px]" style={{ color: goldColor }}>{exp.startDate} - {exp.endDate}</span>
                                         </div>
                                         <p className="text-[16px] font-semibold mb-[8px]" style={{ color: darkText }}>{exp.company}</p>
-                                        <div className="text-[15px] leading-[1.6] tracking-[-0.5px]" style={{ color: 'rgba(37, 37, 37, 0.8)' }} dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                        <div className="text-[15px] leading-[1.6] tracking-[-0.5px]" style={{ color: 'rgba(37, 37, 37, 0.8)' }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -195,7 +196,7 @@ const GoldenTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                             <span className="text-[15px] font-normal tracking-[-0.25px]" style={{ color: goldColor }}>{item.startDate} - {item.endDate}</span>
                                         </div>
                                         <p className="text-[16px] font-semibold mb-[8px]" style={{ color: darkText }}>{item.technologies}</p>
-                                        <div className="text-[15px] leading-[1.6] tracking-[-0.5px]" style={{ color: 'rgba(37, 37, 37, 0.8)' }} dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-[15px] leading-[1.6] tracking-[-0.5px]" style={{ color: 'rgba(37, 37, 37, 0.8)' }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>

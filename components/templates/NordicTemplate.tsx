@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -67,7 +68,7 @@ const NordicTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                         {summary.professionalSummary && (
                             <section>
                                 {renderSectionHeader('Overview')}
-                                <div className="leading-relaxed text-stone-600 text-justify block pr-2" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                                <div className="leading-relaxed text-stone-600 text-justify block pr-2" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                             </section>
                         )}
 
@@ -88,7 +89,7 @@ const NordicTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                             <p className="text-[10px] text-stone-500 italic mb-2">
                                                 {exp.company} • {exp.location}
                                             </p>
-                                            <div className="text-stone-600 text-xs text-justify pr-2" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                            <div className="text-stone-600 text-xs text-justify pr-2" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -112,7 +113,7 @@ const NordicTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                                     Systems: {proj.technologies}
                                                 </p>
                                             )}
-                                            <div className="text-stone-600 text-xs text-justify" dangerouslySetInnerHTML={{ __html: proj.description }} />
+                                            <div className="text-stone-600 text-xs text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -128,7 +129,7 @@ const NordicTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <div key={item.id} className="bg-stone-100/50 p-3 rounded border border-stone-200/40">
                                             <h4 className="font-bold text-stone-900 text-xs">{item.title}</h4>
                                             {item.subtitle && <p className="text-[10px] text-stone-500 italic mt-0.5">{item.subtitle}</p>}
-                                            {item.description && <div className="text-stone-600 text-xs mt-2" dangerouslySetInnerHTML={{ __html: item.description }} />}
+                                            {item.description && <div className="text-stone-600 text-xs mt-2" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />}
                                         </div>
                                     ))}
                                 </div>

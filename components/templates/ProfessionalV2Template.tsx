@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -36,7 +37,7 @@ const ProfessionalV2Template: React.FC<ResumePreviewProps> = ({ formData, isCard
                 {summary.professionalSummary && (
                     <section>
                         <h2 className="text-sm font-bold uppercase tracking-widest text-white inline-block px-3 py-1 rounded" style={{ backgroundColor: themeColor }}>PROFESSIONAL SUMMARY</h2>
-                        <div className="mt-3 text-sm leading-relaxed border-l-2 border-gray-200 pl-4 text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="mt-3 text-sm leading-relaxed border-l-2 border-gray-200 pl-4 text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -53,7 +54,7 @@ const ProfessionalV2Template: React.FC<ResumePreviewProps> = ({ formData, isCard
                                     </div>
                                     <div className="col-span-9 border-l-2 border-gray-200 pl-4">
                                         <h3 className="font-bold text-sm text-gray-800">{exp.jobTitle}</h3>
-                                        <div className="mt-1 text-sm text-gray-600" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                        <div className="mt-1 text-sm text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                     </div>
                                 </div>
                             ))}
@@ -73,7 +74,7 @@ const ProfessionalV2Template: React.FC<ResumePreviewProps> = ({ formData, isCard
                                     </div>
                                     <div className="col-span-9 border-l-2 border-gray-200 pl-4">
                                         <h3 className="font-bold text-sm text-gray-800">{item.name}</h3>
-                                        <div className="mt-1 text-sm text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="mt-1 text-sm text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 </div>
                             ))}

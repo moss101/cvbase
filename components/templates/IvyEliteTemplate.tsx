@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -54,7 +55,7 @@ const IvyEliteTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                             <span>Professional Summary</span>
                             <span className="h-[1px] bg-slate-250 grow ml-3"></span>
                         </h2>
-                        <div className="text-xs text-slate-700 text-justify leading-relaxed" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-xs text-slate-700 text-justify leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -76,7 +77,7 @@ const IvyEliteTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                         <span>{exp.company}</span>
                                         <span className="text-[10px] font-normal not-italic text-slate-500">{exp.location}</span>
                                     </div>
-                                    <div className="text-xs text-slate-705 leading-relaxed pl-2 border-l border-slate-200" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="text-xs text-slate-705 leading-relaxed pl-2 border-l border-slate-200" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -100,7 +101,7 @@ const IvyEliteTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                     {proj.technologies && (
                                         <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Tech Stack: {proj.technologies}</p>
                                     )}
-                                    <div className="text-xs text-slate-700 leading-relaxed pl-2 border-l border-slate-200" dangerouslySetInnerHTML={{ __html: proj.description }} />
+                                    <div className="text-xs text-slate-700 leading-relaxed pl-2 border-l border-slate-200" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
                                 </div>
                             ))}
                         </div>

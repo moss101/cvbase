@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -33,7 +34,7 @@ const ImpactTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
             {summary.professionalSummary && (
                 <section className="mb-6">
                     <h2 className="text-base font-bold uppercase border-b-2 mb-3" style={{ borderColor: accentColor }}>Professional Summary</h2>
-                    <div className="text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                    <div className="text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                 </section>
             )}
 
@@ -62,7 +63,7 @@ const ImpactTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                     <span>{exp.startDate} – {exp.endDate}</span>
                                 </div>
                                 <p className="font-bold underline mb-1" style={{ textDecorationColor: accentColor }}>{exp.jobTitle}</p>
-                                <div dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                             </div>
                         ))}
                     </div>
@@ -80,7 +81,7 @@ const ImpactTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                     <span>{item.startDate} – {item.endDate}</span>
                                 </div>
                                 {item.technologies && <p className="italic text-gray-700 mb-1">Stack: {item.technologies}</p>}
-                                <div dangerouslySetInnerHTML={{ __html: item.description }} />
+                                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                             </div>
                         ))}
                     </div>
@@ -166,7 +167,7 @@ const ImpactTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                     <span>{item.date}</span>
                                 </div>
                                 <p className="italic">{item.subtitle}</p>
-                                <div dangerouslySetInnerHTML={{ __html: item.description }} />
+                                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                             </div>
                         ))}
                     </div>

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -31,7 +32,7 @@ const DirectTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                 {summary.professionalSummary && (
                     <section>
                         <h2 className="text-sm font-bold uppercase text-gray-500 tracking-widest mb-3">Profile</h2>
-                        <div className="text-gray-700 leading-relaxed text-justify border-l-2 border-gray-100 pl-4" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-gray-700 leading-relaxed text-justify border-l-2 border-gray-100 pl-4" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -60,7 +61,7 @@ const DirectTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <span className="text-sm font-bold text-gray-500 uppercase tracking-tight">{exp.startDate} - {exp.endDate}</span>
                                     </div>
                                     <p className="text-sm font-bold text-gray-600 uppercase mb-2">{exp.company} | {exp.location}</p>
-                                    <div className="text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -79,7 +80,7 @@ const DirectTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <span className="text-sm text-gray-500 font-medium">{item.startDate} - {item.endDate}</span>
                                     </div>
                                     <p className="text-sm text-gray-500 italic mb-2">{item.technologies}</p>
-                                    <div className="text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -194,7 +195,7 @@ const DirectTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                             <span className="text-sm text-gray-500">{item.date || (item.startDate ? `${item.startDate} - ${item.endDate}` : '')}</span>
                                         </div>
                                         <p className="text-sm text-gray-600">{item.organization || item.subtitle}</p>
-                                        <div className="text-sm text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-sm text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>

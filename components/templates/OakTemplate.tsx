@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -130,7 +131,7 @@ const OakTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, vi
                             <h2 className="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
                                 <span className="w-4 h-0.5 bg-gray-800"></span> Profile
                             </h2>
-                            <div className="text-xs leading-relaxed text-gray-600 text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                            <div className="text-xs leading-relaxed text-gray-600 text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                         </section>
                     )}
 
@@ -149,7 +150,7 @@ const OakTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, vi
                                             </div>
                                             <span className="text-xs text-gray-500 font-medium">{exp.startDate} – {exp.endDate}</span>
                                         </div>
-                                        <div className="text-xs leading-relaxed text-gray-600 mt-2" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600 mt-2" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -169,7 +170,7 @@ const OakTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, vi
                                             <span className="text-xs text-gray-500">{item.startDate} – {item.endDate}</span>
                                         </div>
                                         <p className="text-[9px] uppercase font-bold mb-1" style={{ color: accentColor }}>{item.technologies}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -208,7 +209,7 @@ const OakTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, vi
                                             <span className="text-xs text-gray-500">{item.date}</span>
                                         </div>
                                         <p className="text-[9px] uppercase font-bold mb-1" style={{ color: accentColor }}>{item.publisher}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -228,7 +229,7 @@ const OakTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, vi
                                             <span className="text-xs text-gray-500">{item.startDate} - {item.endDate}</span>
                                         </div>
                                         <p className="text-[9px] uppercase font-bold mb-1" style={{ color: accentColor }}>{item.organization}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -248,7 +249,7 @@ const OakTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, vi
                                             <span className="text-xs text-gray-500">{item.date}</span>
                                         </div>
                                         <p className="text-[9px] uppercase font-bold mb-1" style={{ color: accentColor }}>{item.subtitle}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>

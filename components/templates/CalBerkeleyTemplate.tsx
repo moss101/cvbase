@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -47,7 +48,7 @@ const CalBerkeleyTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPre
                         <h2 className="text-xs font-bold uppercase tracking-widest text-[#1E3A8A] mb-1 pb-0.5 border-b border-slate-200">
                             Core Summary
                         </h2>
-                        <div className="text-xs text-slate-750 font-normal leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-xs text-slate-750 font-normal leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -83,7 +84,7 @@ const CalBerkeleyTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPre
                                         <span className="text-[10px] font-mono text-slate-500 font-bold">{exp.startDate} – {exp.endDate}</span>
                                     </div>
                                     <p className="text-[9px] uppercase tracking-wider text-slate-400 font-bold mb-1 ml-0.5">Location: {exp.location}</p>
-                                    <div className="text-xs text-slate-650 leading-relaxed pl-2.5 border-l-2 border-slate-100" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="text-xs text-slate-650 leading-relaxed pl-2.5 border-l-2 border-slate-100" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -110,7 +111,7 @@ const CalBerkeleyTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPre
                                             Stack: {item.technologies}
                                         </p>
                                     )}
-                                    <div className="text-xs text-slate-650 leading-relaxed" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="text-xs text-slate-650 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>

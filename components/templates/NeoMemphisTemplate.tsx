@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 import { OptionalSectionsRenderer } from './OptionalSectionsRenderer';
@@ -60,7 +61,7 @@ const NeoMemphisTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                         {summary.professionalSummary && (
                             <div className="border-3 border-stone-900 p-5 shadow-[4px_4px_0px_0px_#1C1917]" style={{ backgroundColor: '#FFFFFF' }}>
                                 {renderSectionHeader('Profile statement', blockGreen)}
-                                <div className="leading-relaxed text-stone-800 font-medium text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                                <div className="leading-relaxed text-stone-800 font-medium text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                             </div>
                         )}
 
@@ -80,7 +81,7 @@ const NeoMemphisTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                                             <p className="text-[10px] font-mono font-bold text-indigo-600 mb-2">
                                                 ★ {exp.company} • {exp.location}
                                             </p>
-                                            <div className="text-stone-700 text-xs font-medium" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                            <div className="text-stone-700 text-xs font-medium" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -103,7 +104,7 @@ const NeoMemphisTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                                                     STACK: {proj.technologies}
                                                 </p>
                                             )}
-                                            <div className="text-stone-700 text-xs mt-2" dangerouslySetInnerHTML={{ __html: proj.description }} />
+                                            <div className="text-stone-700 text-xs mt-2" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -119,7 +120,7 @@ const NeoMemphisTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                                         <div key={item.id} className="border-l-2 border-stone-300 pl-3">
                                             <h4 className="font-extrabold text-xs uppercase">{item.title}</h4>
                                             {item.subtitle && <p className="text-[10px] italic text-stone-500">{item.subtitle}</p>}
-                                            {item.description && <div className="text-stone-600 text-xs mt-1" dangerouslySetInnerHTML={{ __html: item.description }} />}
+                                            {item.description && <div className="text-stone-600 text-xs mt-1" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />}
                                         </div>
                                     ))}
                                 </div>

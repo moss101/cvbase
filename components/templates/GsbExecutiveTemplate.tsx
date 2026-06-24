@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -51,7 +52,7 @@ const GsbExecutiveTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPr
                         <h2 className="text-xs font-bold uppercase tracking-wider mb-1.5 pb-0.5 border-b border-gray-400" style={{ color: accentColor }}>
                             Professional Summary
                         </h2>
-                        <div className="text-xs text-gray-750 text-justify font-normal leading-relaxed" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-xs text-gray-750 text-justify font-normal leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -72,7 +73,7 @@ const GsbExecutiveTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPr
                                         <span>{exp.company}</span>
                                         <span className="text-[10px] font-normal not-italic text-gray-500">{exp.location}</span>
                                     </div>
-                                    <div className="text-xs text-gray-700 leading-relaxed pl-3 border-l border-gray-100" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="text-xs text-gray-700 leading-relaxed pl-3 border-l border-gray-100" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -95,7 +96,7 @@ const GsbExecutiveTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPr
                                     {proj.technologies && (
                                         <p className="text-[9px] italic text-slate-600 mb-1">Technologies: {proj.technologies}</p>
                                     )}
-                                    <div className="text-xs text-gray-700 leading-relaxed font-normal" dangerouslySetInnerHTML={{ __html: proj.description }} />
+                                    <div className="text-xs text-gray-700 leading-relaxed font-normal" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
                                 </div>
                             ))}
                         </div>

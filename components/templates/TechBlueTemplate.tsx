@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -62,7 +63,7 @@ const TechBlueTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                     {summary.professionalSummary && (
                         <section>
                             <h3 className="text-base font-bold text-gray-800 mb-3 border-b-2 pb-1 uppercase tracking-wider" style={{ borderColor: themeColor }}>Summary</h3>
-                            <div className="text-sm leading-relaxed text-justify text-gray-600" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                            <div className="text-sm leading-relaxed text-justify text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                         </section>
                     )}
 
@@ -95,7 +96,7 @@ const TechBlueTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                                 <div className="flex items-center gap-1 justify-end mt-0.5"><span className="material-symbols-outlined text-[14px]">pin_drop</span> {exp.location}</div>
                                             </div>
                                         </div>
-                                        <div className="text-xs leading-relaxed text-gray-600 mt-3 pl-1" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600 mt-3 pl-1" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                     </div>
                                 ))}
                             </div>

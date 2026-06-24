@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -96,7 +97,7 @@ const CreativeTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                 {summary.professionalSummary && (
                     <section className="mb-6">
                         <h3 className="text-sm font-bold uppercase tracking-wider border-b-2 pb-1 mb-2" style={{ borderColor: primaryColor, color: primaryColor }}>PROFILE</h3>
-                        <div className="text-xs leading-relaxed text-slate-600 text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-xs leading-relaxed text-slate-600 text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
                 {experience.length > 0 && (
@@ -113,7 +114,7 @@ const CreativeTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                         <p className="text-xs font-semibold text-slate-600">{exp.company || 'Company'}</p>
                                         <p className="text-xs text-slate-500">{exp.location || 'Location'}</p>
                                     </div>
-                                    <div className="mt-1 text-xs text-slate-600" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="mt-1 text-xs text-slate-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -130,7 +131,7 @@ const CreativeTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                         <p className="text-xs text-slate-500">{item.startDate} - {item.endDate}</p>
                                     </div>
                                     <p className="text-xs font-semibold text-slate-600">{item.technologies}</p>
-                                    <div className="mt-1 text-xs text-slate-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="mt-1 text-xs text-slate-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -179,7 +180,7 @@ const CreativeTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                         <p className="text-xs text-slate-500">{item.startDate} - {item.endDate}</p>
                                     </div>
                                     <p className="text-xs font-semibold text-slate-600">{item.organization}</p>
-                                    <div className="mt-1 text-xs text-slate-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="mt-1 text-xs text-slate-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -196,7 +197,7 @@ const CreativeTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                         <p className="text-xs text-slate-500">{item.date}</p>
                                     </div>
                                     <p className="text-xs font-semibold text-slate-600">{item.subtitle}</p>
-                                    <div className="mt-1 text-xs text-slate-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="mt-1 text-xs text-slate-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>

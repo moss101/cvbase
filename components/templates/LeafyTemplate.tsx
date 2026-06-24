@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -154,7 +155,7 @@ const LeafyTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                 <h2 className="font-bold text-sm uppercase tracking-wider mb-4 flex items-center gap-3 text-gray-700">
                                     <span className="w-1.5 h-6 rounded-full" style={{ backgroundColor: primaryColor }}></span> Profile
                                 </h2>
-                                <div className="text-[11px] leading-relaxed text-gray-600 text-justify pl-5 border-l border-dashed border-gray-200" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                                <div className="text-[11px] leading-relaxed text-gray-600 text-justify pl-5 border-l border-dashed border-gray-200" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                             </section>
                         )}
 
@@ -176,7 +177,7 @@ const LeafyTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                                 <span className="text-[10px] font-bold px-2 py-0.5 rounded text-white" style={{ backgroundColor: primaryColor }}>{exp.startDate} - {exp.endDate}</span>
                                             </div>
                                             <p className="text-[11px] font-semibold text-gray-500 mb-3 uppercase tracking-wide">{exp.company}, {exp.location}</p>
-                                            <div className="text-[11px] leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                            <div className="text-[11px] leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -197,7 +198,7 @@ const LeafyTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                                 <span className="text-[10px] text-gray-400 font-medium">{item.startDate} - {item.endDate}</span>
                                             </div>
                                             <p className="text-[10px] font-bold mb-1" style={{ color: primaryColor }}>{item.technologies}</p>
-                                            <div className="text-[11px] leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                            <div className="text-[11px] leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -277,7 +278,7 @@ const LeafyTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                                 <span className="text-[10px] text-gray-400">{item.startDate} - {item.endDate}</span>
                                             </div>
                                             <p className="text-[11px] font-medium mb-1" style={{ color: primaryColor }}>{item.organization}</p>
-                                            <div className="text-[11px] leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                            <div className="text-[11px] leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -297,7 +298,7 @@ const LeafyTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                                 <span className="text-[10px] text-gray-400">{item.date}</span>
                                             </div>
                                             <p className="text-[11px] font-medium mb-1" style={{ color: primaryColor }}>{item.subtitle}</p>
-                                            <div className="text-[11px] leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                            <div className="text-[11px] leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                         </div>
                                     ))}
                                 </div>

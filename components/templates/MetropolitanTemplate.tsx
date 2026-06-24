@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 import { OptionalSectionsRenderer } from './OptionalSectionsRenderer';
@@ -69,7 +70,7 @@ const MetropolitanTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPr
                     {summary.professionalSummary && (
                         <section className="mt-8 text-center px-6">
                             <p className="text-[10px] font-sans tracking-[0.25em] text-stone-400 font-bold uppercase mb-3">Professional Executive Summary</p>
-                            <div className="leading-relaxed text-justify text-stone-700 font-serif italic text-sm text-[11.5px] px-4 border-l-2 border-r-2 border-stone-150" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                            <div className="leading-relaxed text-justify text-stone-700 font-serif italic text-sm text-[11.5px] px-4 border-l-2 border-r-2 border-stone-150" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                         </section>
                     )}
 
@@ -92,7 +93,7 @@ const MetropolitanTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPr
                                                 </span>
                                             </div>
                                             <p className="text-[10px] font-sans uppercase font-bold tracking-widest text-[#B59A57] mb-3">📍 {exp.location}</p>
-                                            <div className="text-stone-600 text-xs text-justify pr-2 font-serif leading-relaxed" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                            <div className="text-stone-600 text-xs text-justify pr-2 font-serif leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -115,7 +116,7 @@ const MetropolitanTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPr
                                                     Infrastructure: <span style={{ color: luxuryGold }}>{proj.technologies}</span>
                                                 </p>
                                             )}
-                                            <div className="text-stone-600 text-xs text-justify font-serif" dangerouslySetInnerHTML={{ __html: proj.description }} />
+                                            <div className="text-stone-600 text-xs text-justify font-serif" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
                                         </div>
                                     ))}
                                 </div>

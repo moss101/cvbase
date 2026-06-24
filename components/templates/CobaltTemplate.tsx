@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -32,7 +33,7 @@ const CobaltTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                 </div>
 
                 {summary.professionalSummary && (
-                    <div className="text-justify leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                    <div className="text-justify leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                 )}
 
                 {/* Experience */}
@@ -49,7 +50,7 @@ const CobaltTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <span className="text-xs text-gray-500">{exp.startDate} - {exp.endDate}</span>
                                     </div>
                                     <div className="text-xs font-semibold mb-2" style={{ color: accentBlue }}>{exp.company}, {exp.location}</div>
-                                    <div className="leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -70,7 +71,7 @@ const CobaltTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <span className="text-xs text-gray-500">{item.startDate} - {item.endDate}</span>
                                     </div>
                                     <div className="text-xs font-semibold mb-1 opacity-80">{item.technologies}</div>
-                                    <div className="leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -91,7 +92,7 @@ const CobaltTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <span className="text-xs text-gray-500">{item.startDate} - {item.endDate}</span>
                                     </div>
                                     <div className="text-xs font-semibold mb-2" style={{ color: accentBlue }}>{item.organization}</div>
-                                    <div className="leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>

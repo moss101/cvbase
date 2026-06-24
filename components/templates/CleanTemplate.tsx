@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -34,7 +35,7 @@ const CleanTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
             {summary.professionalSummary && (
                 <section className="mb-8">
                     <h2 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: themeColor }}>Profile</h2>
-                    <div className="leading-relaxed" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                    <div className="leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                 </section>
             )}
 
@@ -49,7 +50,7 @@ const CleanTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                     <span className="text-sm text-gray-500">{exp.startDate} – {exp.endDate}</span>
                                 </div>
                                 <div className="text-sm font-medium text-gray-700 mb-2">{exp.company}, {exp.location}</div>
-                                <div className="leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                <div className="leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                             </div>
                         ))}
                     </div>

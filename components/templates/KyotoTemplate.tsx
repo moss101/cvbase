@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -73,7 +74,7 @@ const KyotoTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                         {summary.professionalSummary && (
                             <section>
                                 {renderSectionHeader('Statement')}
-                                <div className="leading-relaxed text-justify text-stone-700 pl-4 border-l border-stone-200/65" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                                <div className="leading-relaxed text-justify text-stone-700 pl-4 border-l border-stone-200/65" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                             </section>
                         )}
 
@@ -93,7 +94,7 @@ const KyotoTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                             <p className="text-[10px] font-medium text-stone-500 italic mb-2">
                                                 {exp.company} • {exp.location}
                                             </p>
-                                            <div className="text-stone-700 text-xs text-justify pr-2" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                            <div className="text-stone-700 text-xs text-justify pr-2" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -118,7 +119,7 @@ const KyotoTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                                     Systems: {proj.technologies}
                                                 </p>
                                             )}
-                                            <div className="text-stone-700 text-xs text-justify pr-2" dangerouslySetInnerHTML={{ __html: proj.description }} />
+                                            <div className="text-stone-700 text-xs text-justify pr-2" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -137,7 +138,7 @@ const KyotoTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                                 {item.date && <span className="text-[10px] font-sans text-stone-400">{item.date}</span>}
                                             </div>
                                             {item.subtitle && <p className="text-[10px] text-stone-500 italic mb-2">{item.subtitle}</p>}
-                                            {item.description && <div className="text-stone-600 text-xs leading-relaxed" dangerouslySetInnerHTML={{ __html: item.description }} />}
+                                            {item.description && <div className="text-stone-600 text-xs leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />}
                                         </div>
                                     ))}
                                 </div>

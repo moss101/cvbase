@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -34,7 +35,7 @@ const GlobalTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                 {summary.professionalSummary && (
                     <section>
                         <h2 className="font-bold text-sm uppercase tracking-[0.15em] mb-3 border-b pb-1 font-sans" style={{ color: themeColor, borderColor: '#e5e7eb' }}>Professional Profile</h2>
-                        <div className="text-justify leading-relaxed text-gray-800" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-justify leading-relaxed text-gray-800" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -49,7 +50,7 @@ const GlobalTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <span className="font-sans text-sm text-gray-600">{exp.startDate} – {exp.endDate}</span>
                                     </div>
                                     <p className="italic mb-2 font-medium" style={{ color: themeColor }}>{exp.company} | {exp.location}</p>
-                                    <div className="leading-relaxed text-gray-800" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="leading-relaxed text-gray-800" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -67,7 +68,7 @@ const GlobalTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <span className="font-sans text-sm text-gray-600">{item.startDate} – {item.endDate}</span>
                                     </div>
                                     <p className="italic mb-1 text-sm font-sans" style={{ color: themeColor }}>{item.technologies}</p>
-                                    <div className="leading-relaxed text-gray-800" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="leading-relaxed text-gray-800" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -188,7 +189,7 @@ const GlobalTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <span className="font-sans text-sm text-gray-600">{item.startDate} – {item.endDate}</span>
                                     </div>
                                     <p className="italic mb-1 text-gray-700">{item.organization}</p>
-                                    <div className="leading-relaxed text-gray-800" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="leading-relaxed text-gray-800" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -206,7 +207,7 @@ const GlobalTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <span className="font-sans text-sm text-gray-600">{item.date}</span>
                                     </div>
                                     <p className="italic mb-1 text-gray-700">{item.subtitle}</p>
-                                    <div className="leading-relaxed text-gray-800" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="leading-relaxed text-gray-800" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>

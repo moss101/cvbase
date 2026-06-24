@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -30,7 +31,7 @@ const MinimalistTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
             {summary.professionalSummary && (
                 <section className="mb-6">
                     <h2 className="text-sm font-bold uppercase border-b mb-3 pb-1" style={{ borderColor: '#e5e7eb', color: accentColor }}>Professional Summary</h2>
-                    <div className="text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                    <div className="text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                 </section>
             )}
 
@@ -48,7 +49,7 @@ const MinimalistTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                                     <span style={{ color: accentColor }}>{exp.company}</span>
                                     <span>{exp.location}</span>
                                 </div>
-                                <div dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                             </div>
                         ))}
                     </div>
@@ -66,7 +67,7 @@ const MinimalistTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                                     <span>{item.startDate} – {item.endDate}</span>
                                 </div>
                                 {item.technologies && <p className="italic mb-1">Technologies: {item.technologies}</p>}
-                                <div dangerouslySetInnerHTML={{ __html: item.description }} />
+                                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                             </div>
                         ))}
                     </div>

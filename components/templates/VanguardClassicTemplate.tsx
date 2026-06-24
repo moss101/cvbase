@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -50,7 +51,7 @@ const VanguardClassicTemplate: React.FC<ResumePreviewProps> = ({ formData, isCar
                         <h2 className="text-xs font-black uppercase tracking-widest mb-1.5 pb-0.5 border-b-2 border-slate-900">
                             Executive Profile
                         </h2>
-                        <div className="text-xs text-justify text-slate-750 font-normal leading-relaxed" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-xs text-justify text-slate-750 font-normal leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -71,7 +72,7 @@ const VanguardClassicTemplate: React.FC<ResumePreviewProps> = ({ formData, isCar
                                         <span>{exp.company}</span>
                                         <span className="text-[10px] font-normal not-italic text-slate-500 font-sans">{exp.location}</span>
                                     </div>
-                                    <div className="text-xs text-slate-700 leading-relaxed font-normal text-justify" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="text-xs text-slate-700 leading-relaxed font-normal text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -91,7 +92,7 @@ const VanguardClassicTemplate: React.FC<ResumePreviewProps> = ({ formData, isCar
                                         <h3 className="text-xs font-extrabold text-slate-950">{proj.name}</h3>
                                         <span className="text-slate-600 text-[10px] font-bold font-sans">{proj.startDate} – {proj.endDate}</span>
                                     </div>
-                                    <div className="text-xs text-slate-700 leading-relaxed font-normal" dangerouslySetInnerHTML={{ __html: proj.description }} />
+                                    <div className="text-xs text-slate-700 leading-relaxed font-normal" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
                                 </div>
                             ))}
                         </div>

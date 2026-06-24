@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -157,7 +158,7 @@ const UrbanTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                     {summary.professionalSummary && (
                         <section className={contact.photo ? 'mr-[80px]' : ''}>
                              <h2 className="text-[10px] font-normal tracking-[2px] uppercase mb-4" style={{ color: sectionHeaderColor }}>Professional Summary</h2>
-                            <div className="leading-[1.6] text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                            <div className="leading-[1.6] text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                         </section>
                     )}
 
@@ -172,7 +173,7 @@ const UrbanTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                             <span className="text-[10px] opacity-70 font-medium">{exp.startDate} - {exp.endDate}</span>
                                         </div>
                                         <p className="text-[11px] font-bold uppercase mb-2" style={{ color: sectionHeaderColor }}>{exp.company}, {exp.location}</p>
-                                        <div className="leading-[1.6]" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                        <div className="leading-[1.6]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -190,7 +191,7 @@ const UrbanTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                             <span className="text-[10px] opacity-70 font-medium">{item.startDate} - {item.endDate}</span>
                                         </div>
                                         <p className="text-[10px] font-bold mb-2" style={{ color: sectionHeaderColor }}>{item.technologies}</p>
-                                        <div className="leading-[1.6]" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="leading-[1.6]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -262,7 +263,7 @@ const UrbanTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                             <span className="text-[10px] opacity-70 font-medium">{item.startDate} - {item.endDate}</span>
                                         </div>
                                         <p className="text-[11px] mb-2" style={{ color: sectionHeaderColor }}>{item.organization}</p>
-                                        <div className="leading-[1.6]" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="leading-[1.6]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -280,7 +281,7 @@ const UrbanTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                             <span className="text-[10px] opacity-70 font-medium">{item.date}</span>
                                         </div>
                                         <p className="text-[11px] mb-2" style={{ color: sectionHeaderColor }}>{item.subtitle}</p>
-                                        <div className="leading-[1.6]" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="leading-[1.6]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>

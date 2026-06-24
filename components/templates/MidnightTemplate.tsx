@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -44,7 +45,7 @@ const MidnightTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                 {summary.professionalSummary && (
                     <section className="mb-2">
                         <h3 className="text-lg font-bold text-gray-800 mb-3 uppercase tracking-wide border-b border-gray-200 pb-2">Summary</h3>
-                        <div className="leading-relaxed text-justify text-gray-700" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="leading-relaxed text-justify text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -66,7 +67,7 @@ const MidnightTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                         <span className="material-symbols-outlined text-[1em]">location_on</span>
                                         {exp.location}
                                     </div>
-                                    <div className="leading-relaxed text-gray-700" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="leading-relaxed text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -111,7 +112,7 @@ const MidnightTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                         <span className="text-gray-500 text-[0.9em]">{item.startDate} - {item.endDate}</span>
                                     </div>
                                     <p className="text-[0.9em] font-medium mb-1" style={{ color: accentText }}>{item.technologies}</p>
-                                    <div className="leading-relaxed text-gray-700" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="leading-relaxed text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -146,7 +147,7 @@ const MidnightTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                         <span className="text-[0.9em] text-gray-500">{vol.startDate} - {vol.endDate}</span>
                                     </div>
                                     <p className="text-[0.9em] font-medium" style={{ color: accentText }}>{vol.organization}</p>
-                                    <div className="mt-1 text-gray-700" dangerouslySetInnerHTML={{ __html: vol.description }} />
+                                    <div className="mt-1 text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(vol.description) }} />
                                 </div>
                             ))}
                         </div>

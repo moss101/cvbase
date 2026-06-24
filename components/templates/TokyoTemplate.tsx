@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 import { OptionalSectionsRenderer } from './OptionalSectionsRenderer';
@@ -59,7 +60,7 @@ const TokyoTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                 {summary.professionalSummary && (
                     <section className="mb-4">
                         {renderHeader('profile')}
-                        <div className="text-stone-700 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-stone-700 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -79,7 +80,7 @@ const TokyoTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                         </span>
                                     </div>
                                     <p className="text-[9px] font-mono uppercase text-stone-400 font-bold mb-1">{exp.location}</p>
-                                    <div className="text-stone-600 text-xs text-justify font-sans" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="text-stone-600 text-xs text-justify font-sans" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -102,7 +103,7 @@ const TokyoTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                             toolkit: {proj.technologies}
                                         </p>
                                     )}
-                                    <div className="text-stone-600 text-xs text-justify" dangerouslySetInnerHTML={{ __html: proj.description }} />
+                                    <div className="text-stone-600 text-xs text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -189,7 +190,7 @@ const TokyoTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                         {item.date && <span className="text-[9px] font-mono text-stone-400">{item.date}</span>}
                                     </div>
                                     {item.subtitle && <p className="text-[10px] text-stone-500 italic mb-1">{item.subtitle}</p>}
-                                    {item.description && <div className="text-stone-600 text-xs" dangerouslySetInnerHTML={{ __html: item.description }} />}
+                                    {item.description && <div className="text-stone-600 text-xs" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />}
                                 </div>
                             ))}
                         </div>

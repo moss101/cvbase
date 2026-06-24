@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -46,7 +47,7 @@ const TimelineTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                             <h2 className="text-sm font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
                                 <span className="material-symbols-outlined" style={{ color: primaryColor }}>person</span> Professional Profile
                             </h2>
-                             <div className="text-justify leading-relaxed text-gray-700" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                             <div className="text-justify leading-relaxed text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                         </div>
                     )}
 
@@ -71,7 +72,7 @@ const TimelineTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                             </span>
                                         </div>
                                         <p className="text-xs font-bold text-gray-500 mb-2 uppercase">{exp.company}, {exp.location}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -89,7 +90,7 @@ const TimelineTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                         <h3 className="font-bold text-xs text-gray-900">{item.name}</h3>
                                         <p className="text-[9px] text-gray-500 mb-2">{item.startDate} - {item.endDate}</p>
                                         <p className="text-[9px] font-medium mb-1" style={{ color: primaryColor }}>{item.technologies}</p>
-                                        <div className="text-[9px] leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-[9px] leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -121,7 +122,7 @@ const TimelineTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                     <div key={item.id} className="border border-gray-200 p-3 rounded-lg hover:border-gray-400 transition-colors">
                                         <h3 className="font-bold text-xs text-gray-900">{item.role}</h3>
                                         <p className="text-[9px] text-gray-500 mb-1">{item.organization} ({item.startDate} - {item.endDate})</p>
-                                        <div className="text-[9px] leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-[9px] leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -137,7 +138,7 @@ const TimelineTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                     <div key={item.id} className="border border-gray-200 p-3 rounded-lg hover:border-gray-400 transition-colors">
                                         <h3 className="font-bold text-xs text-gray-900">{item.title}</h3>
                                         <p className="text-[9px] text-gray-500 mb-1">{item.subtitle} ({item.date})</p>
-                                        <div className="text-[9px] leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-[9px] leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -43,7 +44,7 @@ const BerlinTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                     {summary.professionalSummary && (
                         <section>
                             <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-3" style={{ color: black }}>Profile</h2>
-                            <div className="leading-[1.7] text-justify" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                            <div className="leading-[1.7] text-justify" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                         </section>
                     )}
 
@@ -154,7 +155,7 @@ const BerlinTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                                 <span className="text-[10px]" style={{ color: fadedText }}>{exp.startDate} — {exp.endDate}</span>
                                             </div>
                                             <p className="text-[11px] font-bold mb-2" style={{ color: fadedText }}>{exp.jobTitle}</p>
-                                            <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                            <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -172,7 +173,7 @@ const BerlinTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                                 <span className="text-[10px]" style={{ color: fadedText }}>{item.startDate} — {item.endDate}</span>
                                             </div>
                                             <p className="text-[11px] font-bold mb-2" style={{ color: fadedText }}>{item.technologies}</p>
-                                            <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: item.description }} />
+                                            <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -222,7 +223,7 @@ const BerlinTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                                 <span className="text-[10px]" style={{ color: fadedText }}>{vol.startDate} - {vol.endDate}</span>
                                             </div>
                                             <p className="text-[11px] mb-2" style={{ color: fadedText }}>{vol.organization}</p>
-                                            <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: vol.description }} />
+                                            <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(vol.description) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -257,7 +258,7 @@ const BerlinTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                                 <span className="text-[10px]" style={{ color: fadedText }}>{item.date}</span>
                                             </div>
                                             <p className="text-[11px] mb-2" style={{ color: fadedText }}>{item.subtitle}</p>
-                                            <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: item.description }} />
+                                            <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                         </div>
                                     ))}
                                 </div>

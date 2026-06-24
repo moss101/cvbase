@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -107,7 +108,7 @@ const OnyxTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, v
                             <h2 className="font-black text-lg uppercase tracking-tighter mb-3 flex items-center gap-2">
                                 <span className="w-4 h-4 bg-black inline-block"></span> Profile
                             </h2>
-                            <div className="text-sm leading-relaxed text-gray-700 text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                            <div className="text-sm leading-relaxed text-gray-700 text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                         </section>
                     )}
 
@@ -124,7 +125,7 @@ const OnyxTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, v
                                             <span className="text-[9px] font-bold bg-black text-white px-1.5 py-0.5">{exp.startDate} - {exp.endDate}</span>
                                         </div>
                                         <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">{exp.company} | {exp.location}</p>
-                                        <div className="text-xs leading-relaxed text-gray-700" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -144,7 +145,7 @@ const OnyxTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, v
                                             <span className="text-xs text-gray-500">{item.startDate} - {item.endDate}</span>
                                         </div>
                                         <p className="text-[9px] font-bold text-black mb-2 uppercase">{item.technologies}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -204,7 +205,7 @@ const OnyxTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, v
                                             <span className="text-xs text-gray-500">{item.startDate} - {item.endDate}</span>
                                         </div>
                                         <p className="text-xs text-gray-600 mb-1">{item.organization}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -224,7 +225,7 @@ const OnyxTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, v
                                             <span className="text-xs text-gray-500">{item.date}</span>
                                         </div>
                                         <p className="text-xs text-gray-600 mb-1">{item.subtitle}</p>
-                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>

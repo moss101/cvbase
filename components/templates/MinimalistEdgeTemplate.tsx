@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -47,7 +48,7 @@ const MinimalistEdgeTemplate: React.FC<ResumePreviewProps> = ({ formData, isCard
                         <h2 className="text-xs font-black uppercase tracking-widest text-[#111] mb-1">
                             Profile Context
                         </h2>
-                        <div className="text-xs text-slate-700 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-xs text-slate-700 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -79,7 +80,7 @@ const MinimalistEdgeTemplate: React.FC<ResumePreviewProps> = ({ formData, isCard
                                         <span className="text-[10px] text-slate-500 font-bold">{exp.startDate} – {exp.endDate}</span>
                                     </div>
                                     <p className="text-[9px] uppercase tracking-wider text-slate-400 font-bold font-mono mb-1">Loc: {exp.location}</p>
-                                    <div className="text-xs text-slate-655 leading-relaxed text-justify pl-1" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="text-xs text-slate-655 leading-relaxed text-justify pl-1" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -102,7 +103,7 @@ const MinimalistEdgeTemplate: React.FC<ResumePreviewProps> = ({ formData, isCard
                                     {proj.technologies && (
                                         <p className="text-[9px] text-[#1E293B] font-mono tracking-wider uppercase mb-1">// {proj.technologies}</p>
                                     )}
-                                    <div className="text-xs text-slate-655 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: proj.description }} />
+                                    <div className="text-xs text-slate-655 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
                                 </div>
                             ))}
                         </div>

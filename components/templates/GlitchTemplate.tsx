@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -44,7 +45,7 @@ const GlitchTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                             <h2 className="text-sm font-bold uppercase mb-3 flex items-center gap-2">
                                 <span style={{ color: accentColor }}>#</span> SUMMARY
                             </h2>
-                            <div className="text-justify opacity-90 leading-relaxed" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                            <div className="text-justify opacity-90 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                         </section>
                     )}
 
@@ -61,7 +62,7 @@ const GlitchTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                             <span className="text-[9px] bg-gray-800 px-2 py-0.5 rounded text-gray-300">{exp.startDate} :: {exp.endDate}</span>
                                         </div>
                                         <p className="text-xs mb-2" style={{ color: accentColor }}>@{exp.company}</p>
-                                        <div className="opacity-80 leading-relaxed" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                        <div className="opacity-80 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -81,7 +82,7 @@ const GlitchTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                             <span className="text-[9px] bg-gray-800 px-2 py-0.5 rounded text-gray-300">{item.startDate} :: {item.endDate}</span>
                                         </div>
                                         <p className="text-xs opacity-60 italic mb-1">&lt;stack&gt;{item.technologies}&lt;/stack&gt;</p>
-                                        <div className="opacity-80 leading-relaxed" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="opacity-80 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -101,7 +102,7 @@ const GlitchTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                             <span className="text-[9px] bg-gray-800 px-2 py-0.5 rounded text-gray-300">{item.date}</span>
                                         </div>
                                         <p className="text-xs opacity-60 italic mb-1">{item.subtitle}</p>
-                                        <div className="opacity-80 leading-relaxed" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="opacity-80 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>

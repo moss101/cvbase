@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 import { OptionalSectionsRenderer } from './OptionalSectionsRenderer';
@@ -53,7 +54,7 @@ const CasablancaTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                 {/* Professional Statement */}
                 {summary.professionalSummary && (
                     <section className="mb-4 px-2">
-                        <div className="text-stone-700 italic leading-relaxed text-justify px-4" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-stone-700 italic leading-relaxed text-justify px-4" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -73,7 +74,7 @@ const CasablancaTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                                     <p className="text-[10px] italic text-stone-500 mb-2 font-serif">
                                         {exp.company} • {exp.location}
                                     </p>
-                                    <div className="text-stone-600 text-[11px] text-justify font-sans leading-relaxed" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="text-stone-600 text-[11px] text-justify font-sans leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -96,7 +97,7 @@ const CasablancaTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                                             Frameworks: {proj.technologies}
                                         </p>
                                     )}
-                                    <div className="text-stone-600 text-xs text-justify font-sans" dangerouslySetInnerHTML={{ __html: proj.description }} />
+                                    <div className="text-stone-600 text-xs text-justify font-sans" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
                                 </div>
                             ))}
                         </div>

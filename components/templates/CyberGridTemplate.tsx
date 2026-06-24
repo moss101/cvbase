@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -68,7 +69,7 @@ const CyberGridTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                         </div>
                         <div 
                             className="text-xs font-sans text-slate-700 leading-relaxed text-justify" 
-                            dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} 
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} 
                         />
                     </section>
                 )}
@@ -100,7 +101,7 @@ const CyberGridTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                             <p className="text-[9px] font-mono font-black text-teal-600 uppercase mb-2">
                                                 ★ {exp.company} // {exp.location}
                                             </p>
-                                            <div className="text-slate-700 text-xs font-sans leading-relaxed" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                            <div className="text-slate-700 text-xs font-sans leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -129,7 +130,7 @@ const CyberGridTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                                     import {`{ ${proj.technologies} }`}
                                                 </p>
                                             )}
-                                            <div className="text-slate-700 text-xs font-sans leading-relaxed" dangerouslySetInnerHTML={{ __html: proj.description }} />
+                                            <div className="text-slate-700 text-xs font-sans leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -151,7 +152,7 @@ const CyberGridTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                         <div key={item.id}>
                                             <h4 className="font-extrabold text-slate-900 text-xs uppercase">{item.title}</h4>
                                             {item.subtitle && <p className="text-[9px] font-mono text-slate-500">{item.subtitle}</p>}
-                                            {item.description && <div className="text-slate-600 text-xs mt-2" dangerouslySetInnerHTML={{ __html: item.description }} />}
+                                            {item.description && <div className="text-slate-600 text-xs mt-2" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />}
                                         </div>
                                     ))}
                                 </div>

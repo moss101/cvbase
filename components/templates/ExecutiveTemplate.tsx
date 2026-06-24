@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -84,7 +85,7 @@ const ExecutiveTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                                 <span className="material-icons text-base align-middle ml-4 mr-1">location_on</span> {exp.location}
                                             </p>
                                         </div>
-                                        <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
+                                        <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(descriptionHtml) }} />
                                         <ExperienceProjects description={exp.description} />
                                     </div>
                                 );
@@ -103,7 +104,7 @@ const ExecutiveTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                             <span className="material-icons text-base align-middle mr-1">calendar_today</span> {item.startDate} - {item.endDate}
                                         </p>
                                     </div>
-                                    <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </section>
@@ -128,7 +129,7 @@ const ExecutiveTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                     <h3 className="text-lg font-bold text-slate-800">{item.role}</h3>
                                     <p className="text-md font-semibold" style={{ color: themeColor }}>{item.organization}</p>
                                     <p className="text-sm text-slate-500 mb-1">{item.startDate} - {item.endDate}</p>
-                                    <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </section>
@@ -141,7 +142,7 @@ const ExecutiveTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                     <h3 className="text-lg font-bold text-slate-800">{item.title}</h3>
                                     <p className="text-md font-semibold" style={{ color: themeColor }}>{item.subtitle}</p>
                                     <p className="text-sm text-slate-500 mb-1">{item.date}</p>
-                                    <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </section>
@@ -162,7 +163,7 @@ const ExecutiveTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                     {summary.professionalSummary && (
                         <section>
                             <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6">Summary</h2>
-                            <div className="text-sm leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                            <div className="text-sm leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                         </section>
                     )}
                      {formalEducation.length > 0 && (

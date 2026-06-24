@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 import { OptionalSectionsRenderer } from './OptionalSectionsRenderer';
@@ -60,7 +61,7 @@ const OxfordTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                 {summary.professionalSummary && (
                     <section className="mb-4">
                         {renderHeader('profile')}
-                        <div className="text-stone-700 leading-relaxed text-justify px-4" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-stone-700 leading-relaxed text-justify px-4" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -79,7 +80,7 @@ const OxfordTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <span>{exp.company}</span>
                                         <span>{exp.location}</span>
                                     </div>
-                                    <div className="text-stone-600 text-[11px] text-justify font-serif leading-relaxed" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="text-stone-600 text-[11px] text-justify font-serif leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -98,7 +99,7 @@ const OxfordTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                         <span className="text-[10px] font-sans text-stone-500 font-normal">{edu.startDate} – {edu.endDate}</span>
                                     </div>
                                     <p className="text-[10px] text-stone-600 italic font-sans mb-1">{edu.degree} – {edu.location}</p>
-                                    {edu.description && <div className="text-stone-500 text-[10px]" dangerouslySetInnerHTML={{ __html: edu.description }} />}
+                                    {edu.description && <div className="text-stone-500 text-[10px]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(edu.description) }} />}
                                 </div>
                             ))}
                         </div>
@@ -121,7 +122,7 @@ const OxfordTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                                             Area of Study: {proj.technologies}
                                         </p>
                                     )}
-                                    <div className="text-stone-600 text-[10.5px] text-justify font-serif" dangerouslySetInnerHTML={{ __html: proj.description }} />
+                                    <div className="text-stone-600 text-[10.5px] text-justify font-serif" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
                                 </div>
                             ))}
                         </div>

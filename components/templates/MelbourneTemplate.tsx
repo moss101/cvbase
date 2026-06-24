@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -68,7 +69,7 @@ const MelbourneTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                      {summary.professionalSummary && (
                         <section>
                             <h2 className="font-bold text-sm uppercase tracking-wider mb-4 border-b-2 pb-1" style={{ borderColor: primaryColor, color: primaryColor }}>Profile</h2>
-                            <div className="leading-relaxed text-justify text-gray-700" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                            <div className="leading-relaxed text-justify text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                         </section>
                     )}
 
@@ -85,7 +86,7 @@ const MelbourneTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                             <span className="text-[0.9em] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{exp.startDate} - {exp.endDate}</span>
                                         </div>
                                         <p className="font-semibold text-[0.95em] mb-2" style={{ color: primaryColor }}>{exp.company}, {exp.location}</p>
-                                        <div className="leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                        <div className="leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -103,7 +104,7 @@ const MelbourneTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                             <span className="text-[0.9em] font-medium text-gray-500">{item.startDate} - {item.endDate}</span>
                                         </div>
                                         <p className="text-[0.9em] font-semibold mb-2 italic opacity-80">{item.technologies}</p>
-                                        <div className="leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>
@@ -139,7 +140,7 @@ const MelbourneTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                             <span className="text-[0.9em] font-medium text-gray-500">{item.startDate} - {item.endDate}</span>
                                         </div>
                                         <p className="text-[0.95em] font-medium mb-2" style={{ color: primaryColor }}>{item.organization}</p>
-                                        <div className="leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                        <div className="leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                     </div>
                                 ))}
                             </div>

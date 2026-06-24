@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -109,7 +110,7 @@ const RedwoodTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                 {summaryText && (
                     <section className="mb-10">
                         <h3 className="text-sm font-bold uppercase tracking-widest text-gray-900 mb-4">Summary</h3>
-                        <div className="text-xs leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: summaryText }} />
+                        <div className="text-xs leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summaryText) }} />
                     </section>
                 )}
 
@@ -142,7 +143,7 @@ const RedwoodTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                                         <span className="text-xs text-gray-500">{exp.startDate} - {exp.endDate}</span>
                                     </div>
                                     <p className="text-xs font-bold text-[#d6336c] mb-2">{exp.company}</p>
-                                    <div className="text-xs leading-relaxed text-gray-600 pl-2 border-l-2 border-gray-100" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="text-xs leading-relaxed text-gray-600 pl-2 border-l-2 border-gray-100" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -160,7 +161,7 @@ const RedwoodTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                                         <span className="text-xs text-gray-500">{item.startDate} - {item.endDate}</span>
                                     </div>
                                     <p className="text-[10px] text-[#d6336c] font-bold mb-1">{item.technologies}</p>
-                                    <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="text-xs leading-relaxed text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>

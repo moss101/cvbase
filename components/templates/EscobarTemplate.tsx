@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -82,7 +83,7 @@ const EscobarTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                             <h2 className="text-[12px] tracking-[0.18em] text-gray-800 font-semibold uppercase">SUMMARY</h2>
                             <Rule />
                         </div>
-                        <div className="mt-2 text-[13px] leading-relaxed text-gray-700 text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="mt-2 text-[13px] leading-relaxed text-gray-700 text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -104,7 +105,7 @@ const EscobarTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                                     <span className="text-[13px] font-semibold" style={{ color: primaryBlue }}>{exp.company}</span>
                                     <span className="text-[12px] text-gray-600">{exp.location}</span>
                                 </div>
-                                <div className="mt-2 text-[13px] text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                <div className="mt-2 text-[13px] text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                             </div>
                         ))}
                     </section>
@@ -124,7 +125,7 @@ const EscobarTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                                     <span className="text-[12px] text-gray-600">{item.startDate} - {item.endDate}</span>
                                 </div>
                                 <p className="text-[13px] font-semibold mb-1" style={{ color: primaryBlue }}>{item.technologies}</p>
-                                <div className="text-[13px] text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                <div className="text-[13px] text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                             </div>
                         ))}
                     </section>

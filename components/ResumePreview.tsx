@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../types';
 import { countries } from '../data/locationData';
 
@@ -87,7 +88,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                 {summary.professionalSummary && (
                     <section className="mb-5">
                         <h2 className="text-[16px] font-bold border-b-2 pb-1 mb-2.5" style={{color: themeColor, borderColor: themeColor}}>Professional Summary</h2>
-                        <div className="leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -99,7 +100,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                 <h3 className="text-[1.2em] font-bold">{item.jobTitle || 'Job Title'}</h3>
                                 <p className="font-semibold text-gray-700 mb-1">{item.company || 'Company'} | {item.location || 'Location'}</p>
                                 <p className="italic text-gray-500">{item.startDate || 'Start Date'} - {item.endDate || 'End Date'}</p>
-                                <div className="leading-snug pl-2.5 border-l-2 border-gray-200 mt-1.5" dangerouslySetInnerHTML={{ __html: item.description || 'Job description...' }} />
+                                <div className="leading-snug pl-2.5 border-l-2 border-gray-200 mt-1.5" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description || 'Job description...') }} />
                             </div>
                         ))}
                     </section>
@@ -114,7 +115,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, 
                                 {item.link && <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-secondary hover:underline">{item.link}</a>}
                                 <p className="italic text-gray-500">{item.startDate || 'Start Date'} - {item.endDate || 'End Date'}</p>
                                 {item.technologies && <p className="font-semibold text-gray-700 mb-1">Technologies: {item.technologies}</p>}
-                                <div className="leading-snug pl-2.5 border-l-2 border-gray-200 mt-1.5" dangerouslySetInnerHTML={{ __html: item.description || 'Project description...' }} />
+                                <div className="leading-snug pl-2.5 border-l-2 border-gray-200 mt-1.5" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description || 'Project description...') }} />
                             </div>
                         ))}
                     </section>

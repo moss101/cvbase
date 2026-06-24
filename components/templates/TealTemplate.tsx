@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -116,7 +117,7 @@ const TealTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, v
                 {summary.professionalSummary && (
                      <section className="mb-8">
                         <h2 className="text-sm font-bold tracking-widest uppercase mb-2 border-b border-gray-200 pb-2" style={{color: themeColor}}>Summary</h2>
-                        <div className="mt-4 leading-relaxed text-gray-700 text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="mt-4 leading-relaxed text-gray-700 text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
                
@@ -134,7 +135,7 @@ const TealTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, v
                                         <p className="font-semibold" style={{color: themeColor}}>{exp.company}</p>
                                         <span className="text-xs text-gray-500">{exp.location}</span>
                                     </div>
-                                    <div className="mt-2 text-gray-700" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="mt-2 text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -153,7 +154,7 @@ const TealTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, v
                                     </div>
                                     {item.technologies && <p className="font-semibold" style={{color: themeColor}}>{item.technologies}</p>}
                                     {item.link && <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-500 hover:underline" style={{color: 'inherit'}}>{item.link}</a>}
-                                    <div className="mt-2 text-gray-700" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="mt-2 text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -229,7 +230,7 @@ const TealTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, v
                                         <span className="text-xs font-medium text-gray-500">{item.startDate} - {item.endDate}</span>
                                     </div>
                                     <p className="font-semibold" style={{color: themeColor}}>{item.organization}</p>
-                                    <div className="mt-1 text-gray-700" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="mt-1 text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -247,7 +248,7 @@ const TealTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, v
                                         <span className="text-xs font-medium text-gray-500">{item.date}</span>
                                     </div>
                                     <p className="font-semibold" style={{color: themeColor}}>{item.subtitle}</p>
-                                    <div className="mt-1 text-gray-700" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="mt-1 text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>

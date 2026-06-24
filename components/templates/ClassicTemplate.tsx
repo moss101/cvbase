@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -32,7 +33,7 @@ const ClassicTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
             {summary.professionalSummary && (
                 <section className="mb-6">
                     <h2 className="text-base font-bold uppercase border-b border-gray-300 mb-3 pb-1" style={{ color: themeColor }}>Professional Summary</h2>
-                    <div className="text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                    <div className="text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                 </section>
             )}
 
@@ -57,7 +58,7 @@ const ClassicTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                                     <span>{exp.jobTitle}</span>
                                     <span>{exp.location}</span>
                                 </div>
-                                <div dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                             </div>
                         ))}
                     </div>
@@ -107,7 +108,7 @@ const ClassicTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                                     {(item.subtitle || item.technologies || item.publisher || item.institution || item.organization) && (
                                         <p className="italic text-sm mb-1">{item.subtitle || item.technologies || item.publisher || item.institution || item.organization}</p>
                                     )}
-                                    {item.description && <div dangerouslySetInnerHTML={{ __html: item.description }} />}
+                                    {item.description && <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />}
                                 </div>
                             ))}
                          </div>

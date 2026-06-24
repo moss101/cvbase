@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 
@@ -77,7 +78,7 @@ const ModernIITemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                 {summary.professionalSummary && (
                     <div>
                         <h2 className={`${headingSize} font-bold border-b-2 pb-2 mb-4 uppercase tracking-wider`} style={{ color: themeColor, borderColor: themeColor }}>Professional Summary</h2>
-                        <div className="leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </div>
                 )}
 
@@ -176,7 +177,7 @@ const ModernIITemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                         <p className="text-base font-semibold text-gray-600">{exp.company}</p>
                                         <p className="text-sm text-gray-500 italic">{exp.location}</p>
                                     </div>
-                                    <div className="leading-relaxed text-gray-700" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="leading-relaxed text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -195,7 +196,7 @@ const ModernIITemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                         <span className="text-sm text-gray-500 font-medium">{item.startDate} - {item.endDate}</span>
                                     </div>
                                     <p className="text-sm font-semibold mb-2" style={{ color: themeColor }}>{item.technologies}</p>
-                                    <div className="leading-relaxed text-gray-700" dangerouslySetInnerHTML={{ __html: item.description }} />
+                                    <div className="leading-relaxed text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -241,7 +242,7 @@ const ModernIITemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                                             <span className="text-sm text-gray-500 font-medium">{item.date || item.startDate}</span>
                                         </div>
                                         <p className="text-base text-gray-600 mb-2">{item.subtitle || item.organization || item.publisher || item.institution}</p>
-                                        {item.description && <div className="leading-relaxed text-gray-700" dangerouslySetInnerHTML={{ __html: item.description }} />}
+                                        {item.description && <div className="leading-relaxed text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />}
                                     </div>
                                 ))}
                             </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '../../lib/sanitizeHtml';
 import type { ResumePreviewProps } from '../../types';
 import { countries } from '../../data/locationData';
 import { OptionalSectionsRenderer } from './OptionalSectionsRenderer';
@@ -57,7 +58,7 @@ const BarcelonaTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                 {/* Profile Overview */}
                 {summary.professionalSummary && (
                     <section className="mb-4 px-4 text-center">
-                        <div className="text-stone-700 italic leading-relaxed text-justify px-6 border-l-2 border-r-2" style={{ borderColor: 'rgba(194, 125, 56, 0.2)' }} dangerouslySetInnerHTML={{ __html: summary.professionalSummary }} />
+                        <div className="text-stone-700 italic leading-relaxed text-justify px-6 border-l-2 border-r-2" style={{ borderColor: 'rgba(194, 125, 56, 0.2)' }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
                 )}
 
@@ -80,7 +81,7 @@ const BarcelonaTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                     <p className="text-[10px] italic text-stone-500 mb-2 font-serif">
                                         {exp.company} • {exp.location}
                                     </p>
-                                    <div className="text-stone-600 text-xs text-justify font-sans leading-relaxed" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                                    <div className="text-stone-600 text-xs text-justify font-sans leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
                                 </div>
                             ))}
                         </div>
@@ -104,7 +105,7 @@ const BarcelonaTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
                                             Frameworks: {proj.technologies}
                                         </p>
                                     )}
-                                    <div className="text-stone-600 text-xs text-justify mt-1" dangerouslySetInnerHTML={{ __html: proj.description }} />
+                                    <div className="text-stone-600 text-xs text-justify mt-1" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
                                 </div>
                             ))}
                         </div>
