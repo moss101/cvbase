@@ -417,6 +417,19 @@ export const AtsAnalyzer: React.FC<AtsAnalyzerProps> = ({ savedResume, onUpgrade
                                         </div>
                                     </div>
                                 </div>
+                                {report.keywordStuffing && (
+                                    <div className={`mt-4 p-3 rounded-2xl border text-xs leading-relaxed flex gap-2 ${
+                                        report.keywordStuffing.severity === 'high'
+                                            ? 'bg-rose-50/80 border-rose-200 text-rose-900'
+                                            : 'bg-amber-50/80 border-amber-200 text-amber-900'
+                                    }`}>
+                                        <span className="material-symbols-outlined text-base shrink-0">warning</span>
+                                        <span><strong>Keyword stuffing detected.</strong> {report.keywordStuffing.detail}</span>
+                                    </div>
+                                )}
+                                <p className="mt-4 text-[11px] text-gray-400 leading-relaxed border-t border-gray-100 pt-3">
+                                    {report.disclaimer}
+                                </p>
                             </div>
 
                             {/* Tabs */}

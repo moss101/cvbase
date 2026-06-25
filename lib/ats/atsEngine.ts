@@ -307,13 +307,40 @@ export interface RoleFit {
     competitiveness: 'strong' | 'moderate' | 'stretch';
 }
 
+/**
+ * Anti-keyword-stuffing signal. Populated when the resume repeats JD keywords
+ * far beyond natural usage to game the match score; `cap` is the ceiling the
+ * match score is clamped to once stuffing is detected.
+ */
+export interface KeywordStuffing {
+    severity: 'moderate' | 'high';
+    /** Canonical terms that were over-repeated. */
+    terms: string[];
+    /** The most a stuffed resume's match score is allowed to reach. */
+    cap: number;
+    /** Plain-language explanation surfaced to the user. */
+    detail: string;
+}
+
+/**
+ * Shown on every report. A high match score is a screening aid, not a promise —
+ * and stuffing a resume with keywords backfires with modern parsers and humans.
+ */
+export const ATS_DISCLAIMER =
+    'A higher match score can help with ATS screening, but it does not guarantee interviews. ' +
+    'Keep your resume truthful, readable, and relevant.';
+
 export interface AtsReport {
     generatedAt: string;
+    /** Shown to the user beneath the scores; never empty. */
+    disclaimer: string;
     /** Resume quality / parse-ability, JD-independent. */
     atsScore: number;
     atsDimensions: ScoreDimension[];
     /** Resume ↔ job alignment; null when no JD was provided. */
     matchScore: number | null;
+    /** Anti-stuffing signal; null when no stuffing was detected (or no JD). */
+    keywordStuffing: KeywordStuffing | null;
     matchDimensions: ScoreDimension[];
     matchedKeywords: MatchedKeyword[];
     missingKeywords: JobKeyword[];
@@ -620,6 +647,7 @@ export function runAtsAnalysis(resume: ParsedResume, job: JobAnalysis | null): A
     let missingKeywords: JobKeyword[] = [];
     let skillGaps: SkillGapGroup[] = [];
     let roleFit: RoleFit | null = null;
+    let keywordStuffing: KeywordStuffing | null = null;
 
     if (job) {
         const { matched, missing } = matchKeywordsAgainstResume(job, resume);
@@ -706,6 +734,34 @@ export function runAtsAnalysis(resume: ParsedResume, job: JobAnalysis | null): A
             { id: 'education', label: 'Education', weight: 0.12, score: clamp(eduScore * 100), summary: educationVerdict },
         ];
         matchScore = clamp(matchDimensions.reduce((s, d) => s + d.score * d.weight, 0));
+
+        // --- anti-keyword-stuffing cap ---
+        // A genuinely-used skill rarely appears many times in a single resume.
+        // When a JD keyword is repeated far beyond natural usage, the match
+        // score is being gamed; cap it and tell the user (truthfulness > score).
+        const stuffThreshold = Math.max(8, Math.round(resume.wordCount / 50));
+        const overused = matched
+            .filter(k => k.resumeCount >= stuffThreshold)
+            .sort((x, y) => y.resumeCount - x.resumeCount);
+        if (overused.length > 0) {
+            const worst = overused[0].resumeCount;
+            const severity: KeywordStuffing['severity'] =
+                overused.length >= 4 || worst >= 25 ? 'high' : 'moderate';
+            const cap = severity === 'high' ? 60 : 75;
+            const terms = overused.slice(0, 6).map(k => k.term);
+            const detail =
+                `${terms.map(t => `"${t}"`).join(', ')} ${terms.length === 1 ? 'appears' : 'appear'} ` +
+                `unusually often (e.g. "${overused[0].term}" ×${worst}). Modern ATS parsers and recruiters ` +
+                'penalize keyword stuffing, so your match score is capped here. Mention each skill where it is ' +
+                'genuinely evidenced rather than repeating it.';
+            keywordStuffing = { severity, terms, cap, detail };
+            matchScore = Math.min(matchScore, cap);
+            check('stuffing', 'Keyword stuffing', severity === 'high' ? 'fail' : 'warn', detail);
+            rec(severity === 'high' ? 'high' : 'medium', 'Remove repeated keyword stuffing',
+                `Cut the over-repetition of ${terms.map(t => `"${t}"`).join(', ')}. ` +
+                'Each skill needs to appear only where you actually evidence it; spamming terms lowers, not raises, your real ranking.',
+                severity === 'high' ? 6 : 3);
+        }
 
         // --- skills gap, grouped by category ---
         const categories = new Map<SkillCategory, SkillGapGroup>();
@@ -893,9 +949,11 @@ export function runAtsAnalysis(resume: ParsedResume, job: JobAnalysis | null): A
 
     return {
         generatedAt: new Date().toISOString(),
+        disclaimer: ATS_DISCLAIMER,
         atsScore,
         atsDimensions,
         matchScore,
+        keywordStuffing,
         matchDimensions,
         matchedKeywords,
         missingKeywords,
