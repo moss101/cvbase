@@ -624,6 +624,17 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
         setIsPdfQualityModalOpen(true);
     }, []);
 
+    const handleDownloadDOCX = useCallback(async () => {
+        try {
+            // Lazy-load the docx generator so the ~0.4 MB library stays out of the
+            // initial bundle and only loads when a user actually exports to Word.
+            const { downloadResumeDocx } = await import('../lib/export/resumeDocx');
+            await downloadResumeDocx(formData, { settings, visibleSections });
+        } catch (err) {
+            console.error('❌ DOCX export failed:', err);
+        }
+    }, [formData, settings, visibleSections]);
+
     const handleGeneratePDF = useCallback(async (quality: 'standard' | 'high') => {
         setIsPdfQualityModalOpen(false);
         console.log(`📄 Initializing professional layout rendering... Chosen profile quality: ${quality}`);
@@ -765,7 +776,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
                     onOrderChange={(newOrder) => setFormData(prev => ({ ...prev, sectionOrder: newOrder }))}
                 />
             );
-            case 'finalize': return <FinalizeForm onDownloadPDF={handleDownloadPDF} selectedTemplate={selectedTemplate} onTemplateChange={setSelectedTemplate} formData={formData} onOpenAtsModal={() => setIsAtsModalOpen(true)} visibleSections={visibleSections} settings={settings} onSettingsChange={setSettings} />;
+            case 'finalize': return <FinalizeForm onDownloadPDF={handleDownloadPDF} onDownloadDOCX={handleDownloadDOCX} selectedTemplate={selectedTemplate} onTemplateChange={setSelectedTemplate} formData={formData} onOpenAtsModal={() => setIsAtsModalOpen(true)} visibleSections={visibleSections} settings={settings} onSettingsChange={setSettings} />;
             default: return null;
         }
     };
