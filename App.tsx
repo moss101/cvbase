@@ -6,6 +6,7 @@ import Dashboard from './components/Dashboard';
 import HeadlessPreview from './components/HeadlessPreview';
 import ResourcesPage from './components/ResourcesPage';
 import PricingPage from './components/billing/PricingPage';
+import LegalPage, { type LegalTab } from './components/LegalPage';
 import { exampleData } from './exampleData';
 import type { TemplateId } from './types';
 import { TranslationProvider } from './services/translationService';
@@ -13,7 +14,7 @@ import { AuthProvider } from './components/AuthProvider';
 import { SubscriptionProvider, useSubscription } from './components/SubscriptionProvider';
 import type { DashboardTab } from './components/Dashboard';
 
-type ViewState = 'landing' | 'dashboard' | 'builder' | 'resources' | 'pricing';
+type ViewState = 'landing' | 'dashboard' | 'builder' | 'resources' | 'pricing' | 'legal';
 
 function AppContent() {
     const [currentView, setCurrentView] = useState<ViewState>('landing');
@@ -21,6 +22,7 @@ function AppContent() {
     const [previewMode, setPreviewMode] = useState<{template: TemplateId} | null>(null);
     const [dashboardTab, setDashboardTab] = useState<DashboardTab>('dashboard');
     const [activeResumeId, setActiveResumeId] = useState<string | null>(null);
+    const [legalTab, setLegalTab] = useState<LegalTab>('privacy');
     const { startCheckout } = useSubscription();
 
     useEffect(() => {
@@ -54,6 +56,7 @@ function AppContent() {
     const handleBackToDashboard = () => setCurrentView('dashboard');
     const navigateToResources = () => navigate('resources');
     const navigateToPricing = () => navigate('pricing');
+    const navigateToLegal = (tab: LegalTab) => { setLegalTab(tab); navigate('legal'); };
 
     const openDashboard = (tab: DashboardTab = 'dashboard') => {
         setDashboardTab(tab);
@@ -75,6 +78,7 @@ function AppContent() {
                     onEnterDashboard={() => openDashboard('dashboard')}
                     onViewResources={navigateToResources}
                     onViewPricing={navigateToPricing}
+                    onViewLegal={navigateToLegal}
                 />
             ) : currentView === 'dashboard' ? (
                 <Dashboard
@@ -98,6 +102,8 @@ function AppContent() {
                     onCheckout={startCheckout}
                     onManageBilling={() => openDashboard('billing')}
                 />
+            ) : currentView === 'legal' ? (
+                <LegalPage onBack={() => setCurrentView(prevView)} initialTab={legalTab} />
             ) : (
                 <ResumeBuilder onBack={handleBackToDashboard} initialResumeId={activeResumeId} />
             )}

@@ -1,8 +1,15 @@
 import React from 'react';
 
 interface FooterProps {
-    onNavigate: (target: 'templates' | 'builder' | 'examples' | 'resources' | 'pricing') => void;
+    onNavigate: (target: 'templates' | 'builder' | 'examples' | 'resources' | 'pricing' | 'privacy' | 'terms') => void;
 }
+
+const COMPANY_LINKS: { label: string; target?: 'privacy' | 'terms' }[] = [
+    { label: 'About' },
+    { label: 'Privacy Policy', target: 'privacy' },
+    { label: 'Terms of Service', target: 'terms' },
+    { label: 'Contact' },
+];
 
 const FOOTER_COLUMNS: { heading: string; links: { label: string; target: 'templates' | 'builder' | 'examples' | 'resources' | 'pricing' }[] }[] = [
     {
@@ -68,15 +75,14 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                     <nav aria-label="Company">
                         <h3 className="font-label text-[0.64rem] tracking-[0.22em] uppercase text-paper/35 mb-5">Company</h3>
                         <ul className="space-y-3">
-                            {['About', 'Privacy Policy', 'Terms of Service', 'Contact'].map((label) => (
+                            {COMPANY_LINKS.map(({ label, target }) => (
                                 <li key={label}>
-                                    <a
-                                        href="#"
-                                        onClick={(e) => e.preventDefault()}
+                                    <button
+                                        onClick={() => target && onNavigate(target)}
                                         className="text-[0.92rem] text-paper/70 hover:text-paper transition-colors duration-300"
                                     >
                                         {label}
-                                    </a>
+                                    </button>
                                 </li>
                             ))}
                         </ul>

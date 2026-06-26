@@ -19,9 +19,10 @@ interface LandingPageProps {
     onEnterDashboard: () => void;
     onViewResources: () => void;
     onViewPricing: () => void;
+    onViewLegal?: (tab: 'privacy' | 'terms') => void;
 }
 
-type NavTarget = 'templates' | 'builder' | 'examples' | 'resources' | 'pricing';
+type NavTarget = 'templates' | 'builder' | 'examples' | 'resources' | 'pricing' | 'privacy' | 'terms';
 
 const LandingPage: React.FC<LandingPageProps> = ({
     onStartBuilding,
@@ -30,6 +31,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
     onEnterDashboard,
     onViewResources,
     onViewPricing,
+    onViewLegal,
 }) => {
     const handleNavigate = (target: NavTarget) => {
         switch (target) {
@@ -45,6 +47,12 @@ const LandingPage: React.FC<LandingPageProps> = ({
                 break;
             case 'pricing':
                 onViewPricing();
+                break;
+            case 'privacy':
+                onViewLegal?.('privacy');
+                break;
+            case 'terms':
+                onViewLegal?.('terms');
                 break;
         }
     };
