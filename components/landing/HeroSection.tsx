@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { EASE_OUT_EXPO, EASE_IN_OUT_CUBIC } from './easing';
 import CVPreviewCard from './CVPreviewCard';
 
 interface HeroSectionProps {
@@ -21,7 +22,7 @@ const fadeUp = {
         opacity: 1,
         y: 0,
         filter: 'blur(0px)',
-        transition: { duration: 0.8, delay: 0.09 * i, ease: [0.32, 0.72, 0, 1] },
+        transition: { duration: 0.8, delay: 0.09 * i, ease: EASE_OUT_EXPO },
     }),
 };
 
@@ -82,7 +83,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onCreateCV, onViewTemplates }
                                         strokeLinecap="round"
                                         initial={{ pathLength: 0, opacity: 0 }}
                                         animate={{ pathLength: 1, opacity: 0.9 }}
-                                        transition={{ duration: 0.9, delay: 1.1, ease: [0.65, 0, 0.35, 1] }}
+                                        transition={{ duration: 0.9, delay: 1.1, ease: EASE_IN_OUT_CUBIC }}
                                     />
                                 </svg>
                             </span>

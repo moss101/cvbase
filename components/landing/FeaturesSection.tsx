@@ -1,11 +1,12 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { EASE_OUT_EXPO } from './easing';
 
 const cardReveal = (delay: number) => ({
     initial: { opacity: 0, y: 36 },
     whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, margin: '-60px' },
-    transition: { duration: 0.7, delay, ease: [0.32, 0.72, 0, 1] },
+    transition: { duration: 0.7, delay, ease: EASE_OUT_EXPO },
 });
 
 /* Double-bezel: outer shell + inner bright core */
@@ -23,7 +24,7 @@ const FeaturesSection: React.FC = () => {
                     initial={{ opacity: 0, y: 28, filter: 'blur(6px)' }}
                     whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                     viewport={{ once: true, margin: '-80px' }}
-                    transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
+                    transition={{ duration: 0.8, ease: EASE_OUT_EXPO }}
                     className="max-w-2xl mb-16 lg:mb-20"
                 >
                     <p className="font-label text-[0.7rem] tracking-[0.24em] uppercase text-ink-faint">
