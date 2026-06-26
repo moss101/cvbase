@@ -206,12 +206,14 @@ const loadState = (): ResumeData => {
     }
 };
 
+const DEFAULT_VISIBLE_SECTIONS: SectionId[] = ['certifications', 'languages'];
+
 const loadVisibleSections = (): SectionId[] => {
     try {
         const serialized = localStorage.getItem('cvbase-visible-sections');
         if (serialized) return JSON.parse(serialized);
     } catch (e) {}
-    return ['certifications', 'languages'];
+    return DEFAULT_VISIBLE_SECTIONS;
 };
 
 const INITIAL_SETTINGS: ResumeSettings = {
@@ -246,9 +248,11 @@ const loadActiveSection = (): SectionId => {
 
 interface ResumeBuilderProps {
     onBack: () => void;
+    /** When set, edit this specific resume; otherwise fall back to the user's primary. */
+    initialResumeId?: string | null;
 }
 
-const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
+const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }) => {
     const { user, userProfile } = useAuth();
     const [isHydrated, setIsHydrated] = useState(false);
     const [cloudLoaded, setCloudLoaded] = useState(false);
@@ -453,15 +457,19 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
         let cancelled = false;
         (async () => {
             try {
-                const cloud = await resumeRepo.getPrimary(user.id);
+                // Edit a specific resume when one was selected (multi-resume manager);
+                // otherwise fall back to the user's primary (legacy single-resume path).
+                const cloud = initialResumeId
+                    ? (await resumeRepo.get(user.id, initialResumeId)) ?? (await resumeRepo.getPrimary(user.id))
+                    : await resumeRepo.getPrimary(user.id);
                 if (cancelled) return;
                 if (cloud) {
                     setResumeId(cloud.id ?? null);
                     setFormData({ ...INITIAL_STATE, ...cloud.data });
-                    if (cloud.visibleSections.length) setVisibleSections(cloud.visibleSections);
-                    if (cloud.settings && Object.keys(cloud.settings).length) {
-                        setSettings({ ...INITIAL_SETTINGS, ...cloud.settings });
-                    }
+                    setVisibleSections(cloud.visibleSections.length ? cloud.visibleSections : DEFAULT_VISIBLE_SECTIONS);
+                    setSettings(cloud.settings && Object.keys(cloud.settings).length
+                        ? { ...INITIAL_SETTINGS, ...cloud.settings }
+                        : INITIAL_SETTINGS);
                     if (cloud.templateId) setSelectedTemplate(cloud.templateId as TemplateId);
                 } else {
                     const created = await resumeRepo.upsertPrimary(user.id, {
@@ -477,9 +485,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
             }
         })();
         return () => { cancelled = true; };
-        // Runs only when the authenticated user changes (import uses the loaded local copy).
+        // Re-run when the user signs in or a different resume is selected to edit.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user]);
+    }, [user, initialResumeId]);
 
     // Unified auto-save: localStorage cache always (instant + anonymous source of
     // truth); when authenticated and hydrated, debounce a write to Postgres.
@@ -497,10 +505,18 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
         let cloudTimer: ReturnType<typeof setTimeout> | null = null;
         if (user && cloudLoaded) {
             cloudTimer = setTimeout(() => {
-                resumeRepo.upsertPrimary(user.id, {
-                    title: 'My Resume', data: formData, settings,
-                    visibleSections, templateId: selectedTemplate, isPrimary: true,
-                }).catch((err) => console.error('Cloud save failed', err));
+                // Save by id when editing a known resume (preserves its own title);
+                // fall back to upsertPrimary only before an id is established.
+                if (resumeId) {
+                    resumeRepo.saveById(user.id, resumeId, {
+                        data: formData, settings, visibleSections, templateId: selectedTemplate,
+                    }).catch((err) => console.error('Cloud save failed', err));
+                } else {
+                    resumeRepo.upsertPrimary(user.id, {
+                        title: 'My Resume', data: formData, settings,
+                        visibleSections, templateId: selectedTemplate, isPrimary: true,
+                    }).catch((err) => console.error('Cloud save failed', err));
+                }
             }, 600);
         }
 
@@ -513,7 +529,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
             clearTimeout(timer);
             if (cloudTimer) clearTimeout(cloudTimer);
         };
-    }, [formData, visibleSections, settings, selectedTemplate, user, cloudLoaded]);
+    }, [formData, visibleSections, settings, selectedTemplate, user, cloudLoaded, resumeId]);
 
     const handleLoadExample = useCallback(() => {
         if (window.confirm("Are you sure you want to load the example data? This will overwrite your current progress.")) {

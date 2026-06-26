@@ -20,6 +20,7 @@ function AppContent() {
     const [prevView, setPrevView] = useState<ViewState>('landing');
     const [previewMode, setPreviewMode] = useState<{template: TemplateId} | null>(null);
     const [dashboardTab, setDashboardTab] = useState<DashboardTab>('dashboard');
+    const [activeResumeId, setActiveResumeId] = useState<string | null>(null);
     const { startCheckout } = useSubscription();
 
     useEffect(() => {
@@ -45,9 +46,11 @@ function AppContent() {
                 localStorage.setItem('cvbase-selected-template', templateId);
             } catch (e) { /* storage unavailable — builder falls back to default */ }
         }
+        setActiveResumeId(null); // fresh primary / local flow
         navigate('builder');
     };
-    const handleEditExisting = () => navigate('builder');
+    const handleEditExisting = () => { setActiveResumeId(null); navigate('builder'); };
+    const handleEditResume = (resumeId: string) => { setActiveResumeId(resumeId); navigate('builder'); };
     const handleBackToDashboard = () => setCurrentView('dashboard');
     const navigateToResources = () => navigate('resources');
     const navigateToPricing = () => navigate('pricing');
@@ -77,6 +80,7 @@ function AppContent() {
                 <Dashboard
                     onCreateNew={handleCreateNew}
                     onEditExisting={handleEditExisting}
+                    onEditResume={handleEditResume}
                     onBackToLanding={() => navigate('landing')}
                     onViewResources={navigateToResources}
                     onViewPricing={navigateToPricing}
@@ -95,7 +99,7 @@ function AppContent() {
                     onManageBilling={() => openDashboard('billing')}
                 />
             ) : (
-                <ResumeBuilder onBack={handleBackToDashboard} />
+                <ResumeBuilder onBack={handleBackToDashboard} initialResumeId={activeResumeId} />
             )}
         </div>
     );

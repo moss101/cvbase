@@ -11,6 +11,7 @@ import { SmartStudio } from './SmartStudio';
 import { useSubscription } from './SubscriptionProvider';
 import AtsAnalyzer from './ats/AtsAnalyzer';
 import BillingDashboard from './billing/BillingDashboard';
+import ResumeManager from './ResumeManager';
 
 // Import all templates for rendering previews
 import GsbExecutiveTemplate from './templates/GsbExecutiveTemplate';
@@ -94,6 +95,8 @@ export type DashboardTab = 'dashboard' | 'resumes' | 'templates' | 'profile' | '
 interface DashboardProps {
     onCreateNew: (templateId?: TemplateId) => void;
     onEditExisting: () => void;
+    /** Open a specific resume by id (multi-resume manager). */
+    onEditResume?: (resumeId: string) => void;
     onBackToLanding?: () => void;
     onViewResources?: () => void;
     onViewPricing?: () => void;
@@ -274,7 +277,7 @@ const BentoCard: React.FC<{
     </div>
 );
 
-const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onBackToLanding, onViewResources, onViewPricing, initialTab = 'dashboard' }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEditResume, onBackToLanding, onViewResources, onViewPricing, initialTab = 'dashboard' }) => {
     const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [savedResume, setSavedResume] = useState<ResumeData | null>(null);
@@ -663,14 +666,22 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onBa
                     )}
 
                     {/* RESUMES VIEW */}
-                    {activeTab === 'resumes' && (
+                    {activeTab === 'resumes' && user && onEditResume && (
+                        <ResumeManager
+                            userId={user.id}
+                            plan={plan}
+                            onEdit={onEditResume}
+                            onUpgrade={() => onViewPricing?.()}
+                        />
+                    )}
+                    {activeTab === 'resumes' && !(user && onEditResume) && (
                         <div className="animate-fade-in">
                              <header className="flex justify-between items-center mb-8">
                                 <div>
                                     <h1 className="text-3xl font-bold text-gray-800 mb-2">My Documents</h1>
                                     <p className="text-gray-500">Manage and edit your saved documents.</p>
                                 </div>
-                                <button 
+                                <button
                                     onClick={() => onCreateNew()}
                                     className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/25 hover:bg-primary-dark transition-all hover:-translate-y-0.5"
                                 >
