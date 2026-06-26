@@ -44,6 +44,16 @@ function reportToMatch(report: AtsReport): ResumeMatchResult {
   };
 }
 
+// A complete ResumeData stand-in used when the studio is opened without a saved
+// resume (e.g. pasted text only), so AI calls still receive a well-typed payload.
+const fallbackResume = (resumeText: string): ResumeData => ({
+  contact: { firstName: 'Professional', lastName: 'Candidate', jobTitle: 'Aspirator', phone: '', phoneCountryCode: '', email: 'expert@match.ceo', address: '', country: '', city: '', customCity: '', linkedin: '', website: '', photo: '' },
+  summary: { professionalSummary: resumeText },
+  experience: [], projects: [], education: [],
+  skills: resumeText.match(/skills|expert|toolkit:\s*([^\n]+)/gi)?.[0]?.split(',') || [],
+  certifications: [], languages: [], awards: [], trainings: [], publications: [], volunteer: [], custom: [],
+});
+
 export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
   // Navigation tabs of Smart Studio
   const [activeSubTab, setActiveSubTab] = useState<'match' | 'linkedin' | 'cover' | 'tracker' | 'trajectory'>('match');
@@ -51,6 +61,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
   // State: Career Trajectory Analysis
   const [trajectoryResult, setTrajectoryResult] = useState<CareerTrajectoryResult | null>(null);
   const [isAnalyzingTrajectory, setIsAnalyzingTrajectory] = useState(false);
+  const [trajectoryError, setTrajectoryError] = useState<string | null>(null);
 
   // Load Saved Resume Text representation for analysis convenience
   const getCompiledResumeText = (): string => {
@@ -355,15 +366,8 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
     setMatchResult(null);
     try {
       // Setup payload parsing
-      const payload: ResumeData = resumeData || {
-        contact: { firstName: 'Professional', lastName: 'Candidate', jobTitle: 'Aspirator', phone: '', phoneCountryCode: '', email: 'expert@match.ceo', address: '', country: '', city: '', customCity: '', linkedin: '', website: '', photo: '' },
-        summary: { professionalSummary: resumeText },
-        experience: [],
-        projects: [],
-        education: [],
-        skills: resumeText.match(/skills|expert|toolkit:\s*([^\n]+)/gi)?.[0]?.split(',') || []
-      };
-      
+      const payload: ResumeData = resumeData || fallbackResume(resumeText);
+
       // Real, deterministic match via the server (metered ats-analyze) — replaces
       // the deleted AI JobScan mock that returned identical canned data to everyone.
       const { report } = await callFn<{ report: AtsReport }>('ats-analyze', {
@@ -415,19 +419,21 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
   const handleRunTrajectoryAnalysis = async () => {
     setIsAnalyzingTrajectory(true);
     setTrajectoryResult(null);
+    setTrajectoryError(null);
     try {
-      const payload: ResumeData = resumeData || {
-        contact: { firstName: 'Professional', lastName: 'Candidate', jobTitle: 'Aspirator', phone: '', phoneCountryCode: '', email: 'expert@match.ceo', address: '', country: '', city: '', customCity: '', linkedin: '', website: '', photo: '' },
-        summary: { professionalSummary: resumeText },
-        experience: [],
-        projects: [],
-        education: [],
-        skills: resumeText.match(/skills|expert|toolkit:\s*([^\n]+)/gi)?.[0]?.split(',') || []
-      };
-      
+      const payload: ResumeData = resumeData || fallbackResume(resumeText);
+
       const result = await analyzeCareerTrajectory(payload);
       setTrajectoryResult(result);
     } catch (e) {
+      const code = (e as { code?: string })?.code;
+      setTrajectoryError(
+        code === 'feature_locked'
+          ? 'Career Trajectory is part of Smart Studio (Pro & Elite). Upgrade to unlock it.'
+          : code === 'limit_reached'
+            ? "You've used all your AI actions for this month. Upgrade for more."
+            : 'Trajectory analysis failed. Please try again.',
+      );
       console.error(e);
     } finally {
       setIsAnalyzingTrajectory(false);
@@ -1273,7 +1279,14 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
               </button>
             </div>
 
-            {!trajectoryResult && !isAnalyzingTrajectory && (
+            {trajectoryError && (
+              <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-800">
+                <span className="material-symbols-outlined text-base">info</span>
+                <span>{trajectoryError}</span>
+              </div>
+            )}
+
+            {!trajectoryResult && !isAnalyzingTrajectory && !trajectoryError && (
               <div className="mt-8 border-2 border-dashed border-slate-200 rounded-2xl p-10 text-center">
                 <span className="material-symbols-outlined text-4xl text-slate-300 animate-bounce">rocket_launch</span>
                 <h4 className="text-sm font-bold text-slate-700 mt-2">Unlock Your Career Map</h4>

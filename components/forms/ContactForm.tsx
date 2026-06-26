@@ -9,6 +9,7 @@ import { WandIcon } from '../common/icons';
 import { countries, cities } from '../../data/locationData';
 import { useTranslation } from '../../services/translationService';
 import AITipHelper from '../common/AITipHelper';
+import { useSubscription } from '../SubscriptionProvider';
 
 
 interface ContactFormProps {
@@ -37,6 +38,8 @@ const ContactForm: React.FC<ContactFormProps> = ({ data, onFormDataChange, onPho
     const [error, setError] = useState<string | null>(null);
     const [cityOptions, setCityOptions] = useState<string[]>([]);
     const { t } = useTranslation();
+    const { plan } = useSubscription();
+    const canUseHeadshot = plan.limits.aiHeadshot; // Elite-only feature
 
     useEffect(() => {
         if (data.country && cities[data.country]) {
@@ -96,6 +99,10 @@ const ContactForm: React.FC<ContactFormProps> = ({ data, onFormDataChange, onPho
 
     const handleEnhanceClick = async () => {
         if (!data.photo) return;
+        if (!canUseHeadshot) {
+            setError('AI Headshot is an Elite feature. Upgrade your plan to generate a professional headshot.');
+            return;
+        }
         setIsProcessing(true);
         setError(null);
         try {
@@ -105,7 +112,15 @@ const ContactForm: React.FC<ContactFormProps> = ({ data, onFormDataChange, onPho
             const enhancedBase64 = await generateProfessionalHeadshot(base64Data, mimeType);
             onPhotoChange(`data:image/png;base64,${enhancedBase64}`);
         } catch (err) {
-            setError('Failed to enhance photo. Please try again.');
+            // Surface the server's entitlement/limit errors with an actionable message.
+            const code = (err as { code?: string })?.code;
+            if (code === 'feature_locked') {
+                setError('AI Headshot is an Elite feature. Upgrade your plan to use it.');
+            } else if (code === 'limit_reached') {
+                setError("You've used all your AI actions for this month. Upgrade for more.");
+            } else {
+                setError('Failed to enhance photo. Please try again.');
+            }
             console.error(err);
         } finally {
             setIsProcessing(false);
@@ -196,10 +211,12 @@ const ContactForm: React.FC<ContactFormProps> = ({ data, onFormDataChange, onPho
                                     type="button"
                                     onClick={handleEnhanceClick}
                                     disabled={isProcessing}
-                                    className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-primary bg-primary-light rounded-md hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title={canUseHeadshot ? undefined : 'Elite feature'}
+                                    className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${canUseHeadshot ? 'text-primary bg-primary-light hover:bg-primary/20' : 'text-amber-700 bg-amber-50 hover:bg-amber-100'}`}
                                 >
-                                    <WandIcon />
-                                    {isProcessing ? 'Processing...' : 'AI Enhance Headshot'}
+                                    {canUseHeadshot
+                                        ? <><WandIcon />{isProcessing ? 'Processing...' : 'AI Enhance Headshot'}</>
+                                        : <><span className="material-symbols-outlined text-base">lock</span>AI Headshot · Elite</>}
                                 </button>
                                 <button type="button" onClick={() => onPhotoChange('')} className="text-xs text-gray-500 hover:text-danger">
                                     Remove Photo
