@@ -84,6 +84,8 @@ import CasablancaTemplate from '../templates/CasablancaTemplate';
 interface FinalizeFormProps {
     onDownloadPDF: () => void;
     onDownloadDOCX: () => void;
+    onOpenVersions: () => void;
+    versionsEnabled: boolean;
     selectedTemplate: TemplateId;
     onTemplateChange: (id: TemplateId) => void;
     formData: ResumeData;
@@ -227,7 +229,7 @@ const atsFonts = [
 ];
 
 
-const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDOCX, selectedTemplate, onTemplateChange, formData, onOpenAtsModal, visibleSections, settings, onSettingsChange }) => {
+const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDOCX, onOpenVersions, versionsEnabled, selectedTemplate, onTemplateChange, formData, onOpenAtsModal, visibleSections, settings, onSettingsChange }) => {
     const [activeTab, setActiveTab] = useState<Tab>('templates');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
@@ -296,6 +298,16 @@ const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDO
                         <p className="mt-3 text-xs text-gray-400">
                             The Word file is a clean, single-column, ATS-friendly version you can edit further.
                         </p>
+                        {versionsEnabled && (
+                            <button
+                                type="button"
+                                className="w-full mt-3 py-3 px-8 rounded-xl font-bold cursor-pointer transition-all bg-white text-dark border-2 border-gray-200 hover:border-primary hover:text-primary hover:-translate-y-0.5 flex items-center justify-center gap-3"
+                                onClick={onOpenVersions}
+                            >
+                                <span className="material-symbols-outlined">history</span>
+                                Version history
+                            </button>
+                        )}
                         <div className="mt-8 text-left">
                              <TipsCard activeSection="finalize" />
                         </div>

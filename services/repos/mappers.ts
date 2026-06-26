@@ -41,6 +41,33 @@ export function resumeToRow(r: Partial<StoredResume>, userId: string): Record<st
   return row;
 }
 
+export interface StoredVersion {
+  id?: string;
+  resumeId: string;
+  label: string;
+  data: ResumeData;
+  createdAt?: string;
+}
+
+export function rowToVersion(row: Record<string, unknown>): StoredVersion {
+  return {
+    id: typeof row.id === 'string' ? row.id : undefined,
+    resumeId: str(row.resume_id),
+    label: str(row.label),
+    data: obj(row.data) as unknown as ResumeData,
+    createdAt: typeof row.created_at === 'string' ? row.created_at : undefined,
+  };
+}
+
+export function versionToRow(v: Partial<StoredVersion>, userId: string): Record<string, unknown> {
+  const row: Record<string, unknown> = { user_id: userId };
+  if (v.id !== undefined) row.id = v.id;
+  if (v.resumeId !== undefined) row.resume_id = v.resumeId;
+  if (v.label !== undefined) row.label = v.label;
+  if (v.data !== undefined) row.data = v.data;
+  return row;
+}
+
 export function rowToJob(row: Record<string, unknown>): JobApplication {
   return {
     id: str(row.id),

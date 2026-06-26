@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { rowToResume, resumeToRow, rowToJob, jobToRow, rowToSubscription } from '../mappers';
+import { rowToResume, resumeToRow, rowToJob, jobToRow, rowToSubscription, rowToVersion, versionToRow } from '../mappers';
 import type { ResumeData, ResumeSettings } from '../../../types';
 
 describe('repo mappers', () => {
@@ -40,5 +40,20 @@ describe('repo mappers', () => {
   });
   it('rowToSubscription returns null for no row', () => {
     expect(rowToSubscription(null)).toBeNull();
+  });
+  it('rowToVersion parses a version row and its jsonb data', () => {
+    const v = rowToVersion({ id: 'v1', resume_id: 'r1', label: 'Before tailoring', data: { skills: ['go'] }, created_at: '2026-06-26T00:00:00Z' });
+    expect(v.id).toBe('v1');
+    expect(v.resumeId).toBe('r1');
+    expect(v.label).toBe('Before tailoring');
+    expect(v.createdAt).toBe('2026-06-26T00:00:00Z');
+    expect((v.data as { skills: string[] }).skills).toEqual(['go']);
+  });
+  it('versionToRow serializes resumeId->resume_id keyed by user_id', () => {
+    const row = versionToRow({ resumeId: 'r1', label: 'v1', data: {} as ResumeData }, 'u1');
+    expect(row.user_id).toBe('u1');
+    expect(row.resume_id).toBe('r1');
+    expect(row.label).toBe('v1');
+    expect('id' in row).toBe(false);
   });
 });

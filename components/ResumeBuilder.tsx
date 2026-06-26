@@ -16,6 +16,9 @@ import AIActionModal from './AIActionModal';
 import { exampleData } from '../exampleData';
 import { useAuth } from './AuthProvider';
 import * as resumeRepo from '../services/repos/resumeRepo';
+import * as versionRepo from '../services/repos/versionRepo';
+import type { StoredVersion } from '../services/repos/mappers';
+import VersionHistoryModal from './common/VersionHistoryModal';
 import AtsChecker from './AtsChecker';
 import AwardsForm from './forms/AwardsForm';
 import TrainingsForm from './forms/TrainingsForm';
@@ -262,6 +265,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
     const [isPdfQualityModalOpen, setIsPdfQualityModalOpen] = useState(false);
     const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [resumeId, setResumeId] = useState<string | null>(null);
+    const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
+    const [versions, setVersions] = useState<StoredVersion[]>([]);
+    const [versionsLoading, setVersionsLoading] = useState(false);
+    const [versionSaving, setVersionSaving] = useState(false);
 
     // Real-time DOM section reordering helper
     const getSectionIdFromElement = useCallback((el: HTMLElement): string | null => {
@@ -448,6 +456,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
                 const cloud = await resumeRepo.getPrimary(user.id);
                 if (cancelled) return;
                 if (cloud) {
+                    setResumeId(cloud.id ?? null);
                     setFormData({ ...INITIAL_STATE, ...cloud.data });
                     if (cloud.visibleSections.length) setVisibleSections(cloud.visibleSections);
                     if (cloud.settings && Object.keys(cloud.settings).length) {
@@ -455,10 +464,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
                     }
                     if (cloud.templateId) setSelectedTemplate(cloud.templateId as TemplateId);
                 } else {
-                    await resumeRepo.upsertPrimary(user.id, {
+                    const created = await resumeRepo.upsertPrimary(user.id, {
                         title: 'My Resume', data: formData, settings,
                         visibleSections, templateId: selectedTemplate, isPrimary: true,
                     });
+                    if (!cancelled) setResumeId(created.id ?? null);
                 }
             } catch (err) {
                 console.error('Cloud resume load failed; using local copy', err);
@@ -635,6 +645,49 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
         }
     }, [formData, settings, visibleSections]);
 
+    const handleOpenVersions = useCallback(async () => {
+        setIsVersionModalOpen(true);
+        if (!user || !resumeId) return;
+        setVersionsLoading(true);
+        try {
+            setVersions(await versionRepo.listForResume(user.id, resumeId));
+        } catch (err) {
+            console.error('Loading versions failed', err);
+        } finally {
+            setVersionsLoading(false);
+        }
+    }, [user, resumeId]);
+
+    const handleSaveVersion = useCallback(async (label: string) => {
+        if (!user || !resumeId) return;
+        setVersionSaving(true);
+        try {
+            const saved = await versionRepo.snapshot(user.id, resumeId, label, formData);
+            setVersions(prev => [saved, ...prev]);
+        } catch (err) {
+            console.error('Saving version failed', err);
+        } finally {
+            setVersionSaving(false);
+        }
+    }, [user, resumeId, formData]);
+
+    const handleRestoreVersion = useCallback((version: StoredVersion) => {
+        setFormData({ ...INITIAL_STATE, ...version.data });
+        setIsVersionModalOpen(false);
+    }, []);
+
+    const handleDeleteVersion = useCallback(async (versionId: string) => {
+        if (!user) return;
+        const prev = versions;
+        setVersions(prev.filter(v => v.id !== versionId));
+        try {
+            await versionRepo.remove(user.id, versionId);
+        } catch (err) {
+            console.error('Deleting version failed', err);
+            setVersions(prev); // roll back optimistic removal
+        }
+    }, [user, versions]);
+
     const handleGeneratePDF = useCallback(async (quality: 'standard' | 'high') => {
         setIsPdfQualityModalOpen(false);
         console.log(`📄 Initializing professional layout rendering... Chosen profile quality: ${quality}`);
@@ -776,7 +829,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
                     onOrderChange={(newOrder) => setFormData(prev => ({ ...prev, sectionOrder: newOrder }))}
                 />
             );
-            case 'finalize': return <FinalizeForm onDownloadPDF={handleDownloadPDF} onDownloadDOCX={handleDownloadDOCX} selectedTemplate={selectedTemplate} onTemplateChange={setSelectedTemplate} formData={formData} onOpenAtsModal={() => setIsAtsModalOpen(true)} visibleSections={visibleSections} settings={settings} onSettingsChange={setSettings} />;
+            case 'finalize': return <FinalizeForm onDownloadPDF={handleDownloadPDF} onDownloadDOCX={handleDownloadDOCX} onOpenVersions={handleOpenVersions} versionsEnabled={!!user && !!resumeId} selectedTemplate={selectedTemplate} onTemplateChange={setSelectedTemplate} formData={formData} onOpenAtsModal={() => setIsAtsModalOpen(true)} visibleSections={visibleSections} settings={settings} onSettingsChange={setSettings} />;
             default: return null;
         }
     };
@@ -964,6 +1017,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack }) => {
                 isOpen={isPdfQualityModalOpen}
                 onClose={() => setIsPdfQualityModalOpen(false)}
                 onSelectQuality={handleGeneratePDF}
+            />
+            <VersionHistoryModal
+                isOpen={isVersionModalOpen}
+                onClose={() => setIsVersionModalOpen(false)}
+                versions={versions}
+                loading={versionsLoading}
+                saving={versionSaving}
+                onSave={handleSaveVersion}
+                onRestore={handleRestoreVersion}
+                onDelete={handleDeleteVersion}
             />
             <JSONBackupModal
                 isOpen={isJsonModalOpen}
