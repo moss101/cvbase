@@ -45,3 +45,15 @@ jobs:
             exit 1
           fi
           echo "Secret-leak guard passed."
+
+  edge-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      # Deno tests for the Edge Function shared helpers (pure logic: sanitize,
+      # validate). No network/permissions needed beyond fetching jsr:@std/assert.
+      - name: Deno test (Edge Function helpers)
+        run: deno test supabase/functions/_shared/
