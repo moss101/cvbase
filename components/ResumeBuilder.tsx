@@ -114,7 +114,9 @@ declare global {
     }
 }
 
-const templateMap: Record<string, React.FC<any>> = {
+// Typed by TemplateId so the (CI-blocking) typecheck fails if any advertised
+// template lacks a renderer — every TemplateId must appear as a key here.
+const templateMap: Record<TemplateId, React.FC<any>> = {
     'gsb-executive': GsbExecutiveTemplate,
     'ivy-elite': IvyEliteTemplate,
     'vanguard-classic': VanguardClassicTemplate,

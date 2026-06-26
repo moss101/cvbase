@@ -82,7 +82,8 @@ interface HeadlessPreviewProps {
     data: ResumeData;
 }
 
-const templateMap: Record<string, React.FC<any>> = {
+// Typed by TemplateId so the typecheck enforces a renderer for every template.
+const templateMap: Record<TemplateId, React.FC<any>> = {
     'gsb-executive': GsbExecutiveTemplate,
     'ivy-elite': IvyEliteTemplate,
     'vanguard-classic': VanguardClassicTemplate,
