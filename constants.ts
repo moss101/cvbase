@@ -1,5 +1,5 @@
 
-import type { ResumeData, SectionId } from './types';
+import type { ResumeData, SectionId, TemplateId } from './types';
 
 // Default visible sections. Optional sections are managed via 'customize'
 export const NAV_SECTIONS: { id: SectionId; name: string; optional?: boolean }[] = [
@@ -142,7 +142,7 @@ export const NEW_CUSTOM_ITEM = {
     description: ''
 };
 
-export const AVAILABLE_TEMPLATES = [
+export const AVAILABLE_TEMPLATES: { id: TemplateId; name: string; category: string }[] = [
     { id: 'gsb-executive', name: 'GSB Executive', category: 'Executive' },
     { id: 'ivy-elite', name: 'Ivy Elite', category: 'Executive' },
     { id: 'vanguard-classic', name: 'Vanguard Classic', category: 'Executive' },
