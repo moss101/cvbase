@@ -99,6 +99,13 @@ export const PLANS: Plan[] = [
 
 export const getPlan = (id: PlanId): Plan => PLANS.find(p => p.id === id) || PLANS[0];
 
+/** The number of resumes a plan allows (-1 = unlimited). */
+export const resumeLimitFor = (planId: PlanId): number => getPlan(planId).limits.resumes;
+
+/** Whether another resume can be created under a `resumes` limit (-1 = unlimited). */
+export const canCreateResume = (currentCount: number, limit: number): boolean =>
+    limit < 0 || currentCount < limit;
+
 const PLAN_RANK: Record<PlanId, number> = { free: 0, pro: 1, elite: 2 };
 export const isUpgrade = (from: PlanId, to: PlanId) => PLAN_RANK[to] > PLAN_RANK[from];
 

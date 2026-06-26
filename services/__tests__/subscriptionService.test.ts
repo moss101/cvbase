@@ -6,10 +6,22 @@ import {
   cycleCharge,
   quoteCheckout,
   usageRemaining,
+  canCreateResume,
+  resumeLimitFor,
 } from '../subscriptionService';
 import type { BillingState } from '../../types';
 
 describe('subscriptionService pure helpers', () => {
+  it('resumeLimitFor reflects the plan catalog (free=1, pro/elite unlimited)', () => {
+    expect(resumeLimitFor('free')).toBe(1);
+    expect(resumeLimitFor('pro')).toBe(-1);
+    expect(resumeLimitFor('elite')).toBe(-1);
+  });
+  it('canCreateResume gates on the limit (-1 = unlimited)', () => {
+    expect(canCreateResume(0, 1)).toBe(true);   // free, none yet
+    expect(canCreateResume(1, 1)).toBe(false);  // free, at the cap
+    expect(canCreateResume(99, -1)).toBe(true); // unlimited
+  });
   it('luhnValid accepts a valid test card and rejects junk', () => {
     expect(luhnValid('4242424242424242')).toBe(true);
     expect(luhnValid('1234')).toBe(false);
