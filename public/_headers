@@ -1,0 +1,11 @@
+# Security response headers for static hosts that read a _headers file
+# (Netlify, Cloudflare Pages). Vite copies public/ to the dist root on build.
+# Header-only protections that a <meta> CSP in index.html cannot express live
+# here (frame-ancestors, HSTS, X-Frame-Options, Referrer/Permissions policy).
+/*
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://aistudiocdn.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://aistudiocdn.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; worker-src 'self' blob:; manifest-src 'self'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), interest-cohort=()
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload

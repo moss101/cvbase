@@ -3,6 +3,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      Content Security Policy (defense-in-depth alongside the DOMPurify sanitizer).
+      Document-level directives only — frame-ancestors / HSTS / X-Frame-Options are
+      response headers (see public/_headers and vercel.json). 'unsafe-inline' /
+      'unsafe-eval' are required by the Tailwind CDN + inline config + importmap;
+      the CDN allow-list below still blocks scripts from any other origin, and
+      object-src/base-uri/form-action close the usual injection escape hatches.
+      localhost:54321 entries are for the local Supabase stack in dev.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://aistudiocdn.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://aistudiocdn.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com http://127.0.0.1:54321 ws://127.0.0.1:54321 http://localhost:54321 ws://localhost:54321; worker-src 'self' blob:; manifest-src 'self'" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>CVBase — The CV builder that gets you shortlisted</title>
     <meta name="description" content="Build an ATS-proof, recruiter-ready CV in minutes. 75+ professional templates, an AI writing assistant, and pixel-perfect PDF export — free to start." />
