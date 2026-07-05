@@ -3,7 +3,7 @@ import { ok, fail, HttpError } from '../_shared/respond.ts';
 import { getUser } from '../_shared/auth.ts';
 import { checkAndMeter } from '../_shared/entitlement.ts';
 import { logAi } from '../_shared/aiLog.ts';
-import { geminiText, geminiJson } from '../_shared/gemini.ts';
+import { llmText, llmJson, ROUTED_MODEL_LABEL } from '../_shared/llm.ts';
 import { sanitizeText, sanitizeDeep } from '../_shared/sanitize.ts';
 
 const STRING_ARRAY = { type: 'ARRAY', items: { type: 'STRING' } };
@@ -91,39 +91,39 @@ Deno.serve(async (req) => {
 
     let result: unknown;
     if (GENERATORS[kind]) {
-      const parsed = await geminiJson<unknown>(GENERATORS[kind](payload), STRING_ARRAY);
+      const parsed = await llmJson<unknown>(GENERATORS[kind](payload), STRING_ARRAY);
       result = Array.isArray(parsed) ? parsed.map(sanitizeText).filter(Boolean) : [];
     } else if (kind === 'suggestion') {
-      result = sanitizeText(await geminiText(String(payload.prompt ?? '')));
+      result = sanitizeText(await llmText(String(payload.prompt ?? '')));
     } else if (kind === 'fieldTip') {
       let p = `You are an expert resume writer. Give a specific, actionable 1-2 sentence pro-tip (under 30 words) for the "${sanitizeText(payload.fieldName)}" field in the "${sanitizeText(payload.section)}" section. Return ONLY the tip — no preamble, quotes, or markdown.`;
       if (typeof payload.currentValue === 'string' && payload.currentValue.length > 5) {
         p += `\nThe user is writing: "${sanitizeText(payload.currentValue)}". Tailor advice to refine/quantify it.`;
       }
-      result = sanitizeText(await geminiText(p)).replace(/^["']|["']$/g, '').trim();
+      result = sanitizeText(await llmText(p)).replace(/^["']|["']$/g, '').trim();
     } else if (kind === 'section') {
       const spec = sectionSpec(String(payload.section ?? ''), payload.resumeData, String(payload.jobDescription ?? ''));
-      result = sanitizeDeep(await geminiJson(spec.prompt, spec.schema));
+      result = sanitizeDeep(await llmJson(spec.prompt, spec.schema));
     } else if (kind === 'analyze') {
       const jd = String(payload.jobDescription ?? '');
       const [s, e, k] = await Promise.all(
         ['summary', 'experience', 'skills'].map((sec) => {
           const spec = sectionSpec(sec, payload.resumeData, jd);
-          return geminiJson<Record<string, unknown>>(spec.prompt, spec.schema).catch(() => ({}));
+          return llmJson<Record<string, unknown>>(spec.prompt, spec.schema).catch(() => ({}));
         }),
       );
       result = sanitizeDeep({ ...s, ...e, ...k });
     } else if (kind === 'ats-compliance') {
       const prompt = `You are an expert ATS analyzer. Evaluate the resume's ATS compliance. overallScore 0-100; for each check give a boolean pass and concise feedback. Resume Data:\n${JSON.stringify(payload.resumeData).slice(0, 12000)}`;
-      result = sanitizeDeep(await geminiJson(prompt, ATS_SCHEMA));
+      result = sanitizeDeep(await llmJson(prompt, ATS_SCHEMA));
     } else {
       throw new HttpError(400, 'unsupported_kind', { kind });
     }
 
-    await logAi(user.id, { function: 'ai-suggest', model: 'gemini-2.5-flash', promptVersion: 'v1', status: 'ok' });
+    await logAi(user.id, { function: 'ai-suggest', model: ROUTED_MODEL_LABEL, promptVersion: 'v1', status: 'ok' });
     return ok({ kind, result });
   } catch (err) {
-    if (userId) await logAi(userId, { function: `ai-suggest:${kind}`, model: 'gemini-2.5-flash', status: 'error' });
+    if (userId) await logAi(userId, { function: `ai-suggest:${kind}`, model: ROUTED_MODEL_LABEL, status: 'error' });
     return fail(err);
   }
 });

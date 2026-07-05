@@ -3,7 +3,7 @@ import { ok, fail, HttpError } from '../_shared/respond.ts';
 import { getUser } from '../_shared/auth.ts';
 import { checkAndMeter, requireFeature } from '../_shared/entitlement.ts';
 import { logAi } from '../_shared/aiLog.ts';
-import { geminiJson } from '../_shared/gemini.ts';
+import { llmJson, ROUTED_MODEL_LABEL } from '../_shared/llm.ts';
 import { validateShape } from '../_shared/validate.ts';
 import { sanitizeDeep } from '../_shared/sanitize.ts';
 
@@ -49,15 +49,15 @@ Deno.serve(async (req) => {
       `Respond as JSON matching the schema. No markdown.`;
 
     const result = sanitizeDeep(
-      validateShape(await geminiJson(prompt, SCHEMA), {
+      validateShape(await llmJson(prompt, SCHEMA), {
         linkedinScore: 'number', headlineSuggestions: 'array', aboutSuggestion: 'string',
         experienceTips: 'array', searchVisibilityFeedback: 'string',
       }),
     );
-    await logAi(user.id, { function: 'ai-linkedin', model: 'gemini-2.5-flash', status: 'ok' });
+    await logAi(user.id, { function: 'ai-linkedin', model: ROUTED_MODEL_LABEL, status: 'ok' });
     return ok(result);
   } catch (err) {
-    if (userId) await logAi(userId, { function: 'ai-linkedin', model: 'gemini-2.5-flash', status: 'error' });
+    if (userId) await logAi(userId, { function: 'ai-linkedin', model: ROUTED_MODEL_LABEL, status: 'error' });
     return fail(err);
   }
 });

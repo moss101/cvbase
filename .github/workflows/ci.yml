@@ -53,7 +53,27 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-      # Deno tests for the Edge Function shared helpers (pure logic: sanitize,
-      # validate). No network/permissions needed beyond fetching jsr:@std/assert.
+      # Deno tests for the Edge Function shared helpers (sanitize, validate,
+      # and the LLM provider-routing module). --allow-env is required because
+      # importing _shared/auth.ts/config.ts reads Deno.env at module scope
+      # (even when a test only exercises pure logic); the LLM router/provider
+      # tests mock fetch directly rather than making real network calls, so
+      # --allow-net is not needed.
       - name: Deno test (Edge Function helpers)
-        run: deno test supabase/functions/_shared/
+        run: deno test --allow-env --node-modules-dir=none supabase/functions/_shared/
+      # PRISM pipeline tests drive the real LangGraph with a scripted model.
+      # --node-modules-dir=none: resolve npm: specifiers from Deno's own cache
+      # (the repo package.json would otherwise switch Deno into byonm mode),
+      # matching how the Supabase edge runtime resolves them in production.
+      - name: Deno test (PRISM pipeline)
+        run: deno test --node-modules-dir=none supabase/functions/prism-tailor/
+      # Live golden suite: 10 CV/JD pairs + adversarial cases against the real
+      # routed model (DeepSeek V4 Pro primary, Kimi K2.6 fallback). Runs only
+      # when the DEEPSEEK_API_KEYS secret is configured (skipped on forks);
+      # deterministic golden checks always run in the step above.
+      - name: PRISM golden suite (live model)
+        if: ${{ secrets.DEEPSEEK_API_KEYS != '' }}
+        env:
+          DEEPSEEK_API_KEYS: ${{ secrets.DEEPSEEK_API_KEYS }}
+          KIMI_API_KEYS: ${{ secrets.KIMI_API_KEYS }}
+        run: deno run --node-modules-dir=none --allow-env --allow-net supabase/functions/prism-tailor/golden/golden_live.ts

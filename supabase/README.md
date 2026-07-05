@@ -56,6 +56,8 @@ supabase link --project-ref zqwwtgohtjlrkraqheuw   # uses SUPABASE_DB_PASSWORD
 supabase db push                                    # push migrations to cloud
 supabase secrets set --env-file ../.env.cvbase.local  # push server secrets
 ```
-Server secrets (service role key, Stripe secret, Gemini key, webhook secret) live
-ONLY in Supabase's secret store and the gitignored `.env.cvbase.local` — never in
-the client bundle.
+Server secrets (service role key, Stripe secret, Gemini key, webhook secret, and
+the DeepSeek/Kimi LLM routing vars — see `.env.example`) live ONLY in Supabase's
+secret store and the gitignored `.env.cvbase.local` — never in the client bundle.
+Provider/model/key changes take effect on the next `supabase secrets set` without
+a code deploy or `supabase functions deploy`.
