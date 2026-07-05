@@ -9,7 +9,7 @@ type Feature = 'smartStudio' | 'aiHeadshot';
 // Mirrors subscriptionService PLANS limits (-1 = unlimited).
 const LIMITS: Record<PlanId, { atsScans: number; aiActions: number; smartStudio: boolean; aiHeadshot: boolean }> = {
   free: { atsScans: 3, aiActions: 10, smartStudio: false, aiHeadshot: false },
-  pro: { atsScans: -1, aiActions: -1, smartStudio: true, aiHeadshot: false },
+  pro: { atsScans: -1, aiActions: 200, smartStudio: false, aiHeadshot: false },
   elite: { atsScans: -1, aiActions: -1, smartStudio: true, aiHeadshot: true },
 };
 

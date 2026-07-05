@@ -5,6 +5,7 @@ import {
   optimizeLinkedInProfile,
   optimizeCoverLetter,
   analyzeCareerTrajectory,
+  arrayBufferToBase64,
   parsePdfFileWithAi,
   ResumeMatchResult,
   LinkedInOptimizeResult,
@@ -155,13 +156,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
         reader.onload = async (e) => {
           try {
             const arrayBuffer = e.target?.result as ArrayBuffer;
-            const bytes = new Uint8Array(arrayBuffer);
-            let binary = '';
-            const len = bytes.byteLength;
-            for (let i = 0; i < len; i++) {
-              binary += String.fromCharCode(bytes[i]);
-            }
-            const base64 = window.btoa(binary);
+            const base64 = arrayBufferToBase64(arrayBuffer);
             const extractedText = await parsePdfFileWithAi(base64);
             if (extractedText) {
               setResumeText(extractedText);

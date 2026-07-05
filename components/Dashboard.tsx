@@ -1,9 +1,8 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DocumentIcon, HomeIcon, TemplateIcon, SparklesIcon } from './common/icons';
 import { AVAILABLE_TEMPLATES } from '../constants';
-import type { ResumeData, TemplateId, SectionId, ResumeSettings } from '../types';
-import { exampleData } from '../exampleData';
+import type { ResumeData, TemplateId } from '../types';
 import { useAuth } from './AuthProvider';
 import { AuthModal } from './AuthModal';
 import { UserProfileForm } from './UserProfileForm';
@@ -12,85 +11,12 @@ import { useSubscription } from './SubscriptionProvider';
 import AtsAnalyzer from './ats/AtsAnalyzer';
 import BillingDashboard from './billing/BillingDashboard';
 import ResumeManager from './ResumeManager';
+import PrismWizard from './prism/PrismWizard';
+import { isPrismEnabled } from '../services/repos/prismRepo';
 
-// Import all templates for rendering previews
-import GsbExecutiveTemplate from './templates/GsbExecutiveTemplate';
-import IvyEliteTemplate from './templates/IvyEliteTemplate';
-import VanguardClassicTemplate from './templates/VanguardClassicTemplate';
-import EecsMitTemplate from './templates/EecsMitTemplate';
-import CalBerkeleyTemplate from './templates/CalBerkeleyTemplate';
-import LambdaTechTemplate from './templates/LambdaTechTemplate';
-import StanfordDschoolTemplate from './templates/StanfordDschoolTemplate';
-import SynergyStartupTemplate from './templates/SynergyStartupTemplate';
-import MinimalistEdgeTemplate from './templates/MinimalistEdgeTemplate';
-import ResumePreview from './ResumePreview';
-import TealTemplate from './templates/TealTemplate';
-import ProfessionalTemplate from './templates/ProfessionalTemplate';
-import CreativeTemplate from './templates/CreativeTemplate';
-import ExecutiveTemplate from './templates/ExecutiveTemplate';
-import CorporateTemplate from './templates/CorporateTemplate';
-import ModernTemplate from './templates/ModernTemplate';
-import ProfessionalV2Template from './templates/ProfessionalV2Template';
-import CreativeV2Template from './templates/CreativeV2Template';
-import ExecutiveV2Template from './templates/ExecutiveV2Template';
-import CorporateV2Template from './templates/CorporateV2Template';
-import TechTemplate from './templates/TechTemplate';
-import TechV2Template from './templates/TechV2Template';
-import TechBlueTemplate from './templates/TechBlueTemplate';
-import TecAtsTemplate from './templates/TecAtsTemplate';
-import EscobarTemplate from './templates/EscobarTemplate';
-import HarvardTemplate from './templates/HarvardTemplate';
-import MidnightTemplate from './templates/MidnightTemplate';
-import SwissTemplate from './templates/SwissTemplate';
-import ErasmusTemplate from './templates/ErasmusTemplate';
-import MinimalistTemplate from './templates/MinimalistTemplate';
-import ImpactTemplate from './templates/ImpactTemplate';
-import GlitchTemplate from './templates/GlitchTemplate';
-import VogueTemplate from './templates/VogueTemplate';
-import OnyxTemplate from './templates/OnyxTemplate';
-import BloomTemplate from './templates/BloomTemplate';
-import TimelineTemplate from './templates/TimelineTemplate';
-import AmsterdamTemplate from './templates/AmsterdamTemplate';
-import KyotoTemplate from './templates/KyotoTemplate';
-import NeoMemphisTemplate from './templates/NeoMemphisTemplate';
-import NordicTemplate from './templates/NordicTemplate';
-import MetropolitanTemplate from './templates/MetropolitanTemplate';
-import CyberGridTemplate from './templates/CyberGridTemplate';
-import MelbourneTemplate from './templates/MelbourneTemplate';
-import OakTemplate from './templates/OakTemplate';
-import LeafyTemplate from './templates/LeafyTemplate';
-import RedwoodTemplate from './templates/RedwoodTemplate';
-import DesignerTemplate from './templates/DesignerTemplate';
-import GoldenTemplate from './templates/GoldenTemplate';
-import CobaltTemplate from './templates/CobaltTemplate';
-import BerlinTemplate from './templates/BerlinTemplate';
-import BerlinIITemplate from './templates/BerlinIITemplate';
-import UrbanTemplate from './templates/UrbanTemplate';
-import ClassicTemplate from './templates/ClassicTemplate';
-import CleanTemplate from './templates/CleanTemplate';
-import CompactTemplate from './templates/CompactTemplate';
-import SimpleTemplate from './templates/SimpleTemplate';
-import FunctionalTemplate from './templates/FunctionalTemplate';
-import DirectTemplate from './templates/DirectTemplate';
-import GlobalTemplate from './templates/GlobalTemplate';
-import ModernIITemplate from './templates/ModernIITemplate';
-import TokyoTemplate from './templates/TokyoTemplate';
-import BarcelonaTemplate from './templates/BarcelonaTemplate';
-import SubwayTemplate from './templates/SubwayTemplate';
-import MonacoTemplate from './templates/MonacoTemplate';
-import AustinTemplate from './templates/AustinTemplate';
-import OxfordTemplate from './templates/OxfordTemplate';
-import VancouverTemplate from './templates/VancouverTemplate';
-import ChicagoTemplate from './templates/ChicagoTemplate';
-import ReykjavikTemplate from './templates/ReykjavikTemplate';
-import BerlinV3Template from './templates/BerlinV3Template';
-import MilanTemplate from './templates/MilanTemplate';
-import SiliconTemplate from './templates/SiliconTemplate';
-import GenevaTemplate from './templates/GenevaTemplate';
-import SaoPauloTemplate from './templates/SaoPauloTemplate';
-import CasablancaTemplate from './templates/CasablancaTemplate';
+import { LazyTemplatePreview } from './templates/TemplatePreviewRegistry';
 
-export type DashboardTab = 'dashboard' | 'resumes' | 'templates' | 'profile' | 'smart-studio' | 'ats' | 'billing';
+export type DashboardTab = 'dashboard' | 'resumes' | 'templates' | 'profile' | 'smart-studio' | 'ats' | 'billing' | 'prism';
 
 interface DashboardProps {
     onCreateNew: (templateId?: TemplateId) => void;
@@ -103,135 +29,7 @@ interface DashboardProps {
     initialTab?: DashboardTab;
 }
 
-const templateMap: Record<string, React.FC<any>> = {
-    'gsb-executive': GsbExecutiveTemplate,
-    'ivy-elite': IvyEliteTemplate,
-    'vanguard-classic': VanguardClassicTemplate,
-    'eecs-mit': EecsMitTemplate,
-    'cal-berkeley': CalBerkeleyTemplate,
-    'lambda-tech': LambdaTechTemplate,
-    'stanford-dschool': StanfordDschoolTemplate,
-    'synergy-startup': SynergyStartupTemplate,
-    'minimalist-edge': MinimalistEdgeTemplate,
-    default: ResumePreview,
-    classic: ClassicTemplate,
-    clean: CleanTemplate,
-    compact: CompactTemplate,
-    simple: SimpleTemplate,
-    functional: FunctionalTemplate,
-    direct: DirectTemplate,
-    global: GlobalTemplate,
-    urban: UrbanTemplate,
-    berlin: BerlinTemplate,
-    'berlin-ii': BerlinIITemplate,
-    cobalt: CobaltTemplate,
-    designer: DesignerTemplate,
-    golden: GoldenTemplate,
-    teal: TealTemplate,
-    professional: ProfessionalTemplate,
-    creative: CreativeTemplate,
-    executive: ExecutiveTemplate,
-    corporate: CorporateTemplate,
-    modern: ModernTemplate,
-    'professional-v2': ProfessionalV2Template,
-    'creative-v2': CreativeV2Template,
-    'executive-v2': ExecutiveV2Template,
-    'corporate-v2': CorporateV2Template,
-    tech: TechTemplate,
-    'tech-v2': TechV2Template,
-    'tech-blue': TechBlueTemplate,
-    'tec-ats': TecAtsTemplate,
-    escobar: EscobarTemplate,
-    harvard: HarvardTemplate,
-    midnight: MidnightTemplate,
-    swiss: SwissTemplate,
-    erasmus: ErasmusTemplate,
-    minimalist: MinimalistTemplate,
-    impact: ImpactTemplate,
-    glitch: GlitchTemplate,
-    vogue: VogueTemplate,
-    onyx: OnyxTemplate,
-    bloom: BloomTemplate,
-    timeline: TimelineTemplate,
-    amsterdam: AmsterdamTemplate,
-    kyoto: KyotoTemplate,
-    neomemphis: NeoMemphisTemplate,
-    nordic: NordicTemplate,
-    metropolitan: MetropolitanTemplate,
-    cybergrid: CyberGridTemplate,
-    melbourne: MelbourneTemplate,
-    oak: OakTemplate,
-    leafy: LeafyTemplate,
-    redwood: RedwoodTemplate,
-    'modern-ii': ModernIITemplate,
-    tokyo: TokyoTemplate,
-    barcelona: BarcelonaTemplate,
-    subway: SubwayTemplate,
-    monaco: MonacoTemplate,
-    austin: AustinTemplate,
-    oxford: OxfordTemplate,
-    vancouver: VancouverTemplate,
-    chicago: ChicagoTemplate,
-    reykjavik: ReykjavikTemplate,
-    'berlin-v3': BerlinV3Template,
-    milan: MilanTemplate,
-    silicon: SiliconTemplate,
-    geneva: GenevaTemplate,
-    'sao-paulo': SaoPauloTemplate,
-    casablanca: CasablancaTemplate,
-};
 
-// Lazy Loaded Preview Component
-const LazyTemplatePreview: React.FC<{ templateId: string }> = ({ templateId }) => {
-    const [isVisible, setIsVisible] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(([entry]) => {
-            if (entry.isIntersecting) {
-                setIsVisible(true);
-                observer.disconnect();
-            }
-        }, { rootMargin: '200px' });
-
-        if (ref.current) observer.observe(ref.current);
-        
-        return () => observer.disconnect();
-    }, []);
-
-    const Component = templateMap[templateId] || ResumePreview;
-    
-    const defaultSettings: ResumeSettings = {
-        themeColor: '#008080',
-        fontSize: 'small',
-        fontFamily: 'Arial, sans-serif'
-    };
-    const allSections: SectionId[] = ['contact', 'summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'languages', 'awards', 'trainings', 'publications', 'volunteer', 'custom'];
-
-    return (
-        <div ref={ref} className="w-full h-full bg-gray-100 relative overflow-hidden flex items-center justify-center group-hover:bg-gray-200 transition-colors">
-            {isVisible ? (
-                // Scale container to fit the A4 height (1123px) into the card height (~320px)
-                // 320 / 1123 approx 0.28
-                <div 
-                    className="origin-center transform scale-[0.28] shadow-2xl pointer-events-none select-none bg-white transition-transform duration-500 ease-out group-hover:scale-[0.29]"
-                    style={{ width: '794px', height: '1123px' }}
-                >
-                    <Component 
-                        formData={exampleData} 
-                        isCardPreview={true} 
-                        visibleSections={allSections} 
-                        settings={defaultSettings} 
-                    />
-                </div>
-            ) : (
-                <div className="flex items-center justify-center w-full h-full">
-                    <span className="material-symbols-outlined text-gray-300 animate-pulse text-4xl">image</span>
-                </div>
-            )}
-        </div>
-    );
-};
 
 const SidebarItem: React.FC<{ icon: React.ReactNode; label: string; active?: boolean; onClick: () => void }> = ({ icon, label, active, onClick }) => (
     <div 
@@ -287,6 +85,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
     const { user, userProfile, logout } = useAuth();
     const { plan, billing } = useSubscription();
     const [lastAtsScore, setLastAtsScore] = useState<{ atsScore: number; matchScore: number | null; date: string } | null>(null);
+    // PRISM ships behind a rollout feature flag; the tab only renders when the
+    // user is in the rollout (the edge function enforces the same gate).
+    const [prismEnabled, setPrismEnabled] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+        isPrismEnabled(user?.id ?? null)
+            .then((on) => { if (!cancelled) setPrismEnabled(on); })
+            .catch(() => { /* flag unavailable — stay hidden (fail closed) */ });
+        return () => { cancelled = true; };
+    }, [user]);
 
     useEffect(() => {
         setActiveTab(initialTab);
@@ -389,6 +198,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                         active={activeTab === 'smart-studio'}
                         onClick={() => { setActiveTab('smart-studio'); setIsMobileMenuOpen(false); }}
                     />
+                    {prismEnabled && (
+                        <SidebarItem
+                            icon={<span className="material-symbols-outlined text-xl text-fuchsia-300">auto_awesome</span>}
+                            label="PRISM Tailor [AI]"
+                            active={activeTab === 'prism'}
+                            onClick={() => { setActiveTab('prism'); setIsMobileMenuOpen(false); }}
+                        />
+                    )}
                     <SidebarItem
                         icon={<span className="material-symbols-outlined text-xl text-amber-300">credit_card</span>}
                         label="Billing & Plans"
@@ -505,7 +322,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                         <span className="font-extrabold text-lg tracking-tight bg-clip-text bg-gradient-to-r from-white to-gray-300 text-transparent">CVBase</span>
                     </div>
                     <div className="text-[10px] font-extrabold uppercase tracking-widest bg-slate-800/80 border border-white/10 px-3 py-1.5 rounded-xl text-primary-light">
-                        {activeTab === 'dashboard' ? 'Overview' : activeTab === 'smart-studio' ? 'Smart AI Studio' : activeTab === 'ats' ? 'ATS Checker' : activeTab === 'billing' ? 'Billing & Plans' : activeTab}
+                        {activeTab === 'dashboard' ? 'Overview' : activeTab === 'smart-studio' ? 'Smart AI Studio' : activeTab === 'ats' ? 'ATS Checker' : activeTab === 'billing' ? 'Billing & Plans' : activeTab === 'prism' ? 'PRISM Tailor' : activeTab}
                     </div>
                 </div>
 
@@ -810,6 +627,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                     {activeTab === 'billing' && (
                         <div className="animate-fade-in">
                             <BillingDashboard onChangePlan={() => onViewPricing?.()} />
+                        </div>
+                    )}
+
+                    {/* PRISM TAILOR VIEW (feature-flag gated) */}
+                    {activeTab === 'prism' && prismEnabled && (
+                        <div className="animate-fade-in">
+                            <PrismWizard onEditResume={onEditResume} onUpgrade={() => onViewPricing?.()} />
                         </div>
                     )}
                 </div>

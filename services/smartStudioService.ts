@@ -65,6 +65,17 @@ export async function analyzeCareerTrajectory(resumeData: ResumeData): Promise<C
   return callFn<CareerTrajectoryResult>('ai-trajectory', { resumeData });
 }
 
+/** Binary → base64 in 32K chunks (a per-byte loop or one big spread would
+ *  risk blowing the call stack / string builder on multi-MB PDFs). */
+export function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(binary);
+}
+
 export async function parsePdfFileWithAi(base64Data: string): Promise<string> {
   const { text } = await callFn<{ text: string }>('ai-parse-pdf', { base64Data });
   return text;
