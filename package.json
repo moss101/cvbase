@@ -25,6 +25,7 @@
     "docx": "^9.7.1",
     "dompurify": "^3.4.11",
     "fs": "^0.0.1-security",
+    "lucide-react": "^1.23.0",
     "mammoth": "^1.12.0",
     "motion": "^12.40.0",
     "path": "^0.12.7",
