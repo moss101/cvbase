@@ -176,10 +176,12 @@ export function writerPrompt(context: AggregatedContext, critique?: Critique, pr
     '- skills: CONTEXT.skills entries, plus a CONTEXT.targetRole.hardKeywords entry ONLY when a ' +
     'specific CONTEXT.workHistory fact demonstrates it — for each added skill you must be able to ' +
     'point at the exact fact that proves it. NEVER add a skill because it sounds fitting for the ' +
-    'role or generalizes what the candidate did (e.g. do not turn "built dashboards" into ' +
-    '"Business Intelligence") — an invented skill is a defect that fails review, a shorter skill ' +
-    'list is not. Each entry must be a plain skill name with no parenthetical qualifiers, ' +
-    'proficiency notes, or commentary: "Playwright", never "Playwright (exploring)".\n' +
+    'role, generalizes what the candidate did (e.g. do not turn "built dashboards" into ' +
+    '"Business Intelligence"), or specializes an activity into a named tool the CONTEXT does not ' +
+    'name (e.g. "on the App Store" does not license the skill "App Store Connect") — an invented ' +
+    'skill is a defect that fails review, a shorter skill list is not. Each entry must be a plain ' +
+    'skill name with no parenthetical qualifiers, proficiency notes, or commentary: "Playwright", ' +
+    'never "Playwright (exploring)".\n' +
     '- education, projects, certifications, languages: copy from CONTEXT (empty arrays when absent).\n' +
     '- If professionalSummary or any bullet states a total years-of-experience figure, it MUST exactly ' +
     'equal CONTEXT.totalYearsExperience — never estimate, round, infer your own number, or reuse a ' +

@@ -71,18 +71,24 @@ export async function streamFn(
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
+  const emit = (line: string) => {
+    if (!line) return;
+    try {
+      onEvent(JSON.parse(line) as Record<string, unknown>);
+    } catch { /* skip malformed line */ }
+  };
   for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
     let newline: number;
     while ((newline = buffer.indexOf('\n')) >= 0) {
-      const line = buffer.slice(0, newline).trim();
+      emit(buffer.slice(0, newline).trim());
       buffer = buffer.slice(newline + 1);
-      if (!line) continue;
-      try {
-        onEvent(JSON.parse(line) as Record<string, unknown>);
-      } catch { /* skip malformed line */ }
     }
   }
+  // Flush: a valid final line without a trailing newline must not be lost
+  // (it would otherwise surface as a spurious stream_ended_early).
+  buffer += decoder.decode();
+  emit(buffer.trim());
 }

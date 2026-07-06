@@ -106,12 +106,15 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
   const cvFileInput = useRef<HTMLInputElement>(null);
 
   // Abandoned-run recovery: offer to continue the latest resumable run.
+  // Keyed on the user id, not the user object — the auth context may hand
+  // out a fresh object per render and this must not refetch on every one.
+  const userId = user?.id ?? null;
   useEffect(() => {
-    if (!user) return;
-    prismRepo.getResumable(user.id)
+    if (!userId) return;
+    prismRepo.getResumable(userId)
       .then(setResumable)
       .catch(() => { /* banner is best-effort */ });
-  }, [user]);
+  }, [userId]);
 
   const categories = useMemo(
     () => ['All', ...Array.from(new Set(AVAILABLE_TEMPLATES.map((t) => t.category)))],
@@ -205,7 +208,14 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
         return;
       }
     } catch { /* count unavailable — let the attempt proceed */ }
+    // Full pipeline-state reset: a previous run's questions/result must never
+    // leak into this one (the generate-failure path falls back to the
+    // questions step based on this state).
     setStages([]);
+    setRunId(null);
+    setQuestions([]);
+    setAnswers({});
+    setResult(null);
     setStep('analyzing');
     try {
       const out = await analyzeGaps({ jdText, cvText, templateId }, onStage);
@@ -237,6 +247,16 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
       setStep('review');
     } catch (e) {
       failWith(e);
+      if ((e as FnError)?.code === 'run_expired') {
+        // The server can never resume this run (pruned or analyze never
+        // finished) — remove it, or the "continue" banner would re-offer a
+        // dead run on every visit. RLS delete-own covers this client-side.
+        if (user) void prismRepo.deleteRun(user.id, run).catch(() => { /* best-effort */ });
+        setRunId(null);
+        setQuestions([]);
+        setStep('input');
+        return;
+      }
       setStep(questions.length ? 'questions' : 'input');
     }
   }
@@ -294,8 +314,15 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
         visibleSections: visibleSectionsFor(result.resume),
       });
       if (created.id) {
-        await finalizeRun(runId, created.id).catch(() => { /* run cleanup is best-effort */ });
-        onEditResume?.(created.id);
+        const resumeId = created.id;
+        // One retry: an unfinalized run re-offers an ALREADY-SAVED resume from
+        // the continue banner (approving again would duplicate it), so a
+        // transient finalize failure is worth a second attempt before giving
+        // up. Still best-effort — the saved resume must open regardless.
+        await finalizeRun(runId, resumeId)
+          .catch(() => finalizeRun(runId, resumeId))
+          .catch(() => { /* run cleanup is best-effort */ });
+        onEditResume?.(resumeId);
       }
     } catch (e) {
       failWith(e);

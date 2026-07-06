@@ -23,6 +23,7 @@ vi.mock('../../../services/repos/resumeRepo', () => ({
 vi.mock('../../../services/repos/prismRepo', () => ({
   getResumable: vi.fn(),
   deleteAllRuns: vi.fn(),
+  deleteRun: vi.fn(),
   flagLine: vi.fn(),
   isPrismEnabled: vi.fn(),
 }));
@@ -230,6 +231,32 @@ describe('PrismWizard', () => {
     });
     expect(document.body.textContent).toContain('A few quick questions');
     expect(document.body.textContent).toContain(QUESTIONS[0].question);
+  });
+
+  it('RUN EXPIRED: deletes the dead run so the continue banner stops re-offering it', async () => {
+    vi.mocked(prismRepo.deleteRun).mockResolvedValue();
+    // Once: after the wizard deletes the dead run, re-fetches see no
+    // resumable row (the beforeEach default of null models the deletion).
+    vi.mocked(prismRepo.getResumable).mockResolvedValueOnce({
+      id: 'run-dead', status: 'failed', templateId: 'classic',
+      questions: [], answers: [], result: null, errorCode: 'bad_ai_output', updatedAt: 'now',
+    });
+    mockGenerate.mockRejectedValue(Object.assign(new Error('run_expired'), { code: 'run_expired' }));
+
+    await act(async () => {
+      root = createRoot(container);
+      root.render(<PrismWizard onEditResume={onEditResume} />);
+    });
+    expect(document.body.textContent).toContain('You have an unfinished tailoring run');
+    await act(async () => {
+      buttonByText('Continue').click();
+    });
+
+    expect(document.body.textContent).toContain('That run expired');
+    expect(vi.mocked(prismRepo.deleteRun)).toHaveBeenCalledWith('user-1', 'run-dead');
+    // Back on the input step with the banner gone — not a dead-end loop.
+    expect(document.body.textContent).toContain('Job description');
+    expect(document.body.textContent).not.toContain('You have an unfinished tailoring run');
   });
 
   it('shows the friendly error and returns to inputs when the pipeline fails', async () => {

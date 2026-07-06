@@ -89,13 +89,16 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
     // user is in the rollout (the edge function enforces the same gate).
     const [prismEnabled, setPrismEnabled] = useState(false);
 
+    // Keyed on the user id, not the user object — the auth context may hand
+    // out a fresh object per render and this must not refetch on every one.
+    const prismUserId = user?.id ?? null;
     useEffect(() => {
         let cancelled = false;
-        isPrismEnabled(user?.id ?? null)
+        isPrismEnabled(prismUserId)
             .then((on) => { if (!cancelled) setPrismEnabled(on); })
             .catch(() => { /* flag unavailable — stay hidden (fail closed) */ });
         return () => { cancelled = true; };
-    }, [user]);
+    }, [prismUserId]);
 
     useEffect(() => {
         setActiveTab(initialTab);

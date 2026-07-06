@@ -51,6 +51,14 @@ export async function deleteAllRuns(userId: string): Promise<void> {
   if (error) throw error;
 }
 
+/** Remove a single dead run (e.g. the server answered `run_expired` on a
+ *  resume attempt) so the "continue your run" banner stops re-offering it. */
+export async function deleteRun(userId: string, runId: string): Promise<void> {
+  const { error } = await getSupabase().from('prism_runs')
+    .delete().eq('user_id', userId).eq('id', runId);
+  if (error) throw error;
+}
+
 /** "This wasn't in my CV and I didn't say this" — the guardrail-improvement
  *  signal from the review screen. Stores only the flagged line, never the CV. */
 export async function flagLine(
