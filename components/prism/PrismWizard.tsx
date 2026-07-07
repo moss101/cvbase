@@ -111,9 +111,11 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
   const userId = user?.id ?? null;
   useEffect(() => {
     if (!userId) return;
+    let cancelled = false;
     prismRepo.getResumable(userId)
-      .then(setResumable)
+      .then((run) => { if (!cancelled) setResumable(run); })
       .catch(() => { /* banner is best-effort */ });
+    return () => { cancelled = true; };
   }, [userId]);
 
   const categories = useMemo(
@@ -138,6 +140,16 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
     } else {
       setError(ERROR_MESSAGES[code] ?? 'Something went wrong while tailoring your resume. Please try again.');
     }
+  };
+
+  /** A previous run's questions/result must never leak into the next one (the
+   *  generate-failure path falls back to the questions step based on this state). */
+  const resetPipelineState = () => {
+    setStages([]);
+    setRunId(null);
+    setQuestions([]);
+    setAnswers({});
+    setResult(null);
   };
 
   async function readFile(file: File, target: 'jd' | 'cv') {
@@ -208,14 +220,7 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
         return;
       }
     } catch { /* count unavailable — let the attempt proceed */ }
-    // Full pipeline-state reset: a previous run's questions/result must never
-    // leak into this one (the generate-failure path falls back to the
-    // questions step based on this state).
-    setStages([]);
-    setRunId(null);
-    setQuestions([]);
-    setAnswers({});
-    setResult(null);
+    resetPipelineState();
     setStep('analyzing');
     try {
       const out = await analyzeGaps({ jdText, cvText, templateId }, onStage);
@@ -251,9 +256,14 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
         // The server can never resume this run (pruned or analyze never
         // finished) — remove it, or the "continue" banner would re-offer a
         // dead run on every visit. RLS delete-own covers this client-side.
-        if (user) void prismRepo.deleteRun(user.id, run).catch(() => { /* best-effort */ });
-        setRunId(null);
-        setQuestions([]);
+        // One retry: a transient failure here would leave the dead run in
+        // place, silently reproducing the same re-offered-run loop.
+        if (user) {
+          await prismRepo.deleteRun(user.id, run)
+            .catch(() => prismRepo.deleteRun(user.id, run))
+            .catch(() => { /* best-effort */ });
+        }
+        resetPipelineState();
         setStep('input');
         return;
       }
@@ -321,7 +331,13 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
         // up. Still best-effort — the saved resume must open regardless.
         await finalizeRun(runId, resumeId)
           .catch(() => finalizeRun(runId, resumeId))
-          .catch(() => { /* run cleanup is best-effort */ });
+          .catch(() => {
+            // Both attempts failed: the resume above is already safely saved,
+            // so this run row no longer serves a purpose — but leaving it at
+            // status 'review' would let the "continue" banner re-offer it and
+            // approve a duplicate resume. Delete it instead of leaving it stuck.
+            void prismRepo.deleteRun(user.id, runId).catch(() => { /* best-effort */ });
+          });
         onEditResume?.(resumeId);
       }
     } catch (e) {

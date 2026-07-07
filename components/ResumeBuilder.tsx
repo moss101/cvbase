@@ -304,6 +304,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
     // Postgres (source of truth). On first sign-in (no cloud row yet) import the
     // current localStorage-derived resume. `cloudLoaded` gates the cloud auto-save
     // below so we never push INITIAL_STATE over real cloud data on a fresh device.
+    // Keyed on the user id, not the user object — the auth context hands out a
+    // fresh object on every token refresh, and re-running this would overwrite
+    // in-progress edits with the last cloud snapshot.
+    const hydrationUserId = user?.id ?? null;
     useEffect(() => {
         if (!user) { setCloudLoaded(false); return; }
         let cancelled = false;
@@ -339,7 +343,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
         return () => { cancelled = true; };
         // Re-run when the user signs in or a different resume is selected to edit.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user, initialResumeId]);
+    }, [hydrationUserId, initialResumeId]);
 
     // Unified auto-save: localStorage cache always (instant + anonymous source of
     // truth); when authenticated and hydrated, debounce a write to Postgres.

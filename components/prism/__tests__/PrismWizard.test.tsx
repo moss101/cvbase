@@ -214,6 +214,34 @@ describe('PrismWizard', () => {
     expect(mockGenerate).toHaveBeenCalledTimes(1);
   });
 
+  it('FINALIZE PERMANENTLY FAILS: still opens the saved resume, and deletes the run so it cannot be re-approved into a duplicate', async () => {
+    mockAnalyze.mockResolvedValue({ runId: 'run-2', questions: [] });
+    mockGenerate.mockResolvedValue({ ...GEN_RESULT, runId: 'run-2', unresolvedIssues: [] });
+    mockCreate.mockResolvedValue({ id: 'resume-42', title: 'x', isPrimary: false } as never);
+    mockFinalize.mockRejectedValue(new Error('network error'));
+    vi.mocked(prismRepo.deleteRun).mockResolvedValue();
+
+    await mountWithInputs();
+    await act(async () => {
+      buttonByText('Tailor my resume').click();
+    });
+    expect(document.body.textContent).toContain('Review your tailored resume');
+
+    await act(async () => {
+      buttonByText('I reviewed it — save & edit').click();
+    });
+
+    // The resume is already safely saved and must open regardless of finalize's fate.
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    expect(onEditResume).toHaveBeenCalledWith('resume-42');
+    // Both finalize attempts are made...
+    expect(mockFinalize).toHaveBeenCalledTimes(2);
+    // ...and since both failed, the run is deleted instead of being left stuck
+    // at status='review', where it would re-offer this same output for a
+    // second, duplicate approval.
+    expect(vi.mocked(prismRepo.deleteRun)).toHaveBeenCalledWith('user-1', 'run-2');
+  });
+
   it('offers to continue an abandoned run and restores the questionnaire from it', async () => {
     vi.mocked(prismRepo.getResumable).mockResolvedValue({
       id: 'run-9', status: 'awaiting_answers', templateId: 'swiss',

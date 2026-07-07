@@ -13,6 +13,11 @@ PSQL="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
 eval "$(supabase status -o env 2>/dev/null | grep -E '^(ANON_KEY|SERVICE_ROLE_KEY)=')"
 S=$(date +%s)
 fail=0; ok(){ echo "PASS: $1"; }; bad(){ echo "FAIL: $1"; fail=1; }
+# llm_call_logs has no run_id/user_id column (deliberately — see the schema
+# migration), so it can't be scoped to this run by a WHERE clause. Snapshot the
+# count before the run and assert on the delta instead, so a concurrent job or
+# a prior invocation of this same script can't produce a false PASS.
+CALLS_BEFORE=$(psql "$PSQL" -tA -c "select count(*) from llm_call_logs;")
 
 E="prism$S@example.com"
 curl -s -X POST "$API/auth/v1/admin/users" -H "apikey: $SERVICE_ROLE_KEY" -H "Authorization: Bearer $SERVICE_ROLE_KEY" -H "Content-Type: application/json" -d "{\"email\":\"$E\",\"password\":\"test123456\",\"email_confirm\":true}" >/dev/null
@@ -54,8 +59,9 @@ AGENTS=$(psql "$PSQL" -tA -c "select count(*) from prism_agent_logs where run_id
 [ "$AGENTS" -ge 4 ] && ok "prism_agent_logs has $AGENTS ok agent rows" || bad "only $AGENTS agent rows"
 PROVIDERS=$(psql "$PSQL" -tA -c "select count(*) from prism_agent_logs where run_id='$RUN_ID' and provider is not null and key_slot is not null;")
 [ "$PROVIDERS" -ge 4 ] && ok "provider/key_slot telemetry populated ($PROVIDERS rows)" || bad "provider telemetry missing ($PROVIDERS rows with provider+key_slot)"
-CALLS=$(psql "$PSQL" -tA -c "select count(*) from llm_call_logs where created_at > now() - interval '15 minutes';")
-[ "$CALLS" -ge 4 ] && ok "llm_call_logs recorded $CALLS recent calls" || bad "llm_call_logs only $CALLS recent rows"
+CALLS_AFTER=$(psql "$PSQL" -tA -c "select count(*) from llm_call_logs;")
+CALLS_DELTA=$((CALLS_AFTER - CALLS_BEFORE))
+[ "$CALLS_DELTA" -ge 4 ] && ok "llm_call_logs recorded $CALLS_DELTA calls from this run" || bad "llm_call_logs only $CALLS_DELTA new rows since this run started"
 
 # ---- phase 3: finalize -------------------------------------------------------
 # head -1: psql -tA still prints the "INSERT 0 1" command tag on a second line.
