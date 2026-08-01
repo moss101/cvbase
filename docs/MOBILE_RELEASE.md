@@ -11,7 +11,7 @@ web app.
 | --- | --- | --- |
 | Both | Node 20+, `npm install` | ✅ |
 | iOS | Xcode 16+ with an iOS simulator runtime | ✅ Xcode 26.6 |
-| Android | Android Studio + SDK (API 36), JDK 17+ | ✅ SDK at `~/Library/Android/sdk` |
+| Android | Android Studio + SDK (API 36), **JDK 21** | ✅ SDK at `~/Library/Android/sdk` |
 
 The app id is `ai.cvbase.app` on both platforms — reverse-DNS of the product
 domain, cvbase.ai.
@@ -73,6 +73,26 @@ Identity is already set: bundle id `ai.cvbase.app`, display name `CVBase`,
 
 ## Android release
 
+### JDK 21 is required
+
+Gradle 8.14.3 supports Java up to 24. Both JDKs installed on this machine are
+too new — Android Studio bundles Java 25 and the system JDK is 26 — and either
+fails with `Unsupported class file major version 69`. Gradle's own toolchain
+cache already holds a Temurin 21, which is what the verified build used:
+
+```bash
+export JAVA_HOME="$HOME/.gradle/jdks/eclipse_adoptium-21-aarch64-os_x.2/jdk-21.0.12+8/Contents/Home"
+```
+
+Android Studio's own Gradle JDK setting (Settings → Build Tools → Gradle) must
+point at a JDK 21 for in-IDE builds, otherwise it fails the same way.
+
+### Building
+
+```bash
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+```
+
 1. `npm run mobile:build`
 2. `npm run mobile:open:android`
 3. Let Gradle sync and download the SDK components it asks for.
@@ -81,6 +101,15 @@ Identity is already set: bundle id `ai.cvbase.app`, display name `CVBase`,
 ```bash
 cd android && ./gradlew bundleRelease
 ```
+
+A debug APK, for checking a build on a device:
+
+```bash
+cd android && ./gradlew assembleDebug
+```
+
+`android/local.properties` (holding `sdk.dir`) is machine-specific and git
+ignores it; create it if a fresh clone cannot find the SDK.
 
 ### Signing
 
