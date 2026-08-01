@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { DocumentIcon, HomeIcon, TemplateIcon, SparklesIcon } from './common/icons';
 import { AVAILABLE_TEMPLATES } from '../constants';
 import type { ResumeData, TemplateId } from '../types';
@@ -13,10 +13,13 @@ import BillingDashboard from './billing/BillingDashboard';
 import ResumeManager from './ResumeManager';
 import PrismWizard from './prism/PrismWizard';
 import { isPrismEnabled } from '../services/repos/prismRepo';
+import './dashboard.css';
 
 import { LazyTemplatePreview } from './templates/TemplatePreviewRegistry';
+import SettingsPanel from './SettingsPanel';
+import type { LegalTab } from './LegalPage';
 
-export type DashboardTab = 'dashboard' | 'resumes' | 'templates' | 'profile' | 'smart-studio' | 'ats' | 'billing' | 'prism';
+export type DashboardTab = 'dashboard' | 'resumes' | 'templates' | 'profile' | 'smart-studio' | 'ats' | 'billing' | 'prism' | 'settings';
 
 interface DashboardProps {
     onCreateNew: (templateId?: TemplateId) => void;
@@ -26,21 +29,25 @@ interface DashboardProps {
     onBackToLanding?: () => void;
     onViewResources?: () => void;
     onViewPricing?: () => void;
+    onViewLegal?: (tab: LegalTab) => void;
     initialTab?: DashboardTab;
 }
 
 
 
 const SidebarItem: React.FC<{ icon: React.ReactNode; label: string; active?: boolean; onClick: () => void }> = ({ icon, label, active, onClick }) => (
-    <div 
+    <button
+        type="button"
         onClick={onClick}
-        className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 group ${active ? 'bg-white/20 text-white shadow-lg backdrop-blur-sm border border-white/10' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`}
+        className={`dashboard-nav-item group ${active ? 'is-active' : ''}`}
+        aria-current={active ? 'page' : undefined}
     >
-        <span className={`transition-transform duration-300 ${active ? 'scale-110 text-secondary' : 'group-hover:scale-110'}`}>
+        <span className="dashboard-nav-icon">
             {icon}
         </span>
-        <span className="font-medium text-sm">{label}</span>
-    </div>
+        <span className="text-[13px] font-semibold tracking-[-0.01em]">{label}</span>
+        {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-ember" />}
+    </button>
 );
 
 const BentoCard: React.FC<{
@@ -53,21 +60,29 @@ const BentoCard: React.FC<{
     icon?: string;
     accentColor?: string;
 }> = ({ className, onClick, children, title, description, bgImage, icon, accentColor = 'text-primary' }) => (
-    <div 
+    <div
         onClick={onClick}
-        className={`glass-card rounded-3xl p-6 relative overflow-hidden group cursor-pointer ${className}`}
+        className={`dashboard-card p-6 text-left group ${className}`}
+        role={onClick ? 'button' : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        onKeyDown={(event) => {
+            if (onClick && (event.key === 'Enter' || event.key === ' ')) {
+                event.preventDefault();
+                onClick();
+            }
+        }}
     >
         {bgImage && (
             <div className="absolute inset-0 z-0 opacity-10 group-hover:opacity-20 transition-opacity duration-500 bg-cover bg-center" style={{ backgroundImage: `url(${bgImage})` }}></div>
         )}
         <div className="relative z-10 flex flex-col h-full">
             {icon && (
-                <div className={`w-10 h-10 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center shadow-sm mb-4 ${accentColor}`}>
+                <div className={`w-10 h-10 rounded-xl bg-paper-deep flex items-center justify-center mb-4 ${accentColor}`}>
                     <span className="material-symbols-outlined text-xl">{icon}</span>
                 </div>
             )}
-            {title && <h3 className="text-xl font-bold text-gray-800 mb-1 group-hover:text-primary transition-colors">{title}</h3>}
-            {description && <p className="text-sm text-gray-500 leading-relaxed mb-4">{description}</p>}
+            {title && <h3 className="text-xl font-semibold text-ink mb-1 transition-colors">{title}</h3>}
+            {description && <p className="text-sm text-ink-soft/75 leading-relaxed mb-4 max-w-[38ch]">{description}</p>}
             <div className="mt-auto">
                 {children}
             </div>
@@ -75,13 +90,14 @@ const BentoCard: React.FC<{
     </div>
 );
 
-const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEditResume, onBackToLanding, onViewResources, onViewPricing, initialTab = 'dashboard' }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEditResume, onBackToLanding, onViewResources, onViewPricing, onViewLegal, initialTab = 'dashboard' }) => {
     const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [savedResume, setSavedResume] = useState<ResumeData | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const [greeting, setGreeting] = useState("Welcome back");
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const mainRef = useRef<HTMLElement>(null);
     const { user, userProfile, logout } = useAuth();
     const { plan, billing } = useSubscription();
     const [lastAtsScore, setLastAtsScore] = useState<{ atsScore: number; matchScore: number | null; date: string } | null>(null);
@@ -103,6 +119,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
     useEffect(() => {
         setActiveTab(initialTab);
     }, [initialTab]);
+
+    useEffect(() => {
+        mainRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+    }, [activeTab]);
 
     useEffect(() => {
         try {
@@ -143,92 +163,112 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
         ? AVAILABLE_TEMPLATES 
         : AVAILABLE_TEMPLATES.filter(t => t.category === selectedCategory);
 
+    const activeTabLabel: Record<DashboardTab, string> = {
+        dashboard: 'Dashboard',
+        resumes: 'Resume',
+        templates: 'Template gallery',
+        profile: 'Profile',
+        'smart-studio': 'Smart Studio',
+        ats: 'ATS checker',
+        billing: 'Billing & plans',
+        prism: 'PRISM tailor',
+        settings: 'Settings',
+    };
+
+    const todayLabel = new Intl.DateTimeFormat('en', {
+        weekday: 'short', month: 'short', day: 'numeric',
+    }).format(new Date());
+
     return (
-        <div className="flex h-screen font-sans overflow-hidden relative">
+        <div className="dashboard-shell flex h-[100dvh] w-full overflow-hidden relative">
             {/* Mobile Sidebar Backdrop Overlay */}
             {isMobileMenuOpen && (
                 <div 
-                    className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-25 lg:hidden transition-opacity duration-300"
+                    className="fixed inset-0 bg-ink/65 backdrop-blur-sm z-20 lg:hidden transition-opacity duration-300"
                     onClick={() => setIsMobileMenuOpen(false)}
                 />
             )}
 
-            {/* Glass Sidebar */}
-            <aside className={`w-[280px] bg-[#1e293b]/95 backdrop-blur-2xl text-white flex flex-col h-full shadow-2xl z-30 shrink-0 border-r border-white/5 fixed lg:static top-0 left-0 transition-transform duration-300 lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-                <div className="p-8 flex items-center justify-between shrink-0">
-                    <div 
+            <aside className={`dashboard-sidebar w-[264px] max-w-[86vw] text-white flex flex-col h-full z-30 shrink-0 fixed lg:static top-0 left-0 transition-transform duration-300 lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+                <div className="relative z-10 px-5 pt-6 pb-5 flex items-center justify-between shrink-0">
+                    <button
+                        type="button"
                         onClick={() => { onBackToLanding?.(); setIsMobileMenuOpen(false); }} 
-                        className="font-bold text-2xl flex items-center gap-3 cursor-pointer select-none hover:opacity-80 active:scale-95 transition-all text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 group"
+                        className="flex items-center gap-3 select-none group rounded-xl focus-visible:outline-none"
                         title="Back to Homepage"
                     >
-                         <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-105 transition-all">
-                            <span className="material-symbols-outlined text-white text-xl">layers</span>
-                         </div>
-                        <span className="tracking-tight text-white group-hover:translate-x-0.5 transition-all">CVBase</span>
-                    </div>
+                        <span className="grid h-10 w-10 place-items-center rounded-xl border border-white/15 bg-white/[0.07] font-display text-[15px] font-semibold text-paper-bright transition-transform group-hover:-rotate-3">CV</span>
+                        <span className="text-left">
+                            <span className="block font-display text-[20px] leading-none tracking-[-0.04em] text-paper-bright">CVbase.</span>
+                            <span className="mt-1 block font-label text-[8px] uppercase tracking-[0.16em] text-stone-400">career workspace</span>
+                        </span>
+                    </button>
 
                     <button 
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 active:scale-95 transition cursor-pointer flex items-center justify-center"
+                        className="lg:hidden p-2 rounded-lg text-stone-400 hover:text-white hover:bg-white/5 active:scale-95 transition"
                         title="Close Menu"
                     >
                         <span className="material-symbols-outlined text-lg leading-none">close</span>
                     </button>
                 </div>
                 
-                <nav className="px-4 space-y-2 flex-1 overflow-y-auto">
+                <nav className="relative z-10 px-3.5 flex-1 overflow-y-auto custom-scrollbar">
+                    <p className="px-3 pb-2 pt-2 font-label text-[9px] font-semibold uppercase tracking-[0.16em] text-stone-500">Workspace</p>
+                    <div className="space-y-1">
                     <SidebarItem 
                         icon={<HomeIcon />} 
-                        label="Home" 
+                        label="Dashboard" 
                         active={activeTab === 'dashboard'} 
                         onClick={() => { setActiveTab('dashboard'); setIsMobileMenuOpen(false); }}
                     />
                     <SidebarItem 
                         icon={<DocumentIcon />} 
-                        label="My Documents" 
+                        label="Resume" 
                         active={activeTab === 'resumes'} 
                         onClick={() => { setActiveTab('resumes'); setIsMobileMenuOpen(false); }}
                     />
                     <SidebarItem
-                        icon={<span className="material-symbols-outlined text-xl text-emerald-400">radar</span>}
+                        icon={<span className="material-symbols-outlined text-[19px]">radar</span>}
                         label="ATS Checker"
                         active={activeTab === 'ats'}
                         onClick={() => { setActiveTab('ats'); setIsMobileMenuOpen(false); }}
                     />
-                    <SidebarItem
-                        icon={<span className="material-symbols-outlined text-xl">workspace_premium</span>}
-                        label="Smart Studio [AI]"
-                        active={activeTab === 'smart-studio'}
-                        onClick={() => { setActiveTab('smart-studio'); setIsMobileMenuOpen(false); }}
-                    />
+                    </div>
+                    <p className="px-3 pb-2 pt-5 font-label text-[9px] font-semibold uppercase tracking-[0.16em] text-stone-500">Intelligence</p>
+                    <div className="space-y-1">
+                        <SidebarItem
+                            icon={<span className="material-symbols-outlined text-[19px]">workspace_premium</span>}
+                            label="Smart Studio"
+                            active={activeTab === 'smart-studio'}
+                            onClick={() => { setActiveTab('smart-studio'); setIsMobileMenuOpen(false); }}
+                        />
                     {prismEnabled && (
                         <SidebarItem
-                            icon={<span className="material-symbols-outlined text-xl text-fuchsia-300">auto_awesome</span>}
-                            label="PRISM Tailor [AI]"
+                            icon={<span className="material-symbols-outlined text-[19px]">auto_awesome</span>}
+                            label="PRISM Tailor"
                             active={activeTab === 'prism'}
                             onClick={() => { setActiveTab('prism'); setIsMobileMenuOpen(false); }}
                         />
                     )}
-                    <SidebarItem
-                        icon={<span className="material-symbols-outlined text-xl text-amber-300">credit_card</span>}
-                        label="Billing & Plans"
-                        active={activeTab === 'billing'}
-                        onClick={() => { setActiveTab('billing'); setIsMobileMenuOpen(false); }}
-                    />
-                    <SidebarItem
-                        icon={<span className="material-symbols-outlined text-xl text-indigo-400">auto_stories</span>} 
-                        label="Career Resources" 
-                        onClick={() => { onViewResources?.(); setIsMobileMenuOpen(false); }}
-                    />
+                    </div>
+                    <p className="px-3 pb-2 pt-5 font-label text-[9px] font-semibold uppercase tracking-[0.16em] text-stone-500">Library & account</p>
+                    <div className="space-y-1">
                     <SidebarItem 
                         icon={<TemplateIcon />} 
-                        label="Gallery" 
+                        label="Template gallery" 
                         active={activeTab === 'templates'} 
                         onClick={() => { setActiveTab('templates'); setIsMobileMenuOpen(false); }}
                     />
+                    <SidebarItem
+                        icon={<span className="material-symbols-outlined text-[19px]">credit_card</span>}
+                        label="Billing & plans"
+                        active={activeTab === 'billing'}
+                        onClick={() => { setActiveTab('billing'); setIsMobileMenuOpen(false); }}
+                    />
                     <SidebarItem 
-                        icon={<span className="material-symbols-outlined text-xl">badge</span>} 
-                        label="Create Profile" 
+                        icon={<span className="material-symbols-outlined text-[19px]">badge</span>} 
+                        label="Profile" 
                         active={activeTab === 'profile'} 
                         onClick={() => {
                             setIsMobileMenuOpen(false);
@@ -239,18 +279,32 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                             }
                         }}
                     />
-                    <div className="pt-4 border-t border-white/5 my-2 mx-2" />
+                    <SidebarItem
+                        icon={<span className="material-symbols-outlined text-[19px]">settings</span>}
+                        label="Settings"
+                        active={activeTab === 'settings'}
+                        onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }}
+                    />
+                    </div>
+                    <div className="my-4 border-t border-white/[0.07]" />
+                    <div className="space-y-1 pb-3">
+                    <SidebarItem
+                        icon={<span className="material-symbols-outlined text-[19px]">auto_stories</span>}
+                        label="Career resources"
+                        onClick={() => { onViewResources?.(); setIsMobileMenuOpen(false); }}
+                    />
                     <SidebarItem 
-                        icon={<span className="material-symbols-outlined text-xl">arrow_back</span>} 
-                        label="Exit to Website" 
+                        icon={<span className="material-symbols-outlined text-[19px]">arrow_back</span>} 
+                        label="Back to website" 
                         onClick={() => { onBackToLanding?.(); setIsMobileMenuOpen(false); }}
                     />
+                    </div>
                 </nav>
 
-                <div className="mx-4 mt-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-primary/20 to-secondary/20 border border-white/10 flex items-center justify-between gap-2">
+                <div className="relative z-10 mx-4 mt-1 px-4 py-3 rounded-xl bg-white/[0.055] border border-white/[0.08] flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 overflow-hidden">
-                        <span className="material-symbols-outlined text-base text-secondary">workspace_premium</span>
-                        <span className="text-xs font-extrabold text-white truncate">{plan.name} plan</span>
+                        <span className="material-symbols-outlined text-base text-[#ed8e78]">workspace_premium</span>
+                        <span className="text-xs font-semibold text-white truncate">{plan.name} plan</span>
                         {billing.subscription.cancelAtPeriodEnd && (
                             <span className="text-[9px] font-bold uppercase tracking-wide bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded-full shrink-0">Ending</span>
                         )}
@@ -258,7 +312,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                     {plan.id === 'free' ? (
                         <button
                             onClick={() => { onViewPricing?.(); setIsMobileMenuOpen(false); }}
-                            className="text-[10px] font-extrabold uppercase tracking-wide bg-gradient-to-r from-primary to-secondary text-white px-2.5 py-1 rounded-lg hover:opacity-90 transition shrink-0"
+                            className="text-[9px] font-label font-semibold uppercase tracking-[0.1em] bg-ember text-white px-2.5 py-1.5 rounded-md hover:bg-ember-deep transition shrink-0"
                         >
                             Upgrade
                         </button>
@@ -272,18 +326,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                     )}
                 </div>
 
-                <div className="p-5 m-4 rounded-2xl bg-gradient-to-br from-white/10 to-transparent border border-white/5">
+                <div className="relative z-10 p-3.5 m-4 mt-3 rounded-xl bg-white/[0.04] border border-white/[0.07]">
                     {user ? (
                         <div className="flex items-center justify-between w-full gap-2 overflow-hidden">
                              <div className="flex items-center gap-3 overflow-hidden">
-                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary p-[2px] shrink-0">
-                                    <div className="w-full h-full rounded-xl bg-slate-900 flex items-center justify-center text-sm font-bold text-white">
+                                 <div className="w-9 h-9 rounded-lg bg-ember p-[1px] shrink-0">
+                                    <div className="w-full h-full rounded-[7px] bg-ink flex items-center justify-center text-sm font-semibold text-white">
                                         {userProfile?.firstName?.charAt(0) || user.email?.charAt(0).toUpperCase() || 'U'}
                                     </div>
                                  </div>
                                  <div className="overflow-hidden">
-                                     <p className="text-xs font-bold text-white truncate">{userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : (user.email ? user.email.split('@')[0] : 'User')}</p>
-                                     <p className="text-[10px] text-primary-light truncate">{user.email}</p>
+                                     <p className="text-xs font-semibold text-white truncate">{userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : (user.email ? user.email.split('@')[0] : 'User')}</p>
+                                     <p className="text-[10px] text-stone-400 truncate">{user.email}</p>
                                  </div>
                              </div>
                              <button 
@@ -296,10 +350,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                         </div>
                     ) : (
                         <div className="text-center">
-                            <p className="text-[10px] text-slate-400 mb-2 font-medium">To keep resume profiles in sync across sessions:</p>
+                            <p className="text-[10px] text-stone-400 mb-2 font-medium leading-relaxed">Sign in to sync your workspace across devices.</p>
                             <button 
                                 onClick={() => setIsAuthModalOpen(true)}
-                                className="w-full py-2.5 px-3 bg-primary text-white rounded-xl text-xs font-bold shadow-lg shadow-primary/25 hover:bg-primary-dark transition-all flex items-center justify-center gap-1.5"
+                                className="w-full py-2.5 px-3 bg-paper-bright text-ink rounded-lg text-xs font-semibold hover:bg-white transition-all flex items-center justify-center gap-1.5"
                                 id="header-auth-trigger"
                             >
                                 <span className="material-symbols-outlined text-xs">login</span>
@@ -310,200 +364,194 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                 </div>
             </aside>
 
-            {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto relative">
-                {/* Mobile Header Toggle Bar */}
-                <div className="lg:hidden sticky top-0 left-0 right-0 h-16 bg-slate-900/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 z-20 text-white select-none">
-                    <div className="flex items-center gap-3">
+            <main ref={mainRef} className="dashboard-main flex-1 min-w-0 overflow-y-auto relative">
+                <div className="dashboard-toolbar sticky top-0 z-20 h-16 flex items-center justify-between px-5 lg:px-8 select-none">
+                    <div className="flex items-center gap-3 min-w-0">
                         <button 
                             onClick={() => setIsMobileMenuOpen(true)}
-                            className="p-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 active:scale-95 transition cursor-pointer flex items-center justify-center"
+                            className="lg:hidden p-2 rounded-lg text-ink hover:bg-ink/5 active:scale-95 transition flex items-center justify-center"
                             title="Open Main Menu"
                         >
                             <span className="material-symbols-outlined text-xl leading-none">menu</span>
                         </button>
-                        <span className="font-extrabold text-lg tracking-tight bg-clip-text bg-gradient-to-r from-white to-gray-300 text-transparent">CVBase</span>
+                        <span className="font-label text-[10px] uppercase tracking-[0.14em] text-ink-faint hidden sm:block">Workspace</span>
+                        <span className="text-stone-300 hidden sm:block">/</span>
+                        <span className="text-sm font-semibold text-ink truncate">{activeTabLabel[activeTab]}</span>
                     </div>
-                    <div className="text-[10px] font-extrabold uppercase tracking-widest bg-slate-800/80 border border-white/10 px-3 py-1.5 rounded-xl text-primary-light">
-                        {activeTab === 'dashboard' ? 'Overview' : activeTab === 'smart-studio' ? 'Smart AI Studio' : activeTab === 'ats' ? 'ATS Checker' : activeTab === 'billing' ? 'Billing & Plans' : activeTab === 'prism' ? 'PRISM Tailor' : activeTab}
+                    <div className="flex items-center gap-2.5">
+                        <span className="hidden md:block font-label text-[9px] uppercase tracking-[0.13em] text-ink-faint">{todayLabel}</span>
+                        <button
+                            type="button"
+                            onClick={() => user ? setActiveTab('profile') : setIsAuthModalOpen(true)}
+                            className="grid h-8 w-8 place-items-center rounded-lg border border-ink/10 bg-paper-bright text-ink transition hover:border-ember/40 hover:text-ember-deep"
+                            title="Open profile"
+                        >
+                            <span className="material-symbols-outlined text-[17px]">person</span>
+                        </button>
                     </div>
                 </div>
 
-                {/* Gradient Blobs for background ambiance */}
-                <div className="fixed top-[-20%] right-[-10%] w-[600px] h-[600px] bg-primary/20 rounded-full blur-[100px] pointer-events-none mix-blend-multiply"></div>
-                <div className="fixed bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-secondary/20 rounded-full blur-[80px] pointer-events-none mix-blend-multiply"></div>
-
-                <div className="max-w-7xl mx-auto p-8 md:p-12 relative z-10">
+                <div className="dashboard-content p-6 md:p-10 xl:p-12 relative z-10">
                     
                     {/* DASHBOARD VIEW (Bento Grid) */}
                     {activeTab === 'dashboard' && (
                         <div className="animate-fade-in">
-                            <header className="mb-10 flex justify-between items-end">
-                                <div>
-                                    <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary mb-2">
-                                        {greeting}
+                            <header className="mb-9 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                                <div className="max-w-3xl">
+                                    <p className="dashboard-eyebrow mb-3">Career workspace · {todayLabel}</p>
+                                    <h1 className="dashboard-display text-[clamp(3rem,7vw,5.8rem)] text-ink">
+                                        {greeting}<span className="text-ember">.</span>
                                     </h1>
-                                    <p className="text-gray-500 font-medium">Ready to take the next leap in your career?</p>
+                                    <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-ink-soft/70">Your documents, job-fit signals, and writing tools—organized around the next application.</p>
                                 </div>
-                                <button className="glass-button px-4 py-2 rounded-full text-sm font-semibold text-primary flex items-center gap-2 hover:bg-white">
-                                    <span className="material-symbols-outlined text-sm">settings</span>
-                                    Settings
+                                <button onClick={() => onCreateNew()} className="dashboard-primary-button shrink-0">
+                                    Create a resume
+                                    <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
                                 </button>
                             </header>
 
-                            <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-auto gap-6">
-                                
-                                {/* 1. Create New - Large Featured Card */}
+                            <section className="grid grid-cols-1 gap-5 lg:grid-cols-12" aria-label="Career workspace overview">
                                 <BentoCard 
-                                    className="md:col-span-2 md:row-span-2 min-h-[320px] bg-gradient-to-br from-primary/10 to-white"
+                                    className="dashboard-card-dark min-h-[360px] lg:col-span-7 lg:row-span-2 p-7 md:p-9"
                                     onClick={() => onCreateNew()}
-                                    title="Build New Resume"
-                                    description="Create a professional, ATS-optimized resume in minutes with AI assistance."
-                                    icon="add_circle"
                                 >
-                                    <div className="mt-4 flex gap-2">
-                                        <div className="px-3 py-1 rounded-full bg-white/60 text-xs font-bold text-primary border border-primary/20">AI Powered</div>
-                                        <div className="px-3 py-1 rounded-full bg-white/60 text-xs font-bold text-secondary border border-secondary/20">ATS Friendly</div>
-                                    </div>
-                                    <div className="absolute bottom-[-20px] right-[-20px] opacity-10 transform rotate-12">
-                                        <span className="material-symbols-outlined text-[180px] text-primary">description</span>
-                                    </div>
-                                    <button className="mt-8 px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/30 hover:bg-primary-dark transition-all flex items-center gap-2">
-                                        Start Building <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                                    </button>
-                                </BentoCard>
-
-                                {/* 2. Recent Work - Tall Card */}
-                                <BentoCard 
-                                    className="md:col-span-1 md:row-span-2 bg-white/50"
-                                    title="Recent Work"
-                                    icon="history"
-                                    accentColor="text-secondary"
-                                >
-                                    {savedResume ? (
-                                        <div onClick={onEditExisting} className="mt-2 group/item">
-                                            <div className="aspect-[3/4] w-full bg-gray-100 rounded-xl overflow-hidden border border-gray-200 shadow-inner relative mb-3">
-                                                <div className="absolute inset-0 bg-gray-200/50 flex items-center justify-center opacity-0 group-hover/item:opacity-100 transition-opacity z-10 backdrop-blur-sm">
-                                                    <span className="bg-white text-dark px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">Continue Editing</span>
-                                                </div>
-                                                {/* Use specific template or default for preview, lazy loaded */}
-                                                <LazyTemplatePreview templateId="modern" />
+                                    <div className="relative flex h-full min-h-[300px] flex-col justify-between">
+                                        <div className="relative z-10 max-w-md">
+                                            <p className="font-label text-[9px] uppercase tracking-[0.16em] text-[#ed8e78]">Recommended next step</p>
+                                            <h2 className="mt-5 font-display text-[clamp(2.6rem,5vw,4.6rem)] font-medium leading-[0.92] tracking-[-0.05em] text-paper-bright">Make the document fit the role.</h2>
+                                            <p className="mt-5 max-w-[42ch] text-sm leading-relaxed text-stone-300">Start with a proven structure, then shape every line for the work you want.</p>
+                                        </div>
+                                        <div className="relative z-10 mt-8 flex items-center gap-4">
+                                            <span className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-paper-bright px-4 text-sm font-bold text-ink transition group-hover:bg-white">
+                                                Start building <span className="material-symbols-outlined text-[17px]">north_east</span>
+                                            </span>
+                                            <span className="font-label text-[9px] uppercase tracking-[0.13em] text-stone-400">No card required</span>
+                                        </div>
+                                        <div className="pointer-events-none absolute -bottom-7 -right-5 hidden h-[250px] w-[190px] rotate-[7deg] rounded-[8px] border border-white/15 bg-[#f5f1e9] p-5 shadow-2xl 2xl:block">
+                                            <div className="font-label text-[8px] uppercase tracking-[0.15em] text-ember-deep">CV / 01</div>
+                                            <div className="mt-7 h-2 w-20 rounded bg-ink/80" />
+                                            <div className="mt-2 h-1 w-12 rounded bg-ink/25" />
+                                            <div className="mt-7 space-y-2">
+                                                <div className="h-1 w-full rounded bg-ink/20" />
+                                                <div className="h-1 w-[92%] rounded bg-ink/15" />
+                                                <div className="h-1 w-[76%] rounded bg-ink/15" />
                                             </div>
-                                            <h4 className="font-bold text-gray-800 text-sm truncate">{savedResume.contact.firstName} Resume</h4>
-                                            <p className="text-xs text-gray-500">Last edited just now</p>
+                                            <div className="absolute bottom-5 left-5 right-5 border-t border-ink/15 pt-3 font-label text-[7px] uppercase tracking-[0.12em] text-ink-faint">Ready for the shortlist</div>
                                         </div>
-                                    ) : (
-                                        <div className="h-full flex flex-col items-center justify-center text-center opacity-60">
-                                            <span className="material-symbols-outlined text-4xl mb-2 text-gray-400">draft</span>
-                                            <p className="text-sm">No drafts yet</p>
-                                        </div>
-                                    )}
+                                    </div>
                                 </BentoCard>
 
-                                {/* 3. ATS Score (from the last real scan) */}
                                 <BentoCard
-                                    className="md:col-span-1 md:row-span-1 bg-secondary/5"
+                                    className="min-h-[170px] lg:col-span-5 p-6"
                                     onClick={() => setActiveTab('ats')}
-                                    title="ATS Score"
-                                    icon="analytics"
-                                    accentColor="text-green-500"
                                 >
-                                    {lastAtsScore ? (
-                                        <>
-                                            <div className="flex items-center gap-4 mt-2">
-                                                <div className="text-4xl font-black text-gray-800">{lastAtsScore.atsScore}</div>
-                                                <div className="text-xs text-gray-500 leading-tight">
-                                                    {lastAtsScore.matchScore !== null ? <>Job match<br/><strong className="text-gray-700">{lastAtsScore.matchScore}%</strong></> : <>Compatibility<br/>score</>}
-                                                </div>
+                                    <div className="flex h-full items-start justify-between gap-5">
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#e4ece7] text-[#426a5a]"><span className="material-symbols-outlined text-[19px]">radar</span></span>
+                                                <p className="dashboard-eyebrow !text-[#426a5a]">ATS signal</p>
                                             </div>
-                                            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-4 overflow-hidden">
-                                                <div className="bg-gradient-to-r from-primary to-green-400 h-1.5 rounded-full" style={{ width: `${lastAtsScore.atsScore}%` }}></div>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <p className="text-xs text-gray-500 mt-2">No scan yet — check how your resume performs against real ATS parsing.</p>
-                                            <span className="inline-flex items-center gap-1 mt-3 text-xs font-bold text-primary">Run first scan <span className="material-symbols-outlined text-sm">arrow_forward</span></span>
-                                        </>
-                                    )}
+                                            <h3 className="mt-5 text-xl font-semibold text-ink">{lastAtsScore ? 'Your latest scan' : 'Check before you send'}</h3>
+                                            <p className="mt-2 max-w-[34ch] text-sm leading-relaxed text-ink-soft/65">{lastAtsScore ? 'Review job match and the highest-impact fixes.' : 'See how tracking systems read your resume.'}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="dashboard-number font-display text-5xl font-medium tracking-[-0.05em] text-ink">{lastAtsScore?.atsScore ?? '—'}</div>
+                                            <span className="mt-1 block font-label text-[8px] uppercase tracking-[0.12em] text-ink-faint">score / 100</span>
+                                        </div>
+                                    </div>
                                 </BentoCard>
 
-                                {/* 4. Plan / billing shortcut */}
                                 <BentoCard
-                                    className="md:col-span-1 md:row-span-1 bg-white/60"
-                                    onClick={() => (plan.id === 'free' ? onViewPricing?.() : setActiveTab('billing'))}
-                                    title={plan.id === 'free' ? 'Go Pro' : `${plan.name} plan`}
-                                    icon="workspace_premium"
-                                    accentColor="text-amber-500"
+                                    className="min-h-[170px] lg:col-span-5 p-6"
+                                    onClick={() => setActiveTab('smart-studio')}
                                 >
-                                    <p className="text-xs text-gray-500 mt-2">
-                                        {plan.id === 'free'
-                                            ? 'Unlimited ATS scans, live re-scoring & all templates.'
-                                            : 'Manage subscription, invoices & payment methods.'}
-                                    </p>
-                                    <span className="inline-flex items-center gap-1 mt-3 text-xs font-bold text-amber-600">
-                                        {plan.id === 'free' ? 'View plans' : 'Open billing'} <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                                    </span>
+                                    <div className="flex h-full items-start justify-between gap-6">
+                                        <div>
+                                            <p className="dashboard-eyebrow">Writing tools</p>
+                                            <h3 className="mt-5 text-xl font-semibold text-ink">Smart Studio</h3>
+                                            <p className="mt-2 max-w-[36ch] text-sm leading-relaxed text-ink-soft/65">Turn job requirements into a stronger profile, cover letter, and application plan.</p>
+                                        </div>
+                                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-ember/10 text-ember-deep transition-transform group-hover:rotate-3"><SparklesIcon /></span>
+                                    </div>
                                 </BentoCard>
 
-                                {/* 5. Templates Gallery Link */}
+                                <BentoCard
+                                    className="min-h-[280px] lg:col-span-4 p-0"
+                                    onClick={() => savedResume ? onEditExisting() : onCreateNew()}
+                                >
+                                    <div className="h-40 overflow-hidden border-b border-ink/10 bg-[#e9e3d9]">
+                                        {savedResume ? <LazyTemplatePreview templateId="modern" /> : (
+                                            <div className="flex h-full items-center justify-center">
+                                                <span className="material-symbols-outlined text-5xl text-ink/20">draft</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="p-5">
+                                        <p className="dashboard-eyebrow">Recent document</p>
+                                        <h3 className="mt-3 truncate text-lg font-semibold text-ink">{savedResume ? `${savedResume.contact.firstName || 'Untitled'} resume` : 'No draft yet'}</h3>
+                                        <p className="mt-1 text-xs text-ink-faint">{savedResume ? 'Continue where you left off' : 'Your first draft will appear here'}</p>
+                                    </div>
+                                </BentoCard>
+
                                 <BentoCard 
-                                    className="md:col-span-2 md:row-span-1 bg-gradient-to-r from-slate-800 to-slate-900 text-white group"
+                                    className="dashboard-card-ember min-h-[280px] lg:col-span-4 p-6"
                                     onClick={() => setActiveTab('templates')}
                                 >
-                                    <div className="flex justify-between items-center h-full">
+                                    <div className="flex h-full flex-col justify-between">
+                                        <div className="flex items-start justify-between">
+                                            <p className="font-label text-[9px] uppercase tracking-[0.14em] text-white/70">Design library</p>
+                                            <span className="font-display text-5xl font-medium tracking-[-0.06em] text-white/30">{AVAILABLE_TEMPLATES.length}</span>
+                                        </div>
                                         <div>
-                                            <h3 className="text-xl font-bold mb-1 group-hover:text-secondary transition-colors">Templates Gallery</h3>
-                                            <p className="text-sm text-gray-400">Explore {AVAILABLE_TEMPLATES.length}+ professional designs.</p>
-                                        </div>
-                                        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-all">
-                                            <span className="material-symbols-outlined text-2xl">grid_view</span>
+                                            <h3 className="font-display text-4xl font-medium leading-none tracking-[-0.05em]">Find your type.</h3>
+                                            <p className="mt-3 max-w-[31ch] text-sm leading-relaxed text-white/75">Browse recruiter-ready layouts from quiet classic to sharp contemporary.</p>
+                                            <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold">Explore templates <span className="material-symbols-outlined text-[17px]">arrow_forward</span></span>
                                         </div>
                                     </div>
                                 </BentoCard>
 
-                                {/* 6. ATS Checker */}
                                 <BentoCard
-                                    className="md:col-span-2 md:row-span-1 bg-gradient-to-r from-secondary/10 to-primary/10"
-                                    onClick={() => setActiveTab('ats')}
+                                    className="min-h-[280px] lg:col-span-4 p-6"
+                                    onClick={() => (plan.id === 'free' ? onViewPricing?.() : setActiveTab('billing'))}
                                 >
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm text-secondary">
-                                                <SparklesIcon />
+                                    <div className="flex h-full flex-col justify-between">
+                                        <div>
+                                            <div className="flex items-center justify-between">
+                                                <p className="dashboard-eyebrow">Current plan</p>
+                                                <span className="rounded-md border border-ink/10 bg-paper-deep px-2 py-1 font-label text-[8px] uppercase tracking-[0.12em] text-ink-soft">{plan.name}</span>
                                             </div>
-                                            <div>
-                                                <h3 className="font-bold text-gray-800">ATS Checker & Job Match</h3>
-                                                <p className="text-xs text-gray-500">Scan your resume against any job description — score, missing keywords & fixes.</p>
-                                            </div>
+                                            <h3 className="mt-7 font-display text-4xl font-medium leading-none tracking-[-0.05em] text-ink">Keep momentum.</h3>
+                                            <p className="mt-4 max-w-[32ch] text-sm leading-relaxed text-ink-soft/65">{plan.id === 'free' ? 'Compare plans when you need more scans, AI actions, or document versions.' : 'Review usage, invoices, and payment details in one place.'}</p>
                                         </div>
-                                        <span className="material-symbols-outlined text-2xl text-secondary-dark hidden sm:block">radar</span>
+                                        <span className="inline-flex items-center gap-2 text-sm font-bold text-ember-deep">{plan.id === 'free' ? 'Compare plans' : 'Manage billing'} <span className="material-symbols-outlined text-[17px]">arrow_forward</span></span>
                                     </div>
                                 </BentoCard>
-
-                            </div>
+                            </section>
                         </div>
                     )}
 
                     {/* RESUMES VIEW */}
                     {activeTab === 'resumes' && user && onEditResume && (
-                        <ResumeManager
-                            userId={user.id}
-                            plan={plan}
-                            onEdit={onEditResume}
-                            onUpgrade={() => onViewPricing?.()}
-                        />
+                        <div className="dashboard-module animate-fade-in">
+                            <ResumeManager
+                                userId={user.id}
+                                plan={plan}
+                                onEdit={onEditResume}
+                                onUpgrade={() => onViewPricing?.()}
+                            />
+                        </div>
                     )}
                     {activeTab === 'resumes' && !(user && onEditResume) && (
-                        <div className="animate-fade-in">
-                             <header className="flex justify-between items-center mb-8">
+                        <div className="dashboard-module animate-fade-in">
+                             <header className="flex flex-col gap-5 sm:flex-row sm:justify-between sm:items-end mb-8">
                                 <div>
-                                    <h1 className="text-3xl font-bold text-gray-800 mb-2">My Documents</h1>
-                                    <p className="text-gray-500">Manage and edit your saved documents.</p>
+                                    <p className="dashboard-eyebrow mb-3">Resume archive</p>
+                                    <h1 className="mb-3">Your resumes.</h1>
+                                    <p className="text-ink-soft/65">Build, revisit, and tailor every version from one place.</p>
                                 </div>
                                 <button
                                     onClick={() => onCreateNew()}
-                                    className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/25 hover:bg-primary-dark transition-all hover:-translate-y-0.5"
+                                    className="dashboard-primary-button"
                                 >
                                     <span className="material-symbols-outlined">add</span>
                                     Create New
@@ -514,7 +562,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                                 {/* New Resume Card */}
                                 <div 
                                     onClick={() => onCreateNew()}
-                                    className="glass-card h-[320px] flex flex-col items-center justify-center cursor-pointer group border-dashed border-2 border-gray-300 hover:border-primary bg-transparent hover:bg-primary/5"
+                                    className="glass-card h-[320px] flex flex-col items-center justify-center cursor-pointer group border-dashed border-2"
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') onCreateNew(); }}
                                 >
                                     <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
                                         <span className="material-symbols-outlined text-3xl text-primary">add</span>
@@ -552,10 +603,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
 
                     {/* TEMPLATES VIEW */}
                     {activeTab === 'templates' && (
-                        <div className="animate-fade-in">
+                        <div className="dashboard-module animate-fade-in">
                             <header className="mb-8">
-                                <h1 className="text-3xl font-bold text-gray-800 mb-2">Templates Gallery</h1>
-                                <p className="text-gray-500">Professionally designed templates for every career path.</p>
+                                <p className="dashboard-eyebrow mb-3">Design library · {AVAILABLE_TEMPLATES.length} layouts</p>
+                                <h1 className="mb-3">Find your type.</h1>
+                                <p className="max-w-2xl text-ink-soft/65">Choose a recruiter-ready layout that fits the role, seniority, and tone of your application.</p>
                             </header>
 
                             {/* Glass Filters */}
@@ -579,8 +631,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                                 {filteredTemplates.map(template => (
                                     <div 
                                         key={template.id}
-                                        className="glass-card p-0 overflow-hidden group cursor-pointer h-[400px]"
-                                        onClick={() => onCreateNew(template.id as TemplateId)}
+                                    className="glass-card p-0 overflow-hidden group cursor-pointer h-[400px]"
+                                    onClick={() => onCreateNew(template.id as TemplateId)}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') onCreateNew(template.id as TemplateId); }}
                                     >
                                         <div className="h-[320px] bg-gray-100 relative overflow-hidden flex items-center justify-center group-hover:bg-gray-200 transition-colors">
                                             {/* Lazy loaded preview scaled to fit */}
@@ -607,36 +662,46 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
 
                     {/* PROFILE VIEW */}
                     {activeTab === 'profile' && (
-                        <div className="animate-fade-in">
+                        <div className="dashboard-module animate-fade-in">
                             <UserProfileForm />
                         </div>
                     )}
 
                     {/* SMART STUDIO VIEW */}
                     {activeTab === 'smart-studio' && (
-                        <div className="animate-fade-in">
+                        <div className="dashboard-module animate-fade-in">
                             <SmartStudio resumeData={savedResume} />
                         </div>
                     )}
 
                     {/* ATS CHECKER VIEW */}
                     {activeTab === 'ats' && (
-                        <div className="animate-fade-in">
+                        <div className="dashboard-module animate-fade-in">
                             <AtsAnalyzer savedResume={savedResume} onUpgrade={() => onViewPricing?.()} />
                         </div>
                     )}
 
                     {/* BILLING VIEW */}
                     {activeTab === 'billing' && (
-                        <div className="animate-fade-in">
+                        <div className="dashboard-module animate-fade-in">
                             <BillingDashboard onChangePlan={() => onViewPricing?.()} />
                         </div>
                     )}
 
                     {/* PRISM TAILOR VIEW (feature-flag gated) */}
                     {activeTab === 'prism' && prismEnabled && (
-                        <div className="animate-fade-in">
+                        <div className="dashboard-module animate-fade-in">
                             <PrismWizard onEditResume={onEditResume} onUpgrade={() => onViewPricing?.()} />
+                        </div>
+                    )}
+
+                    {/* SETTINGS & PERSONALIZATION VIEW */}
+                    {activeTab === 'settings' && (
+                        <div className="animate-fade-in">
+                            <SettingsPanel
+                                onViewLegal={onViewLegal}
+                                onManageBilling={() => setActiveTab('billing')}
+                            />
                         </div>
                     )}
                 </div>

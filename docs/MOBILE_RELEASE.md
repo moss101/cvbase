@@ -1,0 +1,173 @@
+# Mobile release guide
+
+CVBase ships to Android and iOS as a [Capacitor](https://capacitorjs.com) app
+wrapping the same React web build. There is no separate mobile codebase — every
+segment, style and validation rule is shared, so the apps cannot drift from the
+web app.
+
+## Prerequisites
+
+| Platform | Requirement | Status on this machine |
+| --- | --- | --- |
+| Both | Node 20+, `npm install` | ✅ |
+| iOS | Xcode 16+ with an iOS simulator runtime | ✅ Xcode 26.6 |
+| Android | Android Studio + SDK (API 35), JDK 17+ | ❌ SDK not installed |
+
+Capacitor 8 uses Swift Package Manager on iOS, so **CocoaPods is not required**.
+
+## Everyday loop
+
+```bash
+npm run mobile:build
+```
+
+That runs `vite build` then `npx cap sync`, which copies `dist/` into
+`android/app/src/main/assets/public` and `ios/App/App/public` and regenerates the
+native plugin registries.
+
+> **Always run this after changing web code.** The native projects embed a
+> *copy* of the build. Skipping the sync is how the apps ended up shipping a
+> seven-week-old build under the previous branding.
+
+Then open the platform project:
+
+```bash
+npm run mobile:open:ios
+```
+
+```bash
+npm run mobile:open:android
+```
+
+## Verifying a build
+
+```bash
+npm run typecheck && npm test && npm run build
+```
+
+The theme tokens are generated, not hand-written. After touching the palette:
+
+```bash
+node scripts/generate-theme-css.mjs
+```
+
+That regenerates `styles/theme.css` and runs 132 WCAG contrast assertions across
+both themes. It exits non-zero if any body-text pairing drops below AA, so a
+palette change cannot silently ship an unreadable dark mode.
+
+## iOS release
+
+1. `npm run mobile:build`
+2. `npm run mobile:open:ios`
+3. In Xcode: select **Any iOS Device (arm64)**.
+4. Set the signing team on the **App** target → Signing & Capabilities.
+5. Bump **MARKETING_VERSION** (user-facing, e.g. `1.0.1`) and
+   **CURRENT_PROJECT_VERSION** (build number, must increase every upload).
+6. **Product → Archive**, then distribute via the Organizer.
+
+Identity is already set: bundle id `com.cvbase.app`, display name `CVBase`,
+`UIRequiredDeviceCapabilities` = `arm64`.
+
+## Android release
+
+The Android SDK is not installed on this machine, so the steps below have not
+been executed here — install Android Studio first, then:
+
+1. `npm run mobile:build`
+2. `npm run mobile:open:android`
+3. Let Gradle sync and download the SDK components it asks for.
+4. **Build → Generate Signed App Bundle**, or from the CLI:
+
+```bash
+cd android && ./gradlew bundleRelease
+```
+
+### Signing
+
+`android/app/build.gradle` reads its keystore from Gradle properties so no
+secret is ever committed. Create the keystore once:
+
+```bash
+keytool -genkey -v -keystore cvbase-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias cvbase
+```
+
+Then add to `~/.gradle/gradle.properties` (**not** the repo):
+
+```properties
+CVBASE_STORE_FILE=/absolute/path/to/cvbase-release.jks
+CVBASE_STORE_PASSWORD=…
+CVBASE_KEY_ALIAS=cvbase
+CVBASE_KEY_PASSWORD=…
+```
+
+Without these the release build still assembles, just unsigned — so a fresh
+clone is never blocked, while a release pipeline fails loudly if the secrets are
+missing.
+
+### Versioning
+
+Bump `versionCode` (integer, must increase on every Play upload) and
+`versionName` in `android/app/build.gradle`.
+
+### Shrinking (opt-in)
+
+`minifyEnabled` is deliberately `false`. Capacitor resolves plugins by
+reflection, so R8 needs the keep rules in `android/app/proguard-rules.pro` to be
+exactly right — and a mistake there fails at runtime, not at build time. The
+rules are written and ready. Turn it on only once you have installed a release
+build on a device and confirmed the plugins still load.
+
+### ⚠️ Application ID change
+
+The Android project was scaffolded as `com.cvleap.app` and is now
+`com.cvbase.app`, matching `capacitor.config.ts`. **If a CVLeap build was ever
+published to Play under the old id, this is a new listing** — existing installs
+will not receive it as an update. If that applies, revert `applicationId` (the
+`namespace` can stay) and keep the old id.
+
+## Architecture notes
+
+### Everything is bundled — nothing is fetched at runtime
+
+The app previously loaded Tailwind, fonts, Material Symbols, html2pdf and even
+React from four CDNs. That made a packaged app unusable offline. Styles are now
+compiled by PostCSS at build time and every font and library is bundled: a
+production page load makes **zero third-party requests**.
+
+### Theming
+
+Every colour in `tailwind.config.js` resolves to a CSS variable, so toggling
+`.dark` on `<html>` re-themes all 147 components without any per-component
+`dark:` variants.
+
+Each colour carries **two** variables because a token means opposite things in
+its two roles, and they move in opposite directions when the theme flips:
+
+| Utility | Role | Dark-mode behaviour |
+| --- | --- | --- |
+| `text-gray-800` | dark body copy | becomes **light** (`--ct-*`) |
+| `bg-gray-800` | a dark slab | stays **dark** (`--cb-*`) |
+| `bg-primary` + `text-white` | solid button | primary stays dark so white keeps 4.8:1 |
+
+Resume templates are the deliberate exception — a CV is always ink-on-white, so
+template roots re-declare the light values and never invert, in either theme or
+in PDF export.
+
+### Native shell
+
+`components/NavigationProvider.tsx` owns a real navigation stack mirrored into
+`window.history`, so the Android hardware back button and browser/gesture back
+both unwind screens instead of closing the app. Modals register interceptors via
+`useBackHandler` so back closes them first.
+
+`lib/nativeShell.ts` handles splash dismissal, keyboard resize mode and status
+bar overlay. `components/ThemeProvider.tsx` keeps the native status bar style in
+step with the active theme.
+
+### Known size cost
+
+`material-symbols` ships a 3.9 MB variable icon font. The app uses 129 distinct
+icons but several resume templates set `FILL`, `wght` and `opsz` axes, so the
+variable font is genuinely required for visual fidelity. Subsetting it would
+mean switching the 440 ligature call sites to codepoints — worth doing if app
+size becomes a constraint, but it is not a shipping blocker.

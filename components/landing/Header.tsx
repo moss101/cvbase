@@ -44,7 +44,9 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onCreateCV, onNavigate }) => {
 
     return (
         <>
-            <header className="fixed top-0 inset-x-0 z-50 px-4 pt-4 sm:px-6 sm:pt-5 pointer-events-none">
+            {/* Top padding folds in the safe-area inset so the nav pill clears the
+                notch and status bar on device; env() resolves to 0 on the web. */}
+            <header className="fixed top-0 inset-x-0 z-50 px-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] sm:px-6 sm:pt-[calc(1.25rem+env(safe-area-inset-top,0px))] pointer-events-none">
                 <nav
                     aria-label="Main"
                     className={`pointer-events-auto mx-auto max-w-5xl rounded-full border backdrop-blur-xl transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${
@@ -126,7 +128,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onCreateCV, onNavigate }) => {
                 }`}
                 aria-hidden={!mobileOpen}
             >
-                <div className="flex flex-col justify-between h-full px-8 pt-32 pb-10">
+                <div className="flex flex-col justify-between h-full px-8 pt-[calc(8rem+env(safe-area-inset-top,0px))] pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))]">
                     <nav aria-label="Mobile">
                         <ul className="space-y-1">
                             {NAV_LINKS.map((link, i) => (

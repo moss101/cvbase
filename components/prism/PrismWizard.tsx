@@ -374,6 +374,7 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
   return (
     <div className="animate-fade-in max-w-5xl mx-auto">
       <header className="mb-8">
+        <p className="dashboard-eyebrow mb-3">Role-specific tailoring</p>
         <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-3">
           <span className="material-symbols-outlined text-primary text-3xl">auto_awesome</span>
           PRISM Resume Tailor
@@ -502,7 +503,7 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
                 </button>
               ))}
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 max-h-[26rem] overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-h-[26rem] overflow-y-auto pr-1">
               {shownTemplates.map((t) => (
                 <button
                   key={t.id}
@@ -581,11 +582,11 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
               </div>
             ))}
           </div>
-          <div className="mt-8 flex items-center justify-between">
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-gray-400">{answeredCount}/{questions.length} answered</p>
             <button
               onClick={startGenerate}
-              className="px-8 py-3 rounded-2xl bg-gradient-to-r from-primary to-secondary text-white font-bold shadow-lg shadow-primary/30 hover:opacity-90 active:scale-95 transition"
+              className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-gradient-to-r from-primary to-secondary text-white font-bold shadow-lg shadow-primary/30 hover:opacity-90 active:scale-95 transition"
             >
               Generate my resume
             </button>
@@ -638,14 +639,14 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
             ))}
           </ul>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-gray-400 max-w-xs">
               Nothing is saved or exportable until you approve. Approving opens the editor where every line stays editable.
             </p>
             <button
               onClick={approveAndSave}
               disabled={approving}
-              className="px-8 py-3 rounded-2xl bg-gradient-to-r from-primary to-secondary text-white font-bold shadow-lg shadow-primary/30 hover:opacity-90 active:scale-95 transition disabled:opacity-50"
+              className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-gradient-to-r from-primary to-secondary text-white font-bold shadow-lg shadow-primary/30 hover:opacity-90 active:scale-95 transition disabled:opacity-50"
             >
               {approving ? 'Saving…' : 'I reviewed it — save & edit'}
             </button>

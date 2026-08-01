@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import LandingPage from './components/LandingPage';
 import ResumeBuilder from './components/ResumeBuilder';
 import Dashboard from './components/Dashboard';
@@ -12,17 +12,14 @@ import type { TemplateId } from './types';
 import { TranslationProvider } from './services/translationService';
 import { AuthProvider } from './components/AuthProvider';
 import { SubscriptionProvider, useSubscription } from './components/SubscriptionProvider';
+import { ThemeProvider } from './components/ThemeProvider';
+import { NavigationProvider, useNavigation } from './components/NavigationProvider';
+import { initNativeShell } from './lib/nativeShell';
 import type { DashboardTab } from './components/Dashboard';
 
-type ViewState = 'landing' | 'dashboard' | 'builder' | 'resources' | 'pricing' | 'legal';
-
 function AppContent() {
-    const [currentView, setCurrentView] = useState<ViewState>('landing');
-    const [prevView, setPrevView] = useState<ViewState>('landing');
+    const { route, direction, navigate, reset, back } = useNavigation();
     const [previewMode, setPreviewMode] = useState<{template: TemplateId} | null>(null);
-    const [dashboardTab, setDashboardTab] = useState<DashboardTab>('dashboard');
-    const [activeResumeId, setActiveResumeId] = useState<string | null>(null);
-    const [legalTab, setLegalTab] = useState<LegalTab>('privacy');
     const { startCheckout } = useSubscription();
 
     useEffect(() => {
@@ -36,11 +33,10 @@ function AppContent() {
         }
     }, []);
 
-    const navigate = (view: ViewState) => {
-        setPrevView(currentView);
-        setCurrentView(view);
-        window.scrollTo(0, 0);
-    };
+    // Splash / keyboard / status-bar setup for the packaged apps. No-op on web.
+    useEffect(() => {
+        void initNativeShell();
+    }, []);
 
     const handleCreateNew = (templateId?: TemplateId) => {
         if (templateId) {
@@ -48,19 +44,25 @@ function AppContent() {
                 localStorage.setItem('cvbase-selected-template', templateId);
             } catch (e) { /* storage unavailable — builder falls back to default */ }
         }
-        setActiveResumeId(null); // fresh primary / local flow
-        navigate('builder');
+        navigate({ view: 'builder', resumeId: null }); // fresh primary / local flow
     };
-    const handleEditExisting = () => { setActiveResumeId(null); navigate('builder'); };
-    const handleEditResume = (resumeId: string) => { setActiveResumeId(resumeId); navigate('builder'); };
-    const handleBackToDashboard = () => setCurrentView('dashboard');
-    const navigateToResources = () => navigate('resources');
-    const navigateToPricing = () => navigate('pricing');
-    const navigateToLegal = (tab: LegalTab) => { setLegalTab(tab); navigate('legal'); };
+    const handleEditExisting = () => navigate({ view: 'builder', resumeId: null });
+    const handleEditResume = (resumeId: string) => navigate({ view: 'builder', resumeId });
+    const navigateToResources = () => navigate({ view: 'resources' });
+    const navigateToPricing = () => navigate({ view: 'pricing' });
+    const navigateToLegal = (tab: LegalTab) => navigate({ view: 'legal', legalTab: tab });
 
     const openDashboard = (tab: DashboardTab = 'dashboard') => {
-        setDashboardTab(tab);
-        navigate('dashboard');
+        navigate({ view: 'dashboard', dashboardTab: tab });
+    };
+
+    /**
+     * In-app back affordances unwind the same stack as the hardware back button,
+     * so the two can never disagree. The fallback covers a deep link that opened
+     * straight onto this screen with nothing behind it.
+     */
+    const goBackTo = (fallback: () => void) => () => {
+        if (!back()) fallback();
     };
 
     // Render headless preview for screenshot generation
@@ -68,58 +70,97 @@ function AppContent() {
         return <HeadlessPreview templateId={previewMode.template} data={exampleData} />;
     }
 
+    const content = (() => {
+        switch (route.view) {
+            case 'landing':
+                return (
+                    <LandingPage
+                        onStartBuilding={() => navigate({ view: 'builder', resumeId: null })}
+                        onUseTemplate={handleCreateNew}
+                        onViewGallery={() => openDashboard('templates')}
+                        onEnterDashboard={() => openDashboard('dashboard')}
+                        onViewResources={navigateToResources}
+                        onViewPricing={navigateToPricing}
+                        onViewLegal={navigateToLegal}
+                    />
+                );
+            case 'dashboard':
+                return (
+                    <Dashboard
+                        onCreateNew={handleCreateNew}
+                        onEditExisting={handleEditExisting}
+                        onEditResume={handleEditResume}
+                        onBackToLanding={goBackTo(() => reset({ view: 'landing' }))}
+                        onViewResources={navigateToResources}
+                        onViewPricing={navigateToPricing}
+                        onViewLegal={navigateToLegal}
+                        initialTab={route.dashboardTab ?? 'dashboard'}
+                    />
+                );
+            case 'resources':
+                return (
+                    <ResourcesPage
+                        onBack={goBackTo(() => reset({ view: 'landing' }))}
+                        onStartBuilding={() => navigate({ view: 'builder', resumeId: null })}
+                    />
+                );
+            case 'pricing':
+                return (
+                    <PricingPage
+                        standalone
+                        onBack={goBackTo(() => reset({ view: 'landing' }))}
+                        onCheckout={startCheckout}
+                        onManageBilling={() => openDashboard('billing')}
+                    />
+                );
+            case 'legal':
+                return (
+                    <LegalPage
+                        onBack={goBackTo(() => reset({ view: 'landing' }))}
+                        initialTab={route.legalTab ?? 'privacy'}
+                    />
+                );
+            case 'builder':
+            default:
+                return (
+                    <ResumeBuilder
+                        onBack={goBackTo(() => reset({ view: 'dashboard', dashboardTab: 'dashboard' }))}
+                        initialResumeId={route.resumeId ?? null}
+                    />
+                );
+        }
+    })();
+
+    // Keying on the route restarts the enter animation on each navigation, and
+    // the direction class makes going back read as going back.
+    const transitionKey =
+        `${route.view}:${route.dashboardTab ?? ''}:${route.resumeId ?? ''}:${route.legalTab ?? ''}`;
+
     return (
-        <div className="min-h-screen bg-light font-sans text-dark animate-fade-in">
-            {currentView === 'landing' ? (
-                <LandingPage
-                    onStartBuilding={() => navigate('builder')}
-                    onUseTemplate={handleCreateNew}
-                    onViewGallery={() => openDashboard('templates')}
-                    onEnterDashboard={() => openDashboard('dashboard')}
-                    onViewResources={navigateToResources}
-                    onViewPricing={navigateToPricing}
-                    onViewLegal={navigateToLegal}
-                />
-            ) : currentView === 'dashboard' ? (
-                <Dashboard
-                    onCreateNew={handleCreateNew}
-                    onEditExisting={handleEditExisting}
-                    onEditResume={handleEditResume}
-                    onBackToLanding={() => navigate('landing')}
-                    onViewResources={navigateToResources}
-                    onViewPricing={navigateToPricing}
-                    initialTab={dashboardTab}
-                />
-            ) : currentView === 'resources' ? (
-                <ResourcesPage
-                    onBack={() => setCurrentView(prevView)}
-                    onStartBuilding={() => navigate('builder')}
-                />
-            ) : currentView === 'pricing' ? (
-                <PricingPage
-                    standalone
-                    onBack={() => setCurrentView(prevView)}
-                    onCheckout={startCheckout}
-                    onManageBilling={() => openDashboard('billing')}
-                />
-            ) : currentView === 'legal' ? (
-                <LegalPage onBack={() => setCurrentView(prevView)} initialTab={legalTab} />
-            ) : (
-                <ResumeBuilder onBack={handleBackToDashboard} initialResumeId={activeResumeId} />
-            )}
+        <div className="min-h-screen bg-light font-sans text-dark">
+            <div
+                key={transitionKey}
+                className={direction === 'backward' ? 'view-enter-backward' : 'view-enter-forward'}
+            >
+                {content}
+            </div>
         </div>
     );
 }
 
 function App() {
     return (
-        <AuthProvider>
-            <SubscriptionProvider>
-                <TranslationProvider>
-                    <AppContent />
-                </TranslationProvider>
-            </SubscriptionProvider>
-        </AuthProvider>
+        <ThemeProvider>
+            <AuthProvider>
+                <SubscriptionProvider>
+                    <TranslationProvider>
+                        <NavigationProvider>
+                            <AppContent />
+                        </NavigationProvider>
+                    </TranslationProvider>
+                </SubscriptionProvider>
+            </AuthProvider>
+        </ThemeProvider>
     );
 }
 

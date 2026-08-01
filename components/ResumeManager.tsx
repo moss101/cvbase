@@ -95,8 +95,9 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ userId, plan, onEdit, onU
 
     return (
         <div className="animate-fade-in">
-            <header className="flex justify-between items-center mb-8">
+            <header className="flex flex-col gap-5 sm:flex-row sm:justify-between sm:items-end mb-8">
                 <div>
+                    <p className="dashboard-eyebrow mb-3">Resume archive</p>
                     <h1 className="text-3xl font-bold text-gray-800 mb-2">My Resumes</h1>
                     <p className="text-gray-500">
                         {limit < 0 ? 'Create as many tailored resumes as you need.' : `${resumes.length} of ${limit} on your ${plan.name} plan.`}
@@ -105,7 +106,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ userId, plan, onEdit, onU
                 <button
                     onClick={handleCreate}
                     disabled={busy}
-                    className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/25 hover:bg-primary-dark transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                    className="flex w-full sm:w-auto items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/25 hover:bg-primary-dark transition-all hover:-translate-y-0.5 disabled:opacity-50"
                 >
                     <span className="material-symbols-outlined">add</span>
                     New resume

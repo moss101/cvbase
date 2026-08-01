@@ -1,4 +1,4 @@
-package com.cvleap.app;
+package com.cvbase.app;
 
 import com.getcapacitor.BridgeActivity;
 

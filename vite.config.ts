@@ -60,5 +60,30 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          /**
+           * Splits the vendor libraries that dominate the bundle. This matters
+           * most on mobile cold start: the rich-text editor, document export and
+           * PDF stacks are only needed once a user opens the builder, so keeping
+           * them out of the entry chunk lets the landing page and dashboard paint
+           * from a much smaller payload.
+           */
+          manualChunks: (id) => {
+            if (!id.includes('node_modules')) return undefined;
+            if (id.includes('@tiptap') || id.includes('prosemirror')) return 'editor';
+            if (id.includes('pdfjs-dist')) return 'pdfjs';
+            if (id.includes('docx') || id.includes('mammoth')) return 'documents';
+            if (id.includes('@supabase')) return 'supabase';
+            if (id.includes('react-dom') || id.includes('scheduler')) return 'react';
+            return undefined;
+          },
+        },
+      },
+      // The pdf.js worker and icon font legitimately exceed the default warning
+      // threshold, so raise it enough that oversized JS still stands out.
+      chunkSizeWarningLimit: 900,
+    },
   };
 });

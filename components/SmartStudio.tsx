@@ -444,7 +444,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
   };
 
   return (
-    <div className="bg-slate-50/50 rounded-3xl border border-slate-200/60 p-8 shadow-sm backdrop-blur-md relative overflow-hidden text-slate-800">
+    <div className="dashboard-feature-shell p-5 md:p-8 relative overflow-hidden text-slate-800">
       {/* Decorative branding elements */}
       <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/5 rounded-full blur-[90px] pointer-events-none"></div>
       
@@ -453,11 +453,9 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-3xl text-blue-600 bg-blue-50 p-2 rounded-xl">workspace_premium</span>
             <div>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-                SMART STUDIO
-              </h2>
+              <h1 className="font-display text-4xl font-medium text-slate-900 tracking-[-0.045em] leading-none">Smart Studio.</h1>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="px-2 py-0.5 rounded-full bg-slate-900 text-[9px] text-white font-mono font-bold uppercase tracking-wider shadow-xs">Enterprise Workspace</span>
+                <span className="px-2 py-0.5 rounded-md bg-slate-900 text-[9px] text-white font-mono font-bold uppercase tracking-wider shadow-xs">Application intelligence</span>
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
               </div>
             </div>
@@ -677,7 +675,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                     {/* Keywords Map */}
                     <div className="py-4 border-b border-slate-100 space-y-3">
                       <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold block mb-1">Audit Keywords Density Map</span>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {/* Matched */}
                         <div className="space-y-1.5">
                           <h5 className="text-[10px] uppercase font-bold text-green-600 flex items-center gap-1">
@@ -748,7 +746,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                   {/* Formatting parameters checklist */}
                   <div className="bg-slate-900 text-white rounded-2xl p-4 space-y-3 mt-4 border border-white/5">
                     <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold block">// FORTUNE 100 ATS PARSABILITY CHECK</span>
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs">
                       <div className="flex items-center justify-between border-b border-white/10 pb-1.5 sub-check">
                         <span className="text-slate-300 font-medium text-[11px]">Contact Parsing</span>
                         <span className={`text-[10px] font-bold ${matchResult.formattingAnalysis.contactInfo.pass ? 'text-green-400' : 'text-red-400'}`}>
@@ -1133,7 +1131,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
           </div>
 
           {/* Kanban Board Container */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 overflow-x-auto pb-4">
+          <div className="grid grid-flow-col auto-cols-[minmax(260px,80vw)] gap-4 overflow-x-auto pb-4 xl:grid-flow-row xl:grid-cols-5 xl:auto-cols-auto">
             {/* Columns definitions */}
             {(['wishlist', 'applied', 'interview', 'offer', 'rejected'] as JobStatus[]).map(statusColumn => {
               const statusTitles: Record<JobStatus, { name: string; bg: string; text: string; dot: string }> = {

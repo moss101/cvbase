@@ -65,6 +65,7 @@ const BillingDashboard: React.FC<BillingDashboardProps> = ({ onChangePlan }) => 
     return (
         <div>
             <header className="mb-8">
+                <p className="dashboard-eyebrow mb-3">Account & usage</p>
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">Billing & Plans</h1>
                 <p className="text-gray-500">Manage your subscription, payment methods and receipts.</p>
             </header>

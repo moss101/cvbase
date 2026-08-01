@@ -35,11 +35,16 @@ import JSONBackupModal from './common/JSONBackupModal';
 import ResumePreview from './ResumePreview';
 import { templateMap } from './templates/TemplatePreviewRegistry';
 
-declare global {
-    interface Window {
-        html2pdf: any;
-    }
-}
+/**
+ * html2pdf was previously a `window` global supplied by a cdnjs <script> tag,
+ * which made PDF export fail offline — fatal for the packaged mobile apps. It is
+ * now a bundled dependency, imported on demand so its html2canvas + jsPDF
+ * payload stays out of the initial chunk.
+ */
+const loadHtml2Pdf = async (): Promise<any> => {
+    const mod: any = await import('html2pdf.js');
+    return mod?.default ?? mod;
+};
 
 // Typed by TemplateId so the (CI-blocking) typecheck fails if any advertised
 // template lacks a renderer — every TemplateId must appear as a key here.
@@ -583,7 +588,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
             // Align and reorder the elements inside the export container right before capture
             applyReorder();
 
-            if (window.html2pdf) {
+            let html2pdf: any = null;
+            try {
+                html2pdf = await loadHtml2Pdf();
+            } catch (loadError) {
+                console.warn("⚠️ html2pdf failed to load. Performing browser print fallback.", loadError);
+            }
+
+            if (html2pdf) {
                 // Temporarily bring the pdf container to relative viewport coordinates (underneath full-screen loading spinner)
                 if (container) {
                     container.style.left = '0px';
@@ -616,13 +628,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
                     };
                     
                     // Generate and save via html2pdf
-                    await window.html2pdf().set(opt).from(element).save();
+                    await html2pdf().set(opt).from(element).save();
                 } else {
                     console.error("❌ Capture root element not found to render.");
                     window.print();
                 }
             } else {
-                console.warn("⚠️ html2pdf library was not loaded on the window. Performing browser print fallback.");
                 window.print();
             }
         } catch (error) {

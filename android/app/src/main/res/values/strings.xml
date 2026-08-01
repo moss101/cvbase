@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">CVLeap</string>
-    <string name="title_activity_main">CVLeap</string>
-    <string name="package_name">com.cvleap.app</string>
-    <string name="custom_url_scheme">com.cvleap.app</string>
+    <string name="app_name">CVBase</string>
+    <string name="title_activity_main">CVBase</string>
+    <string name="package_name">com.cvbase.app</string>
+    <string name="custom_url_scheme">com.cvbase.app</string>
 </resources>

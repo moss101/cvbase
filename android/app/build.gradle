@@ -1,10 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.cvleap.app"
+    // Matches appId in capacitor.config.ts. The project was scaffolded under the
+    // old com.cvleap.app identity before the CVBase rebrand.
+    namespace = "com.cvbase.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.cvleap.app"
+        applicationId "com.cvbase.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -16,10 +18,43 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    /**
+     * Release signing is driven by properties that live outside the repo, so no
+     * keystore or password is ever committed. Provide them in
+     * ~/.gradle/gradle.properties (or via -P flags / CI secrets):
+     *
+     *   CVBASE_STORE_FILE=/absolute/path/to/cvbase-release.jks
+     *   CVBASE_STORE_PASSWORD=…
+     *   CVBASE_KEY_ALIAS=cvbase
+     *   CVBASE_KEY_PASSWORD=…
+     *
+     * Without them the release build still assembles, but unsigned — so a debug
+     * machine is never blocked, while CI fails loudly if the secrets are absent.
+     */
+    signingConfigs {
+        release {
+            if (project.hasProperty('CVBASE_STORE_FILE')) {
+                storeFile file(project.property('CVBASE_STORE_FILE'))
+                storePassword project.property('CVBASE_STORE_PASSWORD')
+                keyAlias project.property('CVBASE_KEY_ALIAS')
+                keyPassword project.property('CVBASE_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
+            /**
+             * Left off deliberately. Capacitor resolves plugins by reflection, so
+             * shrinking needs the keep rules in proguard-rules.pro to be correct —
+             * and a mistake there fails at runtime, not at build time. The rules
+             * are in place, but flip this to `true` only once you have installed a
+             * release build on a device and confirmed the plugins still load.
+             */
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (project.hasProperty('CVBASE_STORE_FILE')) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

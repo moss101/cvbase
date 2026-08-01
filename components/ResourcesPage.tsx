@@ -169,7 +169,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
     return (
         <div className="min-h-screen bg-slate-50 text-slate-800">
             {/* Minimalist Top Nav */}
-            <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 py-4 px-6 md:px-12 flex justify-between items-center transition-all">
+            <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] px-6 md:px-12 flex justify-between items-center transition-all">
                 <div className="flex items-center gap-3">
                     <button 
                         onClick={onBack}

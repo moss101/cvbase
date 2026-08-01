@@ -1,0 +1,89 @@
+/**
+ * Self-hosted fonts.
+ *
+ * Replaces the nine <link> tags to fonts.googleapis.com in index.html. Those
+ * made the packaged mobile apps depend on the network just to render text.
+ *
+ * Fontsource's variable packages register their families as "<Name> Variable",
+ * but the resume font picker (components/forms/FinalizeForm.tsx) and one landing
+ * heading reference the plain names. The @font-face aliases below re-expose each
+ * variable font under its plain name so both spellings resolve to the same file.
+ */
+
+/* Variable families — used by the app chrome. */
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/instrument-sans';
+@import '@fontsource-variable/spline-sans-mono';
+@import '@fontsource-variable/bricolage-grotesque';
+
+/* Static families — offered by the resume font picker and used by templates. */
+@import '@fontsource/roboto/300.css';
+@import '@fontsource/roboto/400.css';
+@import '@fontsource/roboto/500.css';
+@import '@fontsource/roboto/700.css';
+@import '@fontsource/lato/300.css';
+@import '@fontsource/lato/400.css';
+@import '@fontsource/lato/700.css';
+@import '@fontsource/merriweather/300.css';
+@import '@fontsource/merriweather/400.css';
+@import '@fontsource/merriweather/700.css';
+@import '@fontsource/merriweather/900.css';
+/* Open Sans is offered by the picker but was never actually loaded on the web
+   build — it silently fell back to a system sans. Now it resolves. */
+@import '@fontsource/open-sans/300.css';
+@import '@fontsource/open-sans/400.css';
+@import '@fontsource/open-sans/600.css';
+@import '@fontsource/open-sans/700.css';
+
+/* Icon font — 440 `material-symbols-outlined` usages across the app. */
+@import 'material-symbols/outlined.css';
+
+/* --------------------------------------------------------------------------
+   Plain-name aliases for the variable families.
+   -------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/inter/files/inter-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400 700;
+  src: url('@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Spline Sans Mono';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 300 700;
+  src: url('@fontsource-variable/spline-sans-mono/files/spline-sans-mono-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2')
+    format('woff2-variations');
+}

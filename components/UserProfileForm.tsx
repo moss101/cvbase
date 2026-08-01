@@ -1,5 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from './AuthProvider';
+import { useFormValidation } from '../lib/useFormValidation';
+import {
+  compose,
+  describedBy,
+  maxLength,
+  phone as phoneRule,
+  required,
+  url as urlRule,
+  urlOnDomain,
+} from '../lib/validation';
+import FieldError from './common/FieldError';
+
+/** Shared input styling, with an error state that does not rely on colour alone. */
+const fieldClass = (hasError: boolean) =>
+  `w-full px-4 py-2.5 rounded-xl border text-sm transition-all bg-white font-medium text-slate-800 ${
+    hasError
+      ? 'border-danger focus:ring-2 focus:ring-danger/20 focus:border-danger'
+      : 'border-slate-200 focus:ring-2 focus:ring-primary/10 focus:border-primary'
+  }`;
 
 export const UserProfileForm: React.FC = () => {
   const { user, userProfile, updateUserProfile, loading, error } = useAuth();
@@ -177,9 +196,44 @@ export const UserProfileForm: React.FC = () => {
     setCertifications(certifications.filter(item => item !== cert));
   };
 
+  /**
+   * Validation for the master profile. Only the name fields are mandatory —
+   * everything else is optional, but must be well formed if it is filled in, so
+   * a malformed LinkedIn URL never reaches a generated CV.
+   */
+  const values = useMemo(
+    () => ({ firstName, lastName, phone, jobTitle, bio, linkedin, github, portfolio }),
+    [firstName, lastName, phone, jobTitle, bio, linkedin, github, portfolio],
+  );
+
+  const validators = useMemo(
+    () => ({
+      firstName: compose(required('First name'), maxLength(60, 'First name')),
+      lastName: compose(required('Last name'), maxLength(60, 'Last name')),
+      phone: phoneRule,
+      jobTitle: maxLength(100, 'Target job title'),
+      bio: maxLength(2000, 'Executive summary'),
+      linkedin: urlOnDomain('linkedin.com', 'LinkedIn'),
+      github: urlOnDomain('github.com', 'GitHub'),
+      portfolio: urlRule,
+    }),
+    [],
+  );
+
+  const validation = useFormValidation(values, validators);
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaveSuccess(false);
+
+    // Reveals any outstanding errors and blocks the save.
+    if (!validation.submit()) {
+      document
+        .querySelector('#profile-edit-form [aria-invalid="true"]')
+        ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      (document.querySelector('#profile-edit-form [aria-invalid="true"]') as HTMLElement)?.focus();
+      return;
+    }
 
     try {
       await updateUserProfile({
@@ -206,15 +260,15 @@ export const UserProfileForm: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden animate-fade-in" id="profile-form-container">
+    <div className="dashboard-feature-shell overflow-hidden animate-fade-in" id="profile-form-container">
       {/* Form Header */}
-      <div className="p-8 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white relative">
+      <div className="dashboard-feature-hero p-8 md:p-10 text-white relative">
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2">
             <span className="material-symbols-outlined text-primary text-2xl">badge</span>
-            <span className="text-xs font-semibold bg-primary/20 text-primary-light px-3 py-1 rounded-full uppercase tracking-widest">Master Profile</span>
+            <span className="font-label text-[9px] font-semibold bg-white/10 text-[#f5c2b5] px-3 py-1.5 rounded-md uppercase tracking-[0.14em]">Master profile</span>
           </div>
-          <h2 className="text-2xl font-black tracking-tight text-white mb-2">Create & Build Professional Profile</h2>
+          <h2 className="font-display text-4xl md:text-5xl font-medium tracking-[-0.045em] leading-none text-white mb-4">Your professional profile.</h2>
           <p className="text-slate-300 text-sm max-w-xl leading-relaxed">
             Configure your master personal statement, core links, skills, and certifications. These details automatically hydrate sections while building your resume designs.
           </p>
@@ -230,8 +284,8 @@ export const UserProfileForm: React.FC = () => {
           <div className="p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-2xl text-emerald-800 text-xs font-semibold flex items-center gap-3 animate-fade-in" id="profile-save-success-banner">
             <span className="material-symbols-outlined text-emerald-600 text-lg">check_circle</span>
             <div>
-              <p className="font-bold text-emerald-950">Master Profile Saved Successfully!</p>
-              <p className="font-normal text-slate-500 mt-0.5">Your data has been compiled and synchronized securely with Cloud Firestore.</p>
+              <p className="font-bold text-emerald-950">Master profile saved</p>
+              <p className="font-normal text-slate-500 mt-0.5">Your profile details are ready to reuse across resume drafts.</p>
             </div>
           </div>
         )}
@@ -251,34 +305,50 @@ export const UserProfileForm: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">First Name</label>
+              <label htmlFor="profile-first-name" className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">First Name</label>
               <input
+                id="profile-first-name"
                 type="text"
+                autoComplete="given-name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
+                onBlur={() => validation.onBlur('firstName')}
                 placeholder="Jane"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800"
+                {...describedBy('profile-first-name', !!validation.errorFor('firstName'))}
+                className={fieldClass(!!validation.errorFor('firstName'))}
               />
+              <FieldError id="profile-first-name" message={validation.errorFor('firstName')} />
             </div>
             <div>
-              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">Last Name</label>
+              <label htmlFor="profile-last-name" className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">Last Name</label>
               <input
+                id="profile-last-name"
                 type="text"
+                autoComplete="family-name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
+                onBlur={() => validation.onBlur('lastName')}
                 placeholder="Doe"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800"
+                {...describedBy('profile-last-name', !!validation.errorFor('lastName'))}
+                className={fieldClass(!!validation.errorFor('lastName'))}
               />
+              <FieldError id="profile-last-name" message={validation.errorFor('lastName')} />
             </div>
             <div>
-              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">Phone Number</label>
+              <label htmlFor="profile-phone" className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">Phone Number</label>
               <input
-                type="text"
+                id="profile-phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                onBlur={() => validation.onBlur('phone')}
                 placeholder="+1 (555) 019-2834"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800"
+                {...describedBy('profile-phone', !!validation.errorFor('phone'))}
+                className={fieldClass(!!validation.errorFor('phone'))}
               />
+              <FieldError id="profile-phone" message={validation.errorFor('phone')} />
             </div>
           </div>
           <div>
@@ -301,40 +371,64 @@ export const UserProfileForm: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-[#0a66c2] text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1">
+              <label htmlFor="profile-linkedin" className="block text-[#0a66c2] text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1">
                 <span className="material-symbols-outlined text-xs">share</span> LinkedIn Profile
               </label>
               <input
+                id="profile-linkedin"
                 type="url"
+                inputMode="url"
+                autoComplete="url"
+                autoCapitalize="none"
+                spellCheck={false}
                 value={linkedin}
                 onChange={(e) => setLinkedin(e.target.value)}
+                onBlur={() => validation.onBlur('linkedin')}
                 placeholder="https://linkedin.com/in/username"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800"
+                {...describedBy('profile-linkedin', !!validation.errorFor('linkedin'))}
+                className={fieldClass(!!validation.errorFor('linkedin'))}
               />
+              <FieldError id="profile-linkedin" message={validation.errorFor('linkedin')} />
             </div>
             <div>
-              <label className="block text-slate-800 text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1">
+              <label htmlFor="profile-github" className="block text-slate-800 text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1">
                 <span className="material-symbols-outlined text-xs">code</span> GitHub Profile
               </label>
               <input
+                id="profile-github"
                 type="url"
+                inputMode="url"
+                autoComplete="url"
+                autoCapitalize="none"
+                spellCheck={false}
                 value={github}
                 onChange={(e) => setGithub(e.target.value)}
+                onBlur={() => validation.onBlur('github')}
                 placeholder="https://github.com/username"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800"
+                {...describedBy('profile-github', !!validation.errorFor('github'))}
+                className={fieldClass(!!validation.errorFor('github'))}
               />
+              <FieldError id="profile-github" message={validation.errorFor('github')} />
             </div>
             <div>
-              <label className="block text-indigo-600 text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1">
+              <label htmlFor="profile-portfolio" className="block text-indigo-600 text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1">
                 <span className="material-symbols-outlined text-xs">language</span> Personal Portfolio
               </label>
               <input
+                id="profile-portfolio"
                 type="url"
+                inputMode="url"
+                autoComplete="url"
+                autoCapitalize="none"
+                spellCheck={false}
                 value={portfolio}
                 onChange={(e) => setPortfolio(e.target.value)}
+                onBlur={() => validation.onBlur('portfolio')}
                 placeholder="https://myportfolio.com"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800"
+                {...describedBy('profile-portfolio', !!validation.errorFor('portfolio'))}
+                className={fieldClass(!!validation.errorFor('portfolio'))}
               />
+              <FieldError id="profile-portfolio" message={validation.errorFor('portfolio')} />
             </div>
           </div>
         </div>

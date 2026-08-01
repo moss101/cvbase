@@ -1,5 +1,22 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAuth } from './AuthProvider';
+import { useFormValidation } from '../lib/useFormValidation';
+import {
+  compose,
+  describedBy,
+  email as emailRule,
+  password as passwordRule,
+  required,
+} from '../lib/validation';
+import FieldError from './common/FieldError';
+
+/** Shared input styling, with an error state that does not rely on colour alone. */
+const fieldClass = (hasError: boolean) =>
+  `w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none transition-all bg-slate-50 ${
+    hasError
+      ? 'border-danger focus:ring-2 focus:ring-danger/20 focus:border-danger'
+      : 'border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary'
+  }`;
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -42,31 +59,44 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     );
   }
 
+  /**
+   * Strength rules apply to sign-up only. Existing accounts may predate them, so
+   * enforcing the same rules at sign-in would lock those users out of their own
+   * password.
+   */
+  const values = useMemo(
+    () => ({ email, password, confirmPassword, firstName, lastName }),
+    [email, password, confirmPassword, firstName, lastName],
+  );
+
+  const validators = useMemo(
+    () => ({
+      email: compose(required('Email address'), emailRule),
+      password: isSignUp
+        ? compose(required('Password'), passwordRule)
+        : required('Password'),
+      confirmPassword: isSignUp
+        ? (value: string) =>
+            value.length === 0
+              ? 'Please confirm your password.'
+              : value !== password
+                ? 'Passwords do not match.'
+                : null
+        : undefined,
+      firstName: isSignUp ? required('First name') : undefined,
+      lastName: isSignUp ? required('Last name') : undefined,
+    }),
+    [isSignUp, password],
+  );
+
+  const validation = useFormValidation(values, validators);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
     clearError();
 
-    // Validations
-    if (!email || !password) {
-      setFormError('Please fill in all required fields.');
-      return;
-    }
-
-    if (isSignUp) {
-      if (!firstName || !lastName) {
-        setFormError('Please enter your first and last name.');
-        return;
-      }
-      if (password !== confirmPassword) {
-        setFormError('Passwords do not match.');
-        return;
-      }
-      if (password.length < 6) {
-        setFormError('Password must be at least 6 characters.');
-        return;
-      }
-    }
+    if (!validation.submit()) return;
 
     try {
       if (isSignUp) {
@@ -135,52 +165,76 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             {isSignUp && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-1">First Name</label>
-                  <input 
-                    type="text" 
+                  <label htmlFor="auth-first-name" className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-1">First Name</label>
+                  <input
+                    id="auth-first-name"
+                    type="text"
+                    autoComplete="given-name"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
+                    onBlur={() => validation.onBlur('firstName')}
                     placeholder="Jane"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50"
+                    {...describedBy('auth-first-name', !!validation.errorFor('firstName'))}
+                    className={fieldClass(!!validation.errorFor('firstName'))}
                     required
                   />
+                  <FieldError id="auth-first-name" message={validation.errorFor('firstName')} />
                 </div>
                 <div>
-                  <label className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-1">Last Name</label>
-                  <input 
-                    type="text" 
+                  <label htmlFor="auth-last-name" className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-1">Last Name</label>
+                  <input
+                    id="auth-last-name"
+                    type="text"
+                    autoComplete="family-name"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
+                    onBlur={() => validation.onBlur('lastName')}
                     placeholder="Doe"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50"
+                    {...describedBy('auth-last-name', !!validation.errorFor('lastName'))}
+                    className={fieldClass(!!validation.errorFor('lastName'))}
                     required
                   />
+                  <FieldError id="auth-last-name" message={validation.errorFor('lastName')} />
                 </div>
               </div>
             )}
 
             <div>
-              <label className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-1">Email Address</label>
-              <input 
-                type="email" 
+              <label htmlFor="auth-email" className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-1">Email Address</label>
+              <input
+                id="auth-email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => validation.onBlur('email')}
                 placeholder="jane.doe@example.com"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50"
+                {...describedBy('auth-email', !!validation.errorFor('email'))}
+                className={fieldClass(!!validation.errorFor('email'))}
                 required
               />
+              <FieldError id="auth-email" message={validation.errorFor('email')} />
             </div>
 
             <div>
-              <label className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-1">Password</label>
-              <input 
-                type="password" 
+              <label htmlFor="auth-password" className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-1">Password</label>
+              <input
+                id="auth-password"
+                type="password"
+                autoComplete={isSignUp ? 'new-password' : 'current-password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onBlur={() => validation.onBlur('password')}
                 placeholder="••••••"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50"
+                {...describedBy('auth-password', !!validation.errorFor('password'))}
+                className={fieldClass(!!validation.errorFor('password'))}
                 required
               />
+              <FieldError id="auth-password" message={validation.errorFor('password')} />
               {!isSignUp && (
                 <div className="flex justify-end mt-1">
                   <button 
@@ -201,15 +255,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
             {isSignUp && (
               <div>
-                <label className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-1">Confirm Password</label>
-                <input 
-                  type="password" 
+                <label htmlFor="auth-confirm-password" className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-1">Confirm Password</label>
+                <input
+                  id="auth-confirm-password"
+                  type="password"
+                  autoComplete="new-password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  onBlur={() => validation.onBlur('confirmPassword')}
                   placeholder="••••••"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50"
+                  {...describedBy('auth-confirm-password', !!validation.errorFor('confirmPassword'))}
+                  className={fieldClass(!!validation.errorFor('confirmPassword'))}
                   required
                 />
+                <FieldError id="auth-confirm-password" message={validation.errorFor('confirmPassword')} />
               </div>
             )}
 

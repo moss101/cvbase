@@ -230,7 +230,8 @@ export const AtsAnalyzer: React.FC<AtsAnalyzerProps> = ({ savedResume, onUpgrade
     return (
         <div>
             <header className="mb-8">
-                <div className="flex items-center gap-3 mb-2">
+                <p className="dashboard-eyebrow mb-3">Compatibility & job match</p>
+                <div className="flex flex-wrap items-center gap-3 mb-2">
                     <h1 className="text-3xl font-bold text-gray-800">ATS Resume Checker</h1>
                     {liveAllowed && (
                         <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1">
@@ -367,7 +368,7 @@ export const AtsAnalyzer: React.FC<AtsAnalyzerProps> = ({ savedResume, onUpgrade
                 {/* ============ RESULTS ============ */}
                 <div className="xl:col-span-3">
                     {!report ? (
-                        <div className="glass-card rounded-3xl p-10 h-full min-h-[420px] flex flex-col items-center justify-center text-center !translate-y-0">
+                        <div className="glass-card rounded-3xl p-6 sm:p-10 h-full min-h-[340px] sm:min-h-[420px] flex flex-col items-center justify-center text-center !translate-y-0">
                             <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/15 to-secondary/15 flex items-center justify-center mb-5">
                                 <span className="material-symbols-outlined text-4xl text-primary">query_stats</span>
                             </div>

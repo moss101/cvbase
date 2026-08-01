@@ -1,0 +1,438 @@
+/**
+ * Application stylesheet.
+ *
+ * Everything here was previously inlined into index.html and compiled in the
+ * browser by cdn.tailwindcss.com. That made styling a network dependency, which
+ * left the packaged Android/iOS apps unstyled when offline. It is now compiled
+ * at build time and shipped inside the bundle.
+ */
+
+@import './fonts.css';
+@import './theme.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    /* Keep text at the author-defined size when an iOS device is rotated. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+    /* dvh accounts for the collapsing mobile browser chrome. */
+    min-height: 100dvh;
+    /* Native-feeling touch: no blue flash, no rubber-band gap behind the app. */
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+    background-color: rgb(var(--cb-ui-light));
+  }
+
+  /**
+   * Organic gradient backdrop. Painted onto a fixed pseudo-element rather than
+   * `background-attachment: fixed`, which stutters badly in the iOS WKWebView.
+   */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(at 0% 0%, hsla(176, 60%, 85%, 1) 0, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(245, 60%, 90%, 1) 0, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(176, 60%, 90%, 1) 0, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(245, 60%, 85%, 1) 0, transparent 50%),
+      rgb(var(--cb-ui-light));
+  }
+
+  .dark body::before {
+    background:
+      radial-gradient(at 0% 0%, hsla(176, 45%, 14%, 1) 0, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(245, 45%, 16%, 1) 0, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(176, 45%, 15%, 1) 0, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(245, 45%, 13%, 1) 0, transparent 50%),
+      rgb(var(--cb-ui-light));
+  }
+
+  /* Form controls inherit the theme instead of the UA's light default. */
+  input,
+  textarea,
+  select {
+    color-scheme: inherit;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-glass-surface backdrop-blur-2xl border border-glass-border shadow-glass transition-all duration-300;
+  }
+  .glass-card {
+    @apply bg-white/60 backdrop-blur-xl border border-white/50 shadow-sm transition-all duration-300 hover:bg-white/80 hover:shadow-glass-hover hover:-translate-y-1 hover:border-white/80;
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+  }
+  .glass-button {
+    @apply bg-white/20 hover:bg-white/40 border border-white/30 backdrop-blur-md transition-all duration-200 active:scale-95;
+  }
+
+  /* CRITICAL FOR PDF: Avoid splitting items across pages */
+  .pdf-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* --- Safe areas -------------------------------------------------------
+     index.html sets viewport-fit=cover, so content extends under the notch
+     and the home indicator. These are applied to every fixed/sticky chrome
+     element so nothing lands under a system inset. */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pl-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  .pr-safe {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .px-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .inset-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .mt-safe {
+    margin-top: env(safe-area-inset-top, 0px);
+  }
+  .mb-safe {
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .min-h-screen-safe {
+    min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  }
+  /* Comfortable minimum hit target on touch screens (WCAG 2.5.5). */
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Beautiful custom-styled bullet lists inside all compiled resume templates */
+  [id^='resume-preview'] ul,
+  .resume-preview ul {
+    list-style-type: disc !important;
+    margin-left: 1.25rem !important;
+    padding-left: 0.25rem !important;
+    margin-top: 0.35rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+  [id^='resume-preview'] ol,
+  .resume-preview ol {
+    list-style-type: decimal !important;
+    margin-left: 1.25rem !important;
+    padding-left: 0.25rem !important;
+    margin-top: 0.35rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+  [id^='resume-preview'] li,
+  .resume-preview li {
+    margin-bottom: 0.25rem !important;
+    line-height: 1.5 !important;
+    display: list-item !important;
+  }
+  /* Ensure responsive grid stability for internal resume text headers */
+  [id^='resume-preview'] h1,
+  [id^='resume-preview'] h2,
+  [id^='resume-preview'] h3 {
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+  }
+}
+
+/* Hide scrollbar for clean UI but keep functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* Custom Scrollbar for content areas */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--cb-gray-900) / 0.1);
+  border-radius: 20px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  /* Text role: the thumb must read as a light mark on a dark track. */
+  background-color: rgb(var(--ct-gray-100) / 0.18);
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 32s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+@keyframes shimmer-bar {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgb(var(--cb-slate-200)) 25%,
+    rgb(var(--cb-blue-200)) 50%,
+    rgb(var(--cb-slate-200)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-bar 2.2s ease-in-out infinite;
+}
+/* Warm ink-on-paper shimmer for the editorial landing page */
+.animate-shimmer-warm {
+  background: linear-gradient(
+    90deg,
+    rgb(var(--cb-paper-deep)) 25%,
+    rgb(var(--cb-ember-tint)) 50%,
+    rgb(var(--cb-paper-deep)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-bar 2.2s ease-in-out infinite;
+}
+@keyframes blink-caret {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+.animate-caret {
+  animation: blink-caret 1s step-end infinite;
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Page transitions. Applied by the navigation stack in App.tsx.
+   -------------------------------------------------------------------------- */
+@keyframes view-enter-forward {
+  from {
+    opacity: 0;
+    transform: translate3d(1.5rem, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes view-enter-backward {
+  from {
+    opacity: 0;
+    transform: translate3d(-1.5rem, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+.view-enter-forward {
+  animation: view-enter-forward 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.view-enter-backward {
+  animation: view-enter-backward 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/**
+ * Honour the OS "reduce motion" setting, and the in-app Appearance toggle which
+ * sets data-reduce-motion="true" on <html>.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html[data-reduce-motion='true'] *,
+html[data-reduce-motion='true'] *::before,
+html[data-reduce-motion='true'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* =========================================
+   EXPERT PRINT & HIGH-FIDELITY PDF STYLES
+   ========================================= */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0; /* Erases all default browser headers, footers, page titles, and URLs */
+  }
+
+  html,
+  body {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* The gradient backdrop must never appear on paper. */
+  body::before {
+    display: none !important;
+  }
+
+  /* Completely hide standard interactive screen elements (sidebar, forms, buttons) */
+  #root,
+  .fixed,
+  .absolute,
+  button,
+  nav,
+  header,
+  footer,
+  .glass-panel,
+  [id='profile-integration-block'],
+  [id='hydrate-resume-action'] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  body > *:not(#print-resume-container) {
+    display: none !important;
+  }
+
+  /* Ensure the print container overrides parent hidden styles */
+  #print-resume-container {
+    display: block !important;
+    visibility: visible !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 210mm !important; /* Exact A4 Width */
+    height: auto !important; /* Dynamically expands to contain multi-page text */
+    min-height: 297mm !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 999999 !important;
+    background: #ffffff !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+  }
+
+  #capture-root {
+    display: block !important;
+    visibility: visible !important;
+    width: 210mm !important;
+    height: auto !important;
+    min-height: 297mm !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Enforce templates inside capture-root to expand infinitely and flow naturally */
+  #capture-root > div,
+  [id^='resume-preview'],
+  .resume-preview {
+    display: block !important;
+    visibility: visible !important;
+    width: 210mm !important; /* Ensure content scaling is exactly 1:1 on A4 paper */
+    min-height: 297mm !important;
+    height: auto !important; /* Allow growing naturally over page-breaks */
+    overflow: visible !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+  }
+
+  /* Enforce exact background colors and graphics */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Prevent ugly page-breaks across critical sections (job, edu, projects) */
+  .break-inside-avoid,
+  .pdf-item,
+  section > div,
+  section > p,
+  header,
+  section,
+  h2,
+  h3,
+  h4 {
+    break-inside: avoid-page !important;
+    page-break-inside: avoid !important;
+  }
+}
