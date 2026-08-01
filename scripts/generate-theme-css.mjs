@@ -142,19 +142,32 @@ const contrast = (a, b) => {
  */
 const BRAND = {
   // key:            [light,     darkText,  darkSurface]
-  'primary':         ['#008080', '#2FB3AA', '#008080'],
-  'primary-light':   ['#E0F2F1', '#E0F2F1', '#10312F'],
-  'primary-dark':    ['#004D40', '#7FD9D1', '#004D40'],
+  /**
+   * Emerald accent engine. One saturated colour drives primary buttons,
+   * switches, focus rings and card headers across the app chrome, so a
+   * saturated element always means "this is the action".
+   *
+   * The surface value stays at emerald-700 rather than following the text value
+   * up the ramp: white labels sit on it, and emerald-600 would put them at
+   * 3.7:1. Emerald-700 holds 4.8:1.
+   */
+  'primary':         ['#047857', '#34D399', '#047857'],
+  'primary-light':   ['#D1FAE5', '#A7F3D0', '#064E3B'],
+  'primary-dark':    ['#065F46', '#6EE7B7', '#065F46'],
   'secondary':       ['#7582FC', '#9BA5FF', '#5A67E8'],
   'secondary-light': ['#EEF0FF', '#EEF0FF', '#1B1E38'],
   'secondary-dark':  ['#4F46E5', '#A5B4FC', '#4F46E5'],
-  'success':         ['#4DB8A8', '#6FD3C2', '#2F8272'],
-  'warning':         ['#FFC34A', '#FFD37A', '#8A6410'],
-  'danger':          ['#FF4444', '#FF7B7B', '#C42121'],
-  // `dark` is body text; `light` is the page surface. Opposite roles.
-  'ui-dark':         ['#1E293B', '#E7ECF3', '#171B24'],
-  'ui-light':        ['#F8FAFC', '#F8FAFC', '#0F1115'],
-  'ui-border':       ['#E2E8F0', '#2A2F3A', '#2A2F3A'],
+  'success':         ['#047857', '#34D399', '#047857'],
+  'warning':         ['#B45309', '#FBBF24', '#B45309'],
+  'danger':          ['#DC2626', '#F87171', '#DC2626'],
+  /**
+   * Adaptive slate neutral base: #F8FAFC light, #0F172A dark. `dark` is body
+   * text and `light` is the page surface, so they hold opposite roles.
+   */
+  'ui-dark':         ['#0F172A', '#E2E8F0', '#111A2E'],
+  'ui-light':        ['#F8FAFC', '#F8FAFC', '#0F172A'],
+  // Hairline. Structure comes from 1px borders, not drop shadows.
+  'ui-border':       ['#E2E8F0', '#334155', '#334155'],
   // Editorial landing palette — ink on paper with one vermilion accent.
   'paper':           ['#FAF7F2', '#FAF7F2', '#15130F'],
   'paper-deep':      ['#F2EDE3', '#F2EDE3', '#1E1B16'],
@@ -162,12 +175,16 @@ const BRAND = {
   'ink':             ['#1B1713', '#F5F0E8', '#100E0B'],
   'ink-soft':        ['#5A5247', '#C3B9AB', '#241F1A'],
   'ink-faint':       ['#8B8274', '#9A9082', '#2E2822'],
-  'ember':           ['#C8442C', '#E4674C', '#C8442C'],
-  'ember-deep':      ['#A8351F', '#F08A72', '#A8351F'],
+  'ember':           ['#C8442C', '#F08A72', '#C8442C'],
+  'ember-deep':      ['#A8351F', '#F5A38C', '#A8351F'],
   'ember-tint':      ['#F6E5DD', '#F6E5DD', '#33211B'],
-  // `bg-white` must become a dark surface; `text-white` must stay white.
-  'surface':         ['#FFFFFF', '#FFFFFF', '#14161B'],
-  'surface-raised':  ['#FFFFFF', '#FFFFFF', '#1B1E24'],
+  /**
+   * `bg-white` must become a dark surface; `text-white` must stay white.
+   * The dark surfaces step *up* from the #0F172A base so a card reads as raised
+   * without needing a shadow.
+   */
+  'surface':         ['#FFFFFF', '#FFFFFF', '#1E293B'],
+  'surface-raised':  ['#FFFFFF', '#FFFFFF', '#273549'],
   'on-accent':       ['#FFFFFF', '#FFFFFF', '#FFFFFF'],
   'true-black':      ['#000000', '#000000', '#000000'],
 };

@@ -1,6 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { DocumentIcon, HomeIcon, TemplateIcon, SparklesIcon } from './common/icons';
+import { SparklesIcon } from './common/icons';
+import {
+    ArrowLeft, BookOpen, CreditCard, FileText, IdCard, LayoutDashboard,
+    LayoutTemplate, Menu, Settings as SettingsIcon, Sparkles, Target, User, Wand2,
+} from 'lucide-react';
 import { AVAILABLE_TEMPLATES } from '../constants';
 import type { ResumeData, TemplateId } from '../types';
 import { useAuth } from './AuthProvider';
@@ -46,7 +50,7 @@ const SidebarItem: React.FC<{ icon: React.ReactNode; label: string; active?: boo
             {icon}
         </span>
         <span className="text-[13px] font-semibold tracking-[-0.01em]">{label}</span>
-        {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-ember" />}
+        {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
     </button>
 );
 
@@ -217,19 +221,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                     <p className="px-3 pb-2 pt-2 font-label text-[9px] font-semibold uppercase tracking-[0.16em] text-stone-500">Workspace</p>
                     <div className="space-y-1">
                     <SidebarItem 
-                        icon={<HomeIcon />} 
+                        icon={<LayoutDashboard size={19} strokeWidth={1.75} />} 
                         label="Dashboard" 
                         active={activeTab === 'dashboard'} 
                         onClick={() => { setActiveTab('dashboard'); setIsMobileMenuOpen(false); }}
                     />
                     <SidebarItem 
-                        icon={<DocumentIcon />} 
+                        icon={<FileText size={19} strokeWidth={1.75} />} 
                         label="Resume" 
                         active={activeTab === 'resumes'} 
                         onClick={() => { setActiveTab('resumes'); setIsMobileMenuOpen(false); }}
                     />
                     <SidebarItem
-                        icon={<span className="material-symbols-outlined text-[19px]">radar</span>}
+                        icon={<Target size={19} strokeWidth={1.75} />}
                         label="ATS Checker"
                         active={activeTab === 'ats'}
                         onClick={() => { setActiveTab('ats'); setIsMobileMenuOpen(false); }}
@@ -238,14 +242,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                     <p className="px-3 pb-2 pt-5 font-label text-[9px] font-semibold uppercase tracking-[0.16em] text-stone-500">Intelligence</p>
                     <div className="space-y-1">
                         <SidebarItem
-                            icon={<span className="material-symbols-outlined text-[19px]">workspace_premium</span>}
+                            icon={<Sparkles size={19} strokeWidth={1.75} />}
                             label="Smart Studio"
                             active={activeTab === 'smart-studio'}
                             onClick={() => { setActiveTab('smart-studio'); setIsMobileMenuOpen(false); }}
                         />
                     {prismEnabled && (
                         <SidebarItem
-                            icon={<span className="material-symbols-outlined text-[19px]">auto_awesome</span>}
+                            icon={<Wand2 size={19} strokeWidth={1.75} />}
                             label="PRISM Tailor"
                             active={activeTab === 'prism'}
                             onClick={() => { setActiveTab('prism'); setIsMobileMenuOpen(false); }}
@@ -255,19 +259,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                     <p className="px-3 pb-2 pt-5 font-label text-[9px] font-semibold uppercase tracking-[0.16em] text-stone-500">Library & account</p>
                     <div className="space-y-1">
                     <SidebarItem 
-                        icon={<TemplateIcon />} 
+                        icon={<LayoutTemplate size={19} strokeWidth={1.75} />} 
                         label="Template gallery" 
                         active={activeTab === 'templates'} 
                         onClick={() => { setActiveTab('templates'); setIsMobileMenuOpen(false); }}
                     />
                     <SidebarItem
-                        icon={<span className="material-symbols-outlined text-[19px]">credit_card</span>}
+                        icon={<CreditCard size={19} strokeWidth={1.75} />}
                         label="Billing & plans"
                         active={activeTab === 'billing'}
                         onClick={() => { setActiveTab('billing'); setIsMobileMenuOpen(false); }}
                     />
                     <SidebarItem 
-                        icon={<span className="material-symbols-outlined text-[19px]">badge</span>} 
+                        icon={<IdCard size={19} strokeWidth={1.75} />} 
                         label="Profile" 
                         active={activeTab === 'profile'} 
                         onClick={() => {
@@ -280,7 +284,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                         }}
                     />
                     <SidebarItem
-                        icon={<span className="material-symbols-outlined text-[19px]">settings</span>}
+                        icon={<SettingsIcon size={19} strokeWidth={1.75} />}
                         label="Settings"
                         active={activeTab === 'settings'}
                         onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }}
@@ -289,12 +293,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                     <div className="my-4 border-t border-white/[0.07]" />
                     <div className="space-y-1 pb-3">
                     <SidebarItem
-                        icon={<span className="material-symbols-outlined text-[19px]">auto_stories</span>}
+                        icon={<BookOpen size={19} strokeWidth={1.75} />}
                         label="Career resources"
                         onClick={() => { onViewResources?.(); setIsMobileMenuOpen(false); }}
                     />
                     <SidebarItem 
-                        icon={<span className="material-symbols-outlined text-[19px]">arrow_back</span>} 
+                        icon={<ArrowLeft size={19} strokeWidth={1.75} />} 
                         label="Back to website" 
                         onClick={() => { onBackToLanding?.(); setIsMobileMenuOpen(false); }}
                     />
@@ -372,7 +376,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                             className="lg:hidden p-2 rounded-lg text-ink hover:bg-ink/5 active:scale-95 transition flex items-center justify-center"
                             title="Open Main Menu"
                         >
-                            <span className="material-symbols-outlined text-xl leading-none">menu</span>
+                            <Menu size={20} strokeWidth={1.75} />
                         </button>
                         <span className="font-label text-[10px] uppercase tracking-[0.14em] text-ink-faint hidden sm:block">Workspace</span>
                         <span className="text-stone-300 hidden sm:block">/</span>
@@ -386,7 +390,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                             className="grid h-8 w-8 place-items-center rounded-lg border border-ink/10 bg-paper-bright text-ink transition hover:border-ember/40 hover:text-ember-deep"
                             title="Open profile"
                         >
-                            <span className="material-symbols-outlined text-[17px]">person</span>
+                            <User size={17} strokeWidth={1.75} />
                         </button>
                     </div>
                 </div>
@@ -448,7 +452,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                                     <div className="flex h-full items-start justify-between gap-5">
                                         <div>
                                             <div className="flex items-center gap-2">
-                                                <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#e4ece7] text-[#426a5a]"><span className="material-symbols-outlined text-[19px]">radar</span></span>
+                                                <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#e4ece7] text-[#426a5a]"><Target size={19} strokeWidth={1.75} /></span>
                                                 <p className="dashboard-eyebrow !text-[#426a5a]">ATS signal</p>
                                             </div>
                                             <h3 className="mt-5 text-xl font-semibold text-ink">{lastAtsScore ? 'Your latest scan' : 'Check before you send'}</h3>

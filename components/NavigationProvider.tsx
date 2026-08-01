@@ -22,7 +22,14 @@ import type { LegalTab } from './LegalPage';
  * (modals, the mobile drawer) intercept back before the stack unwinds.
  */
 
-export type ViewState = 'landing' | 'dashboard' | 'builder' | 'resources' | 'pricing' | 'legal';
+export type ViewState =
+    | 'landing'
+    | 'auth'
+    | 'dashboard'
+    | 'builder'
+    | 'resources'
+    | 'pricing'
+    | 'legal';
 
 export interface Route {
     view: ViewState;
@@ -32,6 +39,12 @@ export interface Route {
     resumeId?: string | null;
     /** Active legal document, when view === 'legal'. */
     legalTab?: LegalTab;
+    /**
+     * Where to continue once signing in succeeds, when view === 'auth'. Sending
+     * someone to the screen they actually asked for beats dumping everyone on
+     * the dashboard after login.
+     */
+    next?: Route;
 }
 
 /** Returns true if the handler consumed the back action. */
@@ -58,10 +71,16 @@ interface NavigationContextValue {
 
 const NavigationContext = createContext<NavigationContextValue | undefined>(undefined);
 
+/**
+ * The app opens on the marketing page on both web and native. Someone who has
+ * just installed the app still needs to be told what it does before being asked
+ * to create an account — a cold sign-in screen gives them no reason to sign up.
+ * Auth happens when they act on a call to action (see `requireAuth` in App.tsx).
+ */
 const ROOT: Route = { view: 'landing' };
 
 export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [stack, setStack] = useState<Route[]>([ROOT]);
+    const [stack, setStack] = useState<Route[]>(() => [ROOT]);
     const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
 
     // Read by listeners that are registered once and must not capture stale state.

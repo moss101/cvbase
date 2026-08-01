@@ -91,6 +91,13 @@ export default {
       colors: {
         ...surfaceRamps,
         ...brand(surface),
+        /**
+         * Gradient stops, rings and divides all read from this scale, so `white`
+         * has to be the themed surface here — `to-white/90` on a card must not
+         * stay literally white in dark mode. `text-white` is pinned back to real
+         * white in the `textColor` block below.
+         */
+        white: surface('surface'),
         glass: {
           border: 'rgba(var(--cb-glass-border))',
           surface: 'rgba(var(--cb-glass-surface))',
@@ -101,14 +108,18 @@ export default {
       textColor: {
         ...textRamps,
         ...brand(text),
+        // Labels on solid accent buttons stay white in both themes.
+        white: '#ffffff',
       },
       placeholderColor: {
         ...textRamps,
         ...brand(text),
+        white: '#ffffff',
       },
       textDecorationColor: {
         ...textRamps,
         ...brand(text),
+        white: '#ffffff',
       },
       /**
        * `bg-white` (365 uses) means "the page surface" and must darken, while
