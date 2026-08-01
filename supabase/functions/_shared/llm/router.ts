@@ -1,4 +1,5 @@
-import { getLlmConfig, type ProviderConfig } from './config.ts';
+import { getLlmConfig, getLlmConfigFromDb, type ProviderConfig } from './config.ts';
+import { serviceClient } from '../auth.ts';
 import { callWithKeyPool, type KeyPoolCallResult } from './keyPool.ts';
 import { deepseekCall } from './providers/deepseek.ts';
 import { kimiCall } from './providers/kimi.ts';
@@ -92,7 +93,10 @@ async function tryProvider(
  * silent/degraded response.
  */
 export async function routedCall(opts: RoutedCallOpts): Promise<RoutedResult> {
-  const config = getLlmConfig();
+  // Admin-panel rows in `llm_providers` take precedence; the helper falls back
+  // to the env config on any failure, so a config lookup can never be the
+  // reason a generation fails.
+  const config = await getLlmConfigFromDb(serviceClient()).catch(() => getLlmConfig());
   const messages: ChatMessage[] = [
     { role: 'system', content: opts.system ?? ANTI_HALLUCINATION },
     { role: 'user', content: opts.prompt },

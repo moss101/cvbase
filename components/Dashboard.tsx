@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { SparklesIcon } from './common/icons';
 import {
     ArrowLeft, BookOpen, CreditCard, FileText, IdCard, LayoutDashboard,
-    LayoutTemplate, Menu, Settings as SettingsIcon, Sparkles, Target, User, Wand2,
+    LayoutTemplate, Menu, Settings as SettingsIcon, ShieldCheck, Sparkles, Target, User, Wand2,
 } from 'lucide-react';
 import { AVAILABLE_TEMPLATES } from '../constants';
 import type { ResumeData, TemplateId } from '../types';
@@ -21,9 +21,11 @@ import './dashboard.css';
 
 import { LazyTemplatePreview } from './templates/TemplatePreviewRegistry';
 import SettingsPanel from './SettingsPanel';
+import AdminPanel from './admin/AdminPanel';
+import { fetchIsAdmin } from '../services/adminApi';
 import type { LegalTab } from './LegalPage';
 
-export type DashboardTab = 'dashboard' | 'resumes' | 'templates' | 'profile' | 'smart-studio' | 'ats' | 'billing' | 'prism' | 'settings';
+export type DashboardTab = 'dashboard' | 'resumes' | 'templates' | 'profile' | 'smart-studio' | 'ats' | 'billing' | 'prism' | 'settings' | 'admin';
 
 interface DashboardProps {
     onCreateNew: (templateId?: TemplateId) => void;
@@ -108,6 +110,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
     // PRISM ships behind a rollout feature flag; the tab only renders when the
     // user is in the rollout (the edge function enforces the same gate).
     const [prismEnabled, setPrismEnabled] = useState(false);
+    // Decides whether to render the Admin entry point. The edge function
+    // re-checks on every request, so this is presentation only.
+    const [isAdmin, setIsAdmin] = useState(false);
 
     // Keyed on the user id, not the user object — the auth context may hand
     // out a fresh object per render and this must not refetch on every one.
@@ -117,6 +122,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
         isPrismEnabled(prismUserId)
             .then((on) => { if (!cancelled) setPrismEnabled(on); })
             .catch(() => { /* flag unavailable — stay hidden (fail closed) */ });
+        return () => { cancelled = true; };
+    }, [prismUserId]);
+
+    useEffect(() => {
+        let cancelled = false;
+        fetchIsAdmin(prismUserId)
+            .then((on) => { if (!cancelled) setIsAdmin(on); })
+            .catch(() => { /* not an admin — stay hidden (fail closed) */ });
         return () => { cancelled = true; };
     }, [prismUserId]);
 
@@ -177,6 +190,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
         billing: 'Billing & plans',
         prism: 'PRISM tailor',
         settings: 'Settings',
+        admin: 'Admin',
     };
 
     const todayLabel = new Intl.DateTimeFormat('en', {
@@ -289,6 +303,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                         active={activeTab === 'settings'}
                         onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }}
                     />
+                    {isAdmin && (
+                        <SidebarItem
+                            icon={<ShieldCheck size={19} strokeWidth={1.75} />}
+                            label="Admin"
+                            active={activeTab === 'admin'}
+                            onClick={() => { setActiveTab('admin'); setIsMobileMenuOpen(false); }}
+                        />
+                    )}
                     </div>
                     <div className="my-4 border-t border-white/[0.07]" />
                     <div className="space-y-1 pb-3">
@@ -696,6 +718,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                     {activeTab === 'prism' && prismEnabled && (
                         <div className="dashboard-module animate-fade-in">
                             <PrismWizard onEditResume={onEditResume} onUpgrade={() => onViewPricing?.()} />
+                        </div>
+                    )}
+
+                    {/* ADMIN VIEW (admin-only; the edge function enforces it) */}
+                    {activeTab === 'admin' && isAdmin && (
+                        <div className="animate-fade-in">
+                            <AdminPanel />
                         </div>
                     )}
 

@@ -111,3 +111,60 @@ export function getLlmConfig(): LlmConfig {
     badKeyCooldownMs: intEnv('LLM_BAD_KEY_COOLDOWN_MS', 600_000),
   };
 }
+
+/**
+ * Database-backed configuration, layered over the env defaults.
+ *
+ * The admin panel writes `public.llm_providers`; this reads it with the
+ * service-role client (that table has no RLS policies at all, so nothing else
+ * can). A provider row overrides only the fields it actually sets, so an
+ * operator can re-point a base URL from the panel while leaving keys in
+ * `supabase secrets`.
+ *
+ * Falls back to `getLlmConfig()` on any failure — an unreachable or empty
+ * table must never take LLM generation down, it just means "no overrides".
+ * Deliberately not cached, for the same key-rotation reason as getLlmConfig.
+ */
+export async function getLlmConfigFromDb(
+  // deno-lint-ignore no-explicit-any
+  serviceClient: { from: (t: string) => any },
+): Promise<LlmConfig> {
+  const envConfig = getLlmConfig();
+  try {
+    const { data, error } = await serviceClient
+      .from('llm_providers')
+      .select('provider_id, base_url, model_full, model_lite, api_keys, enabled, role');
+    if (error || !Array.isArray(data) || data.length === 0) return envConfig;
+
+    const rows = data.filter((r: { enabled?: boolean }) => r.enabled !== false);
+    const pick = (role: string) => rows.find((r: { role?: string }) => r.role === role);
+
+    const merge = (
+      row: Record<string, unknown> | undefined,
+      fallbackCfg: ProviderConfig,
+    ): ProviderConfig => {
+      if (!row) return fallbackCfg;
+      const id = String(row.provider_id) as ProviderId;
+      // Start from the provider's own env defaults so a row that sets only a
+      // model still inherits the right base URL and keys.
+      const base = PROVIDER_DEFAULTS[id] ? providerConfig(id) : fallbackCfg;
+      const keys = Array.isArray(row.api_keys) ? (row.api_keys as string[]).filter(Boolean) : [];
+      return {
+        id,
+        apiKeys: keys.length > 0 ? keys : base.apiKeys,
+        modelFull: String(row.model_full || base.modelFull),
+        modelLite: String(row.model_lite || base.modelLite || row.model_full || base.modelFull),
+        baseUrl: normalizeBaseUrl(String(row.base_url || base.baseUrl)),
+      };
+    };
+
+    return {
+      ...envConfig,
+      primary: merge(pick('primary'), envConfig.primary),
+      fallback: merge(pick('fallback'), envConfig.fallback),
+    };
+  } catch {
+    // Config lookup must never be the reason a generation fails.
+    return envConfig;
+  }
+}
