@@ -12,6 +12,14 @@ export function getSupabase(): SupabaseClient {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true, // completes the OAuth redirect on return
+      /**
+       * PKCE rather than the default implicit flow. Implicit returns tokens in
+       * the URL *fragment*, which a native deep link never delivers to the app
+       * and which leaks into browser history on the web. PKCE returns a
+       * short-lived `code` in the query string that is exchanged for a session,
+       * so one code path works on both. See services/authFlow.ts.
+       */
+      flowType: 'pkce',
     },
   });
   return client;

@@ -1,206 +1,170 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, LoaderCircle, Mail, X } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { useFormValidation } from '../lib/useFormValidation';
-import {
-  compose,
-  describedBy,
-  email as emailRule,
-  password as passwordRule,
-  required,
-} from '../lib/validation';
+import { compose, describedBy, email as emailRule, required } from '../lib/validation';
 import FieldError from './common/FieldError';
-
-/** Shared input styling, with an error state that does not rely on colour alone. */
-const fieldClass = (hasError: boolean) =>
-  `w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none transition-all bg-slate-50 ${
-    hasError
-      ? 'border-danger focus:ring-2 focus:ring-danger/20 focus:border-danger'
-      : 'border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary'
-  }`;
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+/**
+ * Passwordless sign-in.
+ *
+ * Two steps: enter an email, then enter the 6-digit code from it. The same
+ * email also contains a magic link, so a user who opens their mail on another
+ * device can tap that instead and never come back to this screen — which is why
+ * the code step says so rather than looking like the only way through.
+ *
+ * There is no password field, no sign-up/sign-in toggle and no "forgot
+ * password": the email either matches an account or creates one, so the
+ * distinction has nothing to hang off.
+ */
+
+const inputClass =
+  'w-full px-4 py-3 rounded-xl border text-[15px] transition-all bg-slate-50 outline-none';
+
+const GoogleMark: React.FC = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z" />
+    <path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3a7.2 7.2 0 0 1-10.7-3.8h-4v3.1A12 12 0 0 0 12 24z" />
+    <path fill="#FBBC05" d="M5.3 14.3a7.1 7.1 0 0 1 0-4.6V6.6h-4a12 12 0 0 0 0 10.8l4-3.1z" />
+    <path fill="#EA4335" d="M12 4.8c1.8 0 3.4.6 4.6 1.8l3.5-3.5A12 12 0 0 0 1.3 6.6l4 3.1A7.2 7.2 0 0 1 12 4.8z" />
+  </svg>
+);
+
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
-  const { signInWithEmail, signUpWithEmail, signInWithGoogle, resetPassword, loading, error, clearError } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const { sendEmailCode, verifyEmailCode, signInWithGoogle, loading, error, clearError } = useAuth();
+  const [step, setStep] = useState<'email' | 'code'>('email');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [formError, setFormError] = useState<string | null>(null);
-  const [verificationSent, setVerificationSent] = useState(false);
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [resentAt, setResentAt] = useState<number | null>(null);
+  const codeRef = useRef<HTMLInputElement>(null);
 
-  if (!isOpen) return null;
-
-  if (verificationSent) {
-    return (
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
-        <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 p-8 text-center">
-          <div className="inline-flex w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-2xl items-center justify-center shadow-lg mb-4">
-            <span className="material-symbols-outlined text-white text-2xl">mark_email_read</span>
-          </div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">Verify your email</h2>
-          <p className="text-slate-500 text-sm mt-2">
-            We sent a confirmation link to <strong>{email}</strong>. Click it to activate
-            your account, then sign in.
-          </p>
-          <button
-            onClick={() => { setVerificationSent(false); setIsSignUp(false); onClose(); }}
-            className="mt-6 w-full py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/25 hover:bg-primary-dark transition-all"
-          >
-            Got it
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  /**
-   * Strength rules apply to sign-up only. Existing accounts may predate them, so
-   * enforcing the same rules at sign-in would lock those users out of their own
-   * password.
-   */
-  const values = useMemo(
-    () => ({ email, password, confirmPassword, firstName, lastName }),
-    [email, password, confirmPassword, firstName, lastName],
-  );
-
+  const values = useMemo(() => ({ email, code }), [email, code]);
   const validators = useMemo(
     () => ({
       email: compose(required('Email address'), emailRule),
-      password: isSignUp
-        ? compose(required('Password'), passwordRule)
-        : required('Password'),
-      confirmPassword: isSignUp
+      code: step === 'code'
         ? (value: string) =>
-            value.length === 0
-              ? 'Please confirm your password.'
-              : value !== password
-                ? 'Passwords do not match.'
-                : null
+            /^\d{6}$/.test(value.trim()) ? null : 'Enter the 6-digit code from your email.'
         : undefined,
-      firstName: isSignUp ? required('First name') : undefined,
-      lastName: isSignUp ? required('Last name') : undefined,
     }),
-    [isSignUp, password],
+    [step],
   );
-
   const validation = useFormValidation(values, validators);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(null);
-    clearError();
+  // Moving to the code step should put the caret where the user must type.
+  useEffect(() => {
+    if (step === 'code') codeRef.current?.focus();
+  }, [step]);
 
+  if (!isOpen) return null;
+
+  const reset = () => {
+    setStep('email');
+    setCode('');
+    setResentAt(null);
+    validation.reset();
+    clearError();
+  };
+
+  const submitEmail = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!validation.submit()) return;
-
-    try {
-      if (isSignUp) {
-        const { needsEmailVerification } = await signUpWithEmail(email, password, firstName, lastName);
-        if (needsEmailVerification) { setVerificationSent(true); return; }
-        onClose();
-      } else {
-        await signInWithEmail(email, password);
-        onClose();
-      }
-    } catch (err) {
-      // Error surfaced via context `error`.
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setFormError(null);
+    setBusy(true);
     clearError();
     try {
-      await signInWithGoogle();
-      onClose();
-    } catch (err) {
-      // Handled by context
+      await sendEmailCode(email);
+      setStep('code');
+      validation.reset();
+    } catch {
+      /* surfaced via context error */
+    } finally {
+      setBusy(false);
     }
   };
+
+  const submitCode = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!validation.submit()) return;
+    setBusy(true);
+    clearError();
+    try {
+      await verifyEmailCode(email, code);
+      onClose();
+      reset();
+    } catch {
+      /* surfaced via context error */
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resend = async () => {
+    setBusy(true);
+    clearError();
+    try {
+      await sendEmailCode(email);
+      setResentAt(Date.now());
+    } catch {
+      /* surfaced via context error */
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const working = busy || loading;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all animate-fade-in" id="auth-modal-overlay">
-      <div 
-        className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-100 flex flex-col relative"
-        id="auth-modal-card"
-        onClick={(e) => e.stopPropagation()}
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4 backdrop-blur-sm">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-title"
+        className="relative w-full max-w-md rounded-2xl bg-white p-7 shadow-2xl pt-[calc(1.75rem+env(safe-area-inset-top,0px))]"
       >
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-50 transition-colors"
-          id="close-auth-modal"
-          title="Close Modal"
+        <button
+          type="button"
+          onClick={() => { onClose(); reset(); }}
+          aria-label="Close"
+          className="tap-target absolute right-3 top-3 grid place-items-center rounded-full text-slate-400 transition-colors hover:text-dark"
         >
-          <span className="material-symbols-outlined text-lg">close</span>
+          <X size={20} strokeWidth={1.75} />
         </button>
 
-        <div className="p-8 md:p-10 flex-1">
-          <div className="text-center mb-8">
-            <div className="inline-flex w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-2xl items-center justify-center shadow-lg shadow-primary/20 mb-4">
-              <span className="material-symbols-outlined text-white text-2xl">lock</span>
-            </div>
-            <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-              {isSignUp ? 'Create your Account' : 'Welcome to CVBase'}
+        {step === 'email' ? (
+          <>
+            <h2 id="auth-title" className="font-display text-3xl font-medium tracking-tight text-dark">
+              Sign in
             </h2>
-            <p className="text-slate-500 text-sm mt-1">
-              {isSignUp ? 'Join now to save your documents and profile' : 'Sign in to access your saved resume profiles'}
+            <p className="mt-2 text-[15px] text-slate-500">
+              We’ll email you a code — no password to remember.
             </p>
-          </div>
 
-          {(error || formError) && (
-            <div className="p-4 mb-6 bg-rose-50 border-l-4 border-rose-500 rounded-r-xl text-rose-800 text-xs font-medium leading-relaxed" id="auth-error-banner">
-              <div className="flex gap-2">
-                <span className="material-symbols-outlined text-rose-500 text-sm shrink-0">error</span>
-                <span>{formError || error}</span>
-              </div>
+            <button
+              type="button"
+              onClick={() => void signInWithGoogle()}
+              disabled={working}
+              className="tap-target mt-6 flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-white py-3 text-[15px] font-semibold text-dark transition-colors hover:bg-slate-50 disabled:opacity-60"
+            >
+              <GoogleMark />
+              Continue with Google
+            </button>
+
+            <div className="my-5 flex items-center gap-3">
+              <span className="h-px flex-1 bg-border" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">or</span>
+              <span className="h-px flex-1 bg-border" />
             </div>
-          )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="auth-first-name" className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-1">First Name</label>
-                  <input
-                    id="auth-first-name"
-                    type="text"
-                    autoComplete="given-name"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    onBlur={() => validation.onBlur('firstName')}
-                    placeholder="Jane"
-                    {...describedBy('auth-first-name', !!validation.errorFor('firstName'))}
-                    className={fieldClass(!!validation.errorFor('firstName'))}
-                    required
-                  />
-                  <FieldError id="auth-first-name" message={validation.errorFor('firstName')} />
-                </div>
-                <div>
-                  <label htmlFor="auth-last-name" className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-1">Last Name</label>
-                  <input
-                    id="auth-last-name"
-                    type="text"
-                    autoComplete="family-name"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    onBlur={() => validation.onBlur('lastName')}
-                    placeholder="Doe"
-                    {...describedBy('auth-last-name', !!validation.errorFor('lastName'))}
-                    className={fieldClass(!!validation.errorFor('lastName'))}
-                    required
-                  />
-                  <FieldError id="auth-last-name" message={validation.errorFor('lastName')} />
-                </div>
-              </div>
-            )}
-
-            <div>
-              <label htmlFor="auth-email" className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-1">Email Address</label>
+            <form onSubmit={submitEmail} noValidate>
+              <label htmlFor="auth-email" className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-600">
+                Email address
+              </label>
               <input
                 id="auth-email"
                 type="email"
@@ -214,119 +178,100 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 onBlur={() => validation.onBlur('email')}
                 placeholder="jane.doe@example.com"
                 {...describedBy('auth-email', !!validation.errorFor('email'))}
-                className={fieldClass(!!validation.errorFor('email'))}
-                required
+                className={`${inputClass} ${
+                  validation.errorFor('email')
+                    ? 'border-danger focus:ring-2 focus:ring-danger/20'
+                    : 'border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20'
+                }`}
               />
               <FieldError id="auth-email" message={validation.errorFor('email')} />
-            </div>
 
-            <div>
-              <label htmlFor="auth-password" className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-1">Password</label>
+              {error && (
+                <p role="alert" className="mt-3 text-sm font-medium text-danger">{error}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={working}
+                className="tap-target mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-[15px] font-semibold text-white transition-colors disabled:opacity-60"
+              >
+                {working ? <LoaderCircle size={17} className="animate-spin" aria-hidden="true" /> : <Mail size={17} aria-hidden="true" />}
+                Email me a code
+              </button>
+            </form>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => { setStep('email'); setCode(''); clearError(); }}
+              className="tap-target -ml-1 mb-3 flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition-colors hover:text-dark"
+            >
+              <ArrowLeft size={16} strokeWidth={2} aria-hidden="true" />
+              Use a different email
+            </button>
+
+            <h2 id="auth-title" className="font-display text-3xl font-medium tracking-tight text-dark">
+              Check your email
+            </h2>
+            <p className="mt-2 text-[15px] text-slate-500">
+              We sent a 6-digit code to <span className="font-semibold text-dark">{email}</span>.
+              That email also has a sign-in link, if you’d rather just tap it.
+            </p>
+
+            <form onSubmit={submitCode} noValidate className="mt-6">
+              <label htmlFor="auth-code" className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-600">
+                6-digit code
+              </label>
               <input
-                id="auth-password"
-                type="password"
-                autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onBlur={() => validation.onBlur('password')}
-                placeholder="••••••"
-                {...describedBy('auth-password', !!validation.errorFor('password'))}
-                className={fieldClass(!!validation.errorFor('password'))}
-                required
+                ref={codeRef}
+                id="auth-code"
+                type="text"
+                // Numeric keypad on mobile; one-time-code enables OS autofill
+                // so the code can be tapped straight from the notification.
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                onBlur={() => validation.onBlur('code')}
+                placeholder="123456"
+                {...describedBy('auth-code', !!validation.errorFor('code'))}
+                className={`${inputClass} text-center font-label text-2xl tracking-[0.4em] ${
+                  validation.errorFor('code')
+                    ? 'border-danger focus:ring-2 focus:ring-danger/20'
+                    : 'border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20'
+                }`}
               />
-              <FieldError id="auth-password" message={validation.errorFor('password')} />
-              {!isSignUp && (
-                <div className="flex justify-end mt-1">
-                  <button 
-                    type="button" 
-                    onClick={async () => {
-                      if (!email) { setFormError('Enter your email above first, then click Forgot Password.'); return; }
-                      setFormError(null); clearError();
-                      try { await resetPassword(email); setFormError('Password reset link sent — check your email.'); }
-                      catch { /* error surfaced via context */ }
-                    }}
-                    className="text-[11px] text-slate-400 hover:text-primary font-semibold"
-                  >
-                    Forgot Password?
-                  </button>
-                </div>
+              <FieldError id="auth-code" message={validation.errorFor('code')} />
+
+              {error && (
+                <p role="alert" className="mt-3 text-sm font-medium text-danger">{error}</p>
               )}
-            </div>
 
-            {isSignUp && (
-              <div>
-                <label htmlFor="auth-confirm-password" className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-1">Confirm Password</label>
-                <input
-                  id="auth-confirm-password"
-                  type="password"
-                  autoComplete="new-password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  onBlur={() => validation.onBlur('confirmPassword')}
-                  placeholder="••••••"
-                  {...describedBy('auth-confirm-password', !!validation.errorFor('confirmPassword'))}
-                  className={fieldClass(!!validation.errorFor('confirmPassword'))}
-                  required
-                />
-                <FieldError id="auth-confirm-password" message={validation.errorFor('confirmPassword')} />
-              </div>
-            )}
+              <button
+                type="submit"
+                disabled={working}
+                className="tap-target mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-[15px] font-semibold text-white transition-colors disabled:opacity-60"
+              >
+                {working && <LoaderCircle size={17} className="animate-spin" aria-hidden="true" />}
+                Sign in
+              </button>
 
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/25 hover:bg-primary-dark disabled:bg-slate-300 disabled:shadow-none transition-all flex items-center justify-center gap-2 mt-2"
-              id="submit-auth-btn"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                isSignUp ? 'Sign Up' : 'Sign In'
-              )}
-            </button>
-          </form>
-
-          <div className="relative my-6 text-center">
-            <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-slate-100 z-0"></span>
-            <span className="bg-white px-3 text-slate-400 font-bold text-xs uppercase tracking-wider relative z-10">or continue with</span>
-          </div>
-
-          <button 
-            type="button" 
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            className="w-full py-3 border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-xl font-semibold shadow-sm transition-all flex items-center justify-center gap-3"
-            id="google-signin-btn"
-          >
-            <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.08H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.92l2.85-2.22-.19-.6z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.08l3.66 2.84c.87-2.6 3.3-4.54 6.16-4.54z"/>
-            </svg>
-            <span>Google Workspace / Gmail</span>
-          </button>
-
-          <p className="text-center text-xs text-slate-500 mt-6 font-medium">
-            {isSignUp ? 'Already have an account?' : 'Need a CV documents vault?'}
-            <button 
-              type="button" 
-              onClick={() => { setIsSignUp(!isSignUp); setFormError(null); }}
-              className="text-primary hover:underline font-bold ml-1"
-              id="toggle-auth-mode-btn"
-            >
-              {isSignUp ? 'Sign In instead' : 'Sign Up for Free'}
-            </button>
-          </p>
-        </div>
-
-        <div className="bg-slate-50 p-4 border-t border-slate-100 flex items-start gap-2.5">
-          <span className="material-symbols-outlined text-slate-400 text-sm mt-0.5 shrink-0">info</span>
-          <p className="text-[10px] text-slate-500 leading-normal font-medium">
-            <strong>Note:</strong> New accounts require email verification. After signing up, check your inbox for a confirmation link before signing in.
-          </p>
-        </div>
+              <button
+                type="button"
+                onClick={() => void resend()}
+                disabled={working}
+                className="tap-target mt-3 w-full text-sm font-semibold text-slate-500 transition-colors hover:text-primary disabled:opacity-60"
+              >
+                {resentAt ? 'Code sent again' : 'Resend the code'}
+              </button>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );
 };
+
+export default AuthModal;

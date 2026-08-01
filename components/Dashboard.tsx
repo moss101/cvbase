@@ -104,7 +104,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
     const [greeting, setGreeting] = useState("Welcome back");
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const mainRef = useRef<HTMLElement>(null);
-    const { user, userProfile, logout } = useAuth();
+    const { user, userProfile, logout, profileComplete, missingProfileFields} = useAuth();
     const { plan, billing } = useSubscription();
     const [lastAtsScore, setLastAtsScore] = useState<{ atsScore: number; matchScore: number | null; date: string } | null>(null);
     // PRISM ships behind a rollout feature flag; the tab only renders when the
@@ -179,6 +179,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
     const filteredTemplates = selectedCategory === 'All' 
         ? AVAILABLE_TEMPLATES 
         : AVAILABLE_TEMPLATES.filter(t => t.category === selectedCategory);
+
+    /**
+     * First-run gate. A signed-in user whose profile is missing required
+     * details is held on the profile page — the CV generator produces
+     * nonsense without a name or a target role, so this is the one place the
+     * app is opinionated about order. Re-asserted on every tab change rather
+     * than only on mount, so tapping another nav item cannot slip past it.
+     */
+    useEffect(() => {
+        if (user && !profileComplete && activeTab !== 'profile') {
+            setActiveTab('profile');
+        }
+    }, [user, profileComplete, activeTab]);
 
     const activeTabLabel: Record<DashboardTab, string> = {
         dashboard: 'Dashboard',
@@ -687,6 +700,25 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                     )}
 
                     {/* PROFILE VIEW */}
+                    {activeTab === 'profile' && user && !profileComplete && (
+                        <div
+                            role="status"
+                            className="mb-5 rounded-2xl border border-primary/30 bg-primary/5 p-5"
+                        >
+                            <h2 className="font-semibold text-dark">
+                                Finish your profile to continue
+                            </h2>
+                            <p className="mt-1.5 text-sm text-ink-soft">
+                                We use these on every CV you generate, so they are worth getting
+                                right once. Still needed:{' '}
+                                <span className="font-semibold text-dark">
+                                    {missingProfileFields.join(', ')}
+                                </span>
+                                .
+                            </p>
+                        </div>
+                    )}
+
                     {activeTab === 'profile' && (
                         <div className="dashboard-module animate-fade-in">
                             <UserProfileForm />

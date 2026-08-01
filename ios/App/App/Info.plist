@@ -22,6 +22,25 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<!--
+		Custom URL scheme for auth callbacks. Google OAuth and the magic link
+		redirect to ai.cvbase.app://auth-callback, and without this declaration
+		iOS has nothing to route that to — the browser would simply fail to open
+		it and sign-in would dead-end. Android gets the equivalent from
+		custom_url_scheme in strings.xml, which Capacitor wires into the manifest.
+		Must stay in step with appId in capacitor.config.ts.
+	-->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>ai.cvbase.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>ai.cvbase.app</string>
+			</array>
+		</dict>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

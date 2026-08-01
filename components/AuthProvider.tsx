@@ -2,6 +2,13 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { getSupabase } from '../services/supabase';
 import { rowToProfile, profileToRow, type UserProfile } from '../services/profileMapping';
+import {
+  listenForAuthDeepLinks,
+  sendEmailAuth,
+  signInWithGoogle as startGoogleSignIn,
+  verifyEmailCode as verifyCode,
+} from '../services/authFlow';
+import { isProfileComplete, MISSING_PROFILE_FIELDS } from '../services/profileCompleteness';
 
 export type { UserProfile };
 
@@ -11,14 +18,20 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   clearError: () => void;
-  signUpWithEmail: (
-    email: string, password: string, firstName: string, lastName: string,
-  ) => Promise<{ needsEmailVerification: boolean }>;
-  signInWithEmail: (email: string, password: string) => Promise<void>;
+  /** Sends the sign-in email (one message carries both a code and a link). */
+  sendEmailCode: (email: string) => Promise<void>;
+  /** Exchanges the 6-digit code for a session. */
+  verifyEmailCode: (email: string, token: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   updateUserProfile: (profile: Partial<UserProfile>) => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
+  /**
+   * False until a signed-in user has filled the fields the CV needs. Drives the
+   * first-run gate that routes new accounts to the profile page.
+   */
+  profileComplete: boolean;
+  /** Which required fields are still blank — used to label the gate. */
+  missingProfileFields: string[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,44 +72,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserProfile(sessionUser ? await loadProfile(sessionUser.id) : null);
       setLoading(false);
     });
-    return () => { active = false; sub.subscription.unsubscribe(); };
+    // Google and magic-link returns arrive as a deep link on device; on the
+    // web the SDK's detectSessionInUrl already handles them.
+    const stopDeepLinks = listenForAuthDeepLinks(setError);
+    return () => { active = false; sub.subscription.unsubscribe(); stopDeepLinks(); };
   }, []);
 
-  const signUpWithEmail = async (
-    email: string, password: string, firstName: string, lastName: string,
-  ): Promise<{ needsEmailVerification: boolean }> => {
-    setLoading(true); setError(null);
+  const sendEmailCode = async (email: string) => {
+    setError(null);
     try {
-      const { data, error: e } = await supabase.auth.signUp({
-        email, password,
-        options: {
-          data: { first_name: firstName, last_name: lastName },
-          emailRedirectTo: window.location.origin,
-        },
-      });
-      if (e) { setError(e.message); throw e; }
-      // With email confirmations on, no session is returned until verified.
-      return { needsEmailVerification: !data.session };
-    } finally { setLoading(false); }
+      await sendEmailAuth(email);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Could not send the sign-in email.';
+      setError(message);
+      throw e;
+    }
   };
 
-  const signInWithEmail = async (email: string, password: string) => {
+  const verifyEmailCode = async (email: string, token: string) => {
     setLoading(true); setError(null);
     try {
-      const { error: e } = await supabase.auth.signInWithPassword({ email, password });
-      if (e) { setError(e.message); throw e; }
+      await verifyCode(email, token);
       // onAuthStateChange populates user + profile.
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'That code did not work.';
+      setError(message);
+      throw e;
     } finally { setLoading(false); }
   };
 
   const signInWithGoogle = async () => {
     setError(null);
-    const { error: e } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin },
-    });
-    if (e) { setError(e.message); throw e; }
-    // Browser redirects to Google; session is detected on return (detectSessionInUrl).
+    try {
+      await startGoogleSignIn();
+      // Web redirects away; native returns through the deep-link listener.
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Google sign-in failed.';
+      setError(message);
+      throw e;
+    }
   };
 
   const logout = async () => {
@@ -120,18 +134,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally { setLoading(false); }
   };
 
-  const resetPassword = async (email: string) => {
-    setError(null);
-    const { error: e } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin,
-    });
-    if (e) { setError(e.message); throw e; }
-  };
-
   return (
     <AuthContext.Provider value={{
       user, userProfile, loading, error, clearError,
-      signUpWithEmail, signInWithEmail, signInWithGoogle, logout, updateUserProfile, resetPassword,
+      sendEmailCode, verifyEmailCode, signInWithGoogle, logout, updateUserProfile,
+      profileComplete: isProfileComplete(userProfile),
+      missingProfileFields: MISSING_PROFILE_FIELDS(userProfile),
     }}>
       {children}
     </AuthContext.Provider>
