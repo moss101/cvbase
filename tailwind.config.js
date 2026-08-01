@@ -118,6 +118,15 @@ export default {
       backgroundColor: {
         white: surface('surface'),
         'true-white': '#ffffff',
+        /**
+         * For marks drawn as elements rather than glyphs — icon bars, rules,
+         * progress ticks. They are foreground, so they take the *text* role and
+         * invert along with the copy. Using `bg-ink` for these would leave a
+         * dark mark on a dark surface, because `bg-ink` correctly stays dark as
+         * a slab colour.
+         */
+        mark: text('ink'),
+        'mark-soft': text('ink-soft'),
       },
       borderColor: {
         white: surface('surface'),

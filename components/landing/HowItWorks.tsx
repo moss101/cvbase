@@ -12,18 +12,18 @@ const STEPS: { n: string; title: string; description: string; visual: React.Reac
                 <div className="w-16 h-[84px] rounded-md bg-paper-bright border border-ink/[0.08] shadow-sm rotate-[-6deg] overflow-hidden">
                     <div className="h-4 bg-ink/25" />
                     <div className="p-1.5 space-y-1">
-                        <div className="h-[3px] rounded-full bg-ink/[0.12] w-full" />
-                        <div className="h-[3px] rounded-full bg-ink/[0.07] w-3/4" />
-                        <div className="h-[3px] rounded-full bg-ink/[0.07] w-full" />
+                        <div className="h-[3px] rounded-full bg-mark/[0.12] w-full" />
+                        <div className="h-[3px] rounded-full bg-mark/[0.07] w-3/4" />
+                        <div className="h-[3px] rounded-full bg-mark/[0.07] w-full" />
                     </div>
                 </div>
                 <div className="relative w-[4.5rem] h-24 rounded-md bg-paper-bright border-2 border-ember shadow-[0_14px_30px_-8px_rgba(200,68,44,0.35)] overflow-hidden z-10">
-                    <div className="h-[18px] bg-ink" />
+                    <div className="h-[18px] bg-mark" />
                     <div className="p-1.5 space-y-1">
-                        <div className="h-[3px] rounded-full bg-ink/[0.12] w-full" />
-                        <div className="h-[3px] rounded-full bg-ink/[0.07] w-2/3" />
-                        <div className="h-[3px] rounded-full bg-ink/[0.07] w-full" />
-                        <div className="h-[3px] rounded-full bg-ink/[0.07] w-1/2" />
+                        <div className="h-[3px] rounded-full bg-mark/[0.12] w-full" />
+                        <div className="h-[3px] rounded-full bg-mark/[0.07] w-2/3" />
+                        <div className="h-[3px] rounded-full bg-mark/[0.07] w-full" />
+                        <div className="h-[3px] rounded-full bg-mark/[0.07] w-1/2" />
                     </div>
                     <span className="absolute top-1 right-1 grid place-items-center w-4 h-4 rounded-full bg-ember">
                         <svg width="8" height="8" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#FAF7F2" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -32,8 +32,8 @@ const STEPS: { n: string; title: string; description: string; visual: React.Reac
                 <div className="w-16 h-[84px] rounded-md bg-paper-bright border border-ink/[0.08] shadow-sm rotate-[6deg] overflow-hidden flex">
                     <div className="w-1/3 bg-ink/30" />
                     <div className="flex-1 p-1.5 space-y-1">
-                        <div className="h-[3px] rounded-full bg-ink/[0.12] w-full" />
-                        <div className="h-[3px] rounded-full bg-ink/[0.07] w-3/4" />
+                        <div className="h-[3px] rounded-full bg-mark/[0.12] w-full" />
+                        <div className="h-[3px] rounded-full bg-mark/[0.07] w-3/4" />
                     </div>
                 </div>
             </div>

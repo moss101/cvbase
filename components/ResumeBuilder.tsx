@@ -734,7 +734,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
                 onCloseMobile={() => setIsMobileMenuOpen(false)}
             />
             <main className="flex-1 h-full overflow-y-auto bg-light/50 relative">
-                <div className="max-w-5xl mx-auto p-3 sm:p-6 md:p-10 min-h-screen animate-fade-in">
+                {/* Top/bottom padding folds in the safe-area insets so the toolbar
+                    clears the status bar and the last field clears the home
+                    indicator. env() resolves to 0 on the web. */}
+                <div className="max-w-5xl mx-auto p-3 sm:p-6 md:p-10 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] sm:pt-[calc(1.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(2.5rem+env(safe-area-inset-top,0px))] pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] min-h-screen animate-fade-in">
                     <div className="glass-panel p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl min-h-[calc(100vh-5rem)] border border-white/40 shadow-xl bg-white/60 backdrop-blur-md">
                         <HeaderActions
                             onAiEnhanceClick={() => setIsAiActionModalOpen(true)}

@@ -107,12 +107,12 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onCreateCV, onNavigate }) => {
                             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
                         >
                             <span
-                                className={`absolute h-[1.5px] w-5 bg-ink rounded-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                                className={`absolute h-[1.5px] w-5 bg-mark rounded-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                                     mobileOpen ? 'rotate-45 translate-y-0' : '-translate-y-[3.5px]'
                                 }`}
                             />
                             <span
-                                className={`absolute h-[1.5px] w-5 bg-ink rounded-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                                className={`absolute h-[1.5px] w-5 bg-mark rounded-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                                     mobileOpen ? '-rotate-45 translate-y-0' : 'translate-y-[3.5px]'
                                 }`}
                             />
