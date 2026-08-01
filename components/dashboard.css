@@ -23,11 +23,10 @@
   min-height: 100dvh;
   width: 100%;
   overflow: hidden;
-  background:
-    linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px),
-    var(--dash-paper);
-  background-size: 32px 32px;
+  /* Plain surface. The workspace is not a canvas or a blueprint, so a tiled
+     grid field would be decoration competing with the content; structure comes
+     from the hairline borders on the toolbar and cards instead. */
+  background: var(--dash-paper);
   color: var(--dash-ink);
   font-family: "Instrument Sans", system-ui, sans-serif;
 }
@@ -482,10 +481,7 @@ button.dashboard-card:hover,
   --dash-accent-soft: #064e3b;
   --dash-success: #34d399;
   --dash-ink-surface: #0b1220;
-  background:
-    linear-gradient(rgba(226, 232, 240, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(226, 232, 240, 0.04) 1px, transparent 1px),
-    var(--dash-paper);
+  background: var(--dash-paper);
 }
 
 .dark .dashboard-shell * {
