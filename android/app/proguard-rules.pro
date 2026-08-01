@@ -40,4 +40,4 @@
 }
 
 # The app's own entry point.
--keep class com.cvbase.app.MainActivity { *; }
+-keep class ai.cvbase.app.MainActivity { *; }

@@ -1,4 +1,4 @@
-package com.cvbase.app;
+package ai.cvbase.app;
 
 import com.getcapacitor.BridgeActivity;
 

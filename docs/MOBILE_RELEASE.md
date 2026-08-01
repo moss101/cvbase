@@ -11,7 +11,10 @@ web app.
 | --- | --- | --- |
 | Both | Node 20+, `npm install` | ✅ |
 | iOS | Xcode 16+ with an iOS simulator runtime | ✅ Xcode 26.6 |
-| Android | Android Studio + SDK (API 35), JDK 17+ | ❌ SDK not installed |
+| Android | Android Studio + SDK (API 36), JDK 17+ | ✅ SDK at `~/Library/Android/sdk` |
+
+The app id is `ai.cvbase.app` on both platforms — reverse-DNS of the product
+domain, cvbase.ai.
 
 Capacitor 8 uses Swift Package Manager on iOS, so **CocoaPods is not required**.
 
@@ -65,13 +68,10 @@ palette change cannot silently ship an unreadable dark mode.
    **CURRENT_PROJECT_VERSION** (build number, must increase every upload).
 6. **Product → Archive**, then distribute via the Organizer.
 
-Identity is already set: bundle id `com.cvbase.app`, display name `CVBase`,
+Identity is already set: bundle id `ai.cvbase.app`, display name `CVBase`,
 `UIRequiredDeviceCapabilities` = `arm64`.
 
 ## Android release
-
-The Android SDK is not installed on this machine, so the steps below have not
-been executed here — install Android Studio first, then:
 
 1. `npm run mobile:build`
 2. `npm run mobile:open:android`
@@ -119,11 +119,15 @@ build on a device and confirmed the plugins still load.
 
 ### ⚠️ Application ID change
 
-The Android project was scaffolded as `com.cvleap.app` and is now
-`com.cvbase.app`, matching `capacitor.config.ts`. **If a CVLeap build was ever
-published to Play under the old id, this is a new listing** — existing installs
-will not receive it as an update. If that applies, revert `applicationId` (the
-`namespace` can stay) and keep the old id.
+The id is now `ai.cvbase.app`, reverse-DNS of cvbase.ai. The project was
+scaffolded as `com.cvleap.app`. **If a CVLeap build was ever published to Play
+under that id, this is a new listing** — existing installs will not receive it as
+an update. If that applies, revert `applicationId` (the `namespace` can stay) and
+keep the old id.
+
+An application id is permanent once published: Play and the App Store both key
+the listing on it and neither allows a change. Confirm `ai.cvbase.app` is what
+you want before the first upload.
 
 ## Architecture notes
 

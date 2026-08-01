@@ -1,12 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    // Matches appId in capacitor.config.ts. The project was scaffolded under the
-    // old com.cvleap.app identity before the CVBase rebrand.
-    namespace = "com.cvbase.app"
+    // Reverse-DNS of the product domain, cvbase.ai. Matches appId in
+    // capacitor.config.ts. The project was scaffolded as com.cvleap.app before
+    // the CVBase rebrand, then briefly com.cvbase.app.
+    namespace = "ai.cvbase.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.cvbase.app"
+        applicationId "ai.cvbase.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
