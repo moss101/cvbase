@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useFitScale } from '../lib/useFitScale';
 import type { ResumeData, SectionId, TemplateId, ResumeSettings } from '../types';
 import { NAV_SECTIONS } from '../constants';
 import { ContactIcon, SummaryIcon, ExperienceIcon, ProjectsIcon, EducationIcon, SkillsIcon, CertificationsIcon, FinalizeIcon, LanguagesIcon, CustomizeIcon, AwardIcon, TrainingIcon, PublicationIcon, VolunteerIcon, CustomIcon } from './common/icons';
@@ -120,6 +121,9 @@ const NavIcon: React.FC<{ id: SectionId; active: boolean }> = ({ id, active }) =
 
 const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, progress, formData, onDownloadPDF, selectedTemplate, visibleSections, onToggleSection, onGoHome, settings, isMobileOpen, onCloseMobile }) => {
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+    // The template renders at a fixed A4 width, so the preview is scaled to
+    // whatever width the card actually gets rather than a fixed guess.
+    const previewFit = useFitScale<HTMLDivElement>(794);
     const [isToggleListOpen, setIsToggleListOpen] = useState(false);
     const { t } = useTranslation();
     
@@ -330,7 +334,8 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
                         </div>
                         
                         {/* Preview Card Container */}
-                        <div 
+                        <div
+                            ref={previewFit.ref}
                             className="w-full aspect-[210/297] bg-white rounded-xl shadow-lg border border-gray-200/80 overflow-hidden cursor-pointer hover:shadow-2xl hover:border-primary/50 transition-all transform hover:-translate-y-1 relative group"
                             onClick={() => setIsPreviewModalOpen(true)}
                             title="Click for full-size preview"
@@ -342,7 +347,10 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
                             </div>
                             
                             {/* Scaled Preview Wrapper - Absolutely positioned to not break layout flow */}
-                            <div className="absolute top-0 left-0 w-[794px] min-h-[1123px] origin-top-left transform scale-[0.44] pointer-events-none select-none bg-white">
+                            <div
+                                className="absolute top-0 left-0 w-[794px] min-h-[1123px] origin-top-left pointer-events-none select-none bg-white"
+                                style={{ transform: `scale(${previewFit.scale})` }}
+                            >
                                 <div id="resume-preview-wrapper" className="h-full w-full">
                                    {renderTemplate()}
                                 </div>

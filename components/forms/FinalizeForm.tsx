@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useFitScale } from '../../lib/useFitScale';
 import ContentHeader from '../common/ContentHeader';
 import TipsCard from '../common/TipsCard';
 import type { ResumeData, TemplateId, SectionId, ResumeSettings } from '../../types';
@@ -107,6 +108,8 @@ const TabButton: React.FC<{ active: boolean; onClick: () => void; children: Reac
 );
 
 const TemplateCard: React.FC<{id: TemplateId, name: string, category: string, isSelected: boolean, onClick: (id: TemplateId) => void, formData: ResumeData, visibleSections: SectionId[], settings: ResumeSettings}> = ({ id, name, category, isSelected, onClick, formData, visibleSections, settings }) => {
+    // Templates render at a fixed A4 width; fit the thumbnail to its column.
+    const thumbFit = useFitScale<HTMLDivElement>(794);
     const renderTemplate = () => {
         const props = { formData, isCardPreview: true, visibleSections, settings };
         switch (id) {
@@ -197,8 +200,15 @@ const TemplateCard: React.FC<{id: TemplateId, name: string, category: string, is
                  </div>
             </div>
             <div className={`p-3 rounded-xl border-2 transition-all h-full flex flex-col ${isSelected ? 'border-primary shadow-lg ring-2 ring-primary/20 bg-primary/5' : 'border-gray-200 bg-white hover:border-primary/50 hover:shadow-md'}`}>
-                <div className="bg-gray-100 h-48 rounded-lg flex items-center justify-center text-gray-400 overflow-hidden relative border border-gray-200 mb-3">
-                    <div className="absolute inset-0 transform scale-[0.25] -translate-y-[15%] origin-top-left pointer-events-none bg-white">
+                <div ref={thumbFit.ref} className="bg-gray-100 h-48 rounded-lg flex items-center justify-center text-gray-400 overflow-hidden relative border border-gray-200 mb-3">
+                    {/* Scaled to the card's real width instead of a fixed 0.25,
+                        so the top of the CV is framed the same in every column.
+                        The old -translate-y-[15%] was compensating for the
+                        mismatch and is no longer needed. */}
+                    <div
+                        className="absolute top-0 left-0 w-[794px] origin-top-left pointer-events-none bg-white"
+                        style={{ transform: `scale(${thumbFit.scale})` }}
+                    >
                          { renderTemplate() }
                     </div>
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors"></div>
