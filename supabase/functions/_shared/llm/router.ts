@@ -2,6 +2,8 @@ import { getLlmConfig, type ProviderConfig } from './config.ts';
 import { callWithKeyPool, type KeyPoolCallResult } from './keyPool.ts';
 import { deepseekCall } from './providers/deepseek.ts';
 import { kimiCall } from './providers/kimi.ts';
+import { anthropicCall } from './providers/anthropic.ts';
+import { callOpenAiCompatible } from './providers/openAiCompatible.ts';
 import { buildToolSpec, normalizeSchema } from './schemaAdapter.ts';
 import { LlmAllProvidersFailedError, ProviderError } from './errors.ts';
 import { logLlmCall } from './callLog.ts';
@@ -17,9 +19,22 @@ export const ANTI_HALLUCINATION =
   'clearly-marked placeholder like [X], [ADD METRIC], or [COMPANY] — never invent specific ' +
   'facts. Keep output truthful, concise, and ATS-friendly.';
 
+/**
+ * Anthropic speaks its own dialect and gets a dedicated adapter; everything
+ * else here is OpenAI-compatible, so each entry is just a base URL bound to the
+ * shared adapter. `custom` lets an operator point the router at any
+ * OpenAI-compatible endpoint via config alone.
+ */
 const PROVIDER_CALL_FACTORIES: Record<ProviderId, (baseUrl: string) => ProviderCall> = {
   deepseek: deepseekCall,
   kimi: kimiCall,
+  anthropic: anthropicCall,
+  openai: (baseUrl) => (opts) => callOpenAiCompatible('openai', baseUrl, opts),
+  groq: (baseUrl) => (opts) => callOpenAiCompatible('groq', baseUrl, opts),
+  together: (baseUrl) => (opts) => callOpenAiCompatible('together', baseUrl, opts),
+  openrouter: (baseUrl) => (opts) => callOpenAiCompatible('openrouter', baseUrl, opts),
+  mistral: (baseUrl) => (opts) => callOpenAiCompatible('mistral', baseUrl, opts),
+  custom: (baseUrl) => (opts) => callOpenAiCompatible('custom', baseUrl, opts),
 };
 
 function resolveModel(cfg: ProviderConfig, tier: string | undefined): string {

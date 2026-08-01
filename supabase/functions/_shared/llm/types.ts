@@ -2,7 +2,12 @@
 // provider adapter. Kept intentionally minimal — just enough to describe an
 // OpenAI-compatible chat-completions call with an optional forced tool call.
 
-export type ProviderId = 'deepseek' | 'kimi';
+/**
+ * Providers the router can route to. `custom` is an operator-defined
+ * OpenAI-compatible endpoint (base URL + model + key supplied at config time),
+ * which is how a provider gets added without a code change.
+ */
+export type ProviderId = 'deepseek' | 'kimi' | 'anthropic' | 'openai' | 'groq' | 'together' | 'openrouter' | 'mistral' | 'custom';
 
 export interface ChatMessage {
   role: 'system' | 'user';
