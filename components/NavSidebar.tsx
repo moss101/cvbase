@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useFitScale } from '../lib/useFitScale';
 import type { ResumeData, SectionId, TemplateId, ResumeSettings } from '../types';
-import { NAV_SECTIONS } from '../constants';
+import { NAV_SECTIONS, getVisibleNavSections } from '../constants';
 import { ContactIcon, SummaryIcon, ExperienceIcon, ProjectsIcon, EducationIcon, SkillsIcon, CertificationsIcon, FinalizeIcon, LanguagesIcon, CustomizeIcon, AwardIcon, TrainingIcon, PublicationIcon, VolunteerIcon, CustomIcon } from './common/icons';
 import GsbExecutiveTemplate from './templates/GsbExecutiveTemplate';
 import IvyEliteTemplate from './templates/IvyEliteTemplate';
@@ -209,12 +209,7 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
         }
     }
     
-    const displayedSections = NAV_SECTIONS.filter(section => {
-        if (section.optional) {
-            return visibleSections.includes(section.id);
-        }
-        return true;
-    });
+    const displayedSections = getVisibleNavSections(visibleSections);
 
     return (
         <>
@@ -240,7 +235,7 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
                                  <span className="material-symbols-outlined text-[22px]">arrow_back</span>
                             </div>
                             <div>
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">CVBase</span>
+                                <span className="text-dark">CV<span className="text-primary">Base</span></span>
                             </div>
                         </div>
                         {onCloseMobile && (
@@ -370,7 +365,7 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
                             onClick={onDownloadPDF}
                             className="w-full mt-5 py-3.5 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-bold text-sm transition-all hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98] flex items-center justify-center gap-2 group"
                         >
-                            <span className="material-symbols-outlined text-lg group-hover:animate-bounce">download</span>
+                            <span className="material-symbols-outlined text-lg transition-transform duration-300 ease-out group-hover:translate-y-0.5">download</span>
                             {t('btn.downloadPDF', 'Download PDF')}
                         </button>
                     </div>

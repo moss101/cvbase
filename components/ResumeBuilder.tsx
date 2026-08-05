@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { NAV_SECTIONS, INITIAL_STATE, NEW_EXPERIENCE_ITEM, NEW_EDUCATION_ITEM, NEW_CERTIFICATION_ITEM, NEW_LANGUAGE_ITEM, NEW_PROJECT_ITEM, NEW_AWARD_ITEM, NEW_TRAINING_ITEM, NEW_PUBLICATION_ITEM, NEW_VOLUNTEER_ITEM, NEW_CUSTOM_ITEM } from '../constants';
+import { NAV_SECTIONS, getVisibleNavSections, INITIAL_STATE, NEW_EXPERIENCE_ITEM, NEW_EDUCATION_ITEM, NEW_CERTIFICATION_ITEM, NEW_LANGUAGE_ITEM, NEW_PROJECT_ITEM, NEW_AWARD_ITEM, NEW_TRAINING_ITEM, NEW_PUBLICATION_ITEM, NEW_VOLUNTEER_ITEM, NEW_CUSTOM_ITEM } from '../constants';
 import type { ResumeData, SectionId, TemplateId, AIAnalysisResult, ResumeSettings } from '../types';
 import NavSidebar from './NavSidebar';
 import HeaderActions from './HeaderActions';
@@ -30,6 +30,12 @@ import PDFQualityModal from './common/PDFQualityModal';
 import GamifiedProgressTracker from './common/GamifiedProgressTracker';
 import AtsCompatibilityPanel from './common/AtsCompatibilityPanel';
 import JSONBackupModal from './common/JSONBackupModal';
+import PreviewModal from './PreviewModal';
+import MobileTopBar from './mobile/MobileTopBar';
+import BottomSheet from './mobile/BottomSheet';
+import { useMobileShell } from '../lib/useMobileShell';
+import { useTranslation, LANGUAGE_OPTIONS } from '../services/translationService';
+import { ChevronDown, Eye, MoreHorizontal, Check, Sparkles, RefreshCw, Save, Download, Globe } from 'lucide-react';
 
 // Template Imports for Capture Area
 import ResumePreview from './ResumePreview';
@@ -130,6 +136,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
     const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
     const [versions, setVersions] = useState<StoredVersion[]>([]);
     const [versionsLoading, setVersionsLoading] = useState(false);
+    const isMobileShell = useMobileShell();
+    const [isMobilePreviewOpen, setIsMobilePreviewOpen] = useState(false);
+    const [isSectionsSheetOpen, setIsSectionsSheetOpen] = useState(false);
+    const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false);
+    const { language, setLanguage, t } = useTranslation();
     const [versionSaving, setVersionSaving] = useState(false);
 
     // Real-time DOM section reordering helper
@@ -498,7 +509,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
     }, [activeSection]);
 
     const handleNextSection = useCallback(() => {
-        const currentNav = NAV_SECTIONS.filter(s => !s.optional || visibleSections.includes(s.id));
+        const currentNav = getVisibleNavSections(visibleSections);
         const currentIndex = currentNav.findIndex(s => s.id === activeSection);
         if (currentIndex < currentNav.length - 1) setActiveSection(currentNav[currentIndex + 1].id);
     }, [activeSection, visibleSections]);
@@ -689,6 +700,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
         return <Component formData={formData} isCardPreview={false} visibleSections={visibleSections} settings={settings} />;
     }, [selectedTemplate, formData, visibleSections, settings]);
 
+    // Position within the section flow, for the mobile top bar/progress bar and
+    // the sections sheet. Shares the exact filter NavSidebar's own nav uses.
+    const visibleNavSections = useMemo(() => getVisibleNavSections(visibleSections), [visibleSections]);
+    const activeSectionIndex = Math.max(0, visibleNavSections.findIndex(s => s.id === activeSection));
+    const activeSectionMeta = visibleNavSections[activeSectionIndex] ?? visibleNavSections[0];
+    const resumeTitle = formData.contact.jobTitle?.trim() || 'Untitled resume';
+
     const renderActiveForm = () => {
         switch (activeSection) {
             case 'contact': return <ContactForm data={formData.contact} onFormDataChange={setFormData} onPhotoChange={handlePhotoChange} onClear={handleClearSection} onNext={handleNextSection} />;
@@ -718,7 +736,70 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
     };
     
     return (
-        <div className="flex h-screen bg-transparent overflow-hidden">
+        // The transform makes this the containing block for every `fixed`
+        // descendant (the modals below, and #print-resume-container). Without
+        // it, the off-screen PDF capture container — full resume height,
+        // position:fixed, only hidden via a large negative left offset — is
+        // fixed to the true viewport instead, and since its height still
+        // extends below the fold, the whole document becomes scrollable at
+        // the window level. That breaks every `position: sticky` element in
+        // the mobile shell, because sticky only tracks its nearest *actual*
+        // scrolling ancestor. Harmless for the modals: this div already
+        // matches the viewport exactly (h-screen), so `fixed inset-0` inside
+        // it looks identical to being fixed to the real viewport.
+        <div
+            className="flex h-screen bg-transparent overflow-hidden"
+            style={{ transform: 'translateZ(0)' }}
+        >
+            {isMobileShell && (
+                <div className="flex h-full w-full flex-col overflow-hidden bg-light">
+                    <MobileTopBar
+                        onBack={onBack}
+                        onCenterClick={() => setIsSectionsSheetOpen(true)}
+                        center={
+                            <>
+                                <span className="max-w-[200px] truncate text-[11px] font-semibold text-gray-500">{resumeTitle}</span>
+                                <span className="flex items-center gap-1 text-[14.5px] font-bold text-dark">
+                                    {activeSectionMeta?.name}
+                                    <ChevronDown size={13} strokeWidth={2.5} className="text-gray-400" />
+                                </span>
+                            </>
+                        }
+                        trailing={
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMobilePreviewOpen(true)}
+                                    aria-label="Preview"
+                                    className="tap-target flex items-center justify-center rounded-full text-dark transition active:scale-95"
+                                >
+                                    <Eye size={20} strokeWidth={1.75} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMoreSheetOpen(true)}
+                                    aria-label="More actions"
+                                    className="tap-target flex items-center justify-center rounded-full text-dark transition active:scale-95"
+                                >
+                                    <MoreHorizontal size={20} strokeWidth={1.75} />
+                                </button>
+                            </>
+                        }
+                    />
+                    <div className="h-[3px] shrink-0 bg-border">
+                        <div
+                            className="h-full rounded-r-full bg-primary transition-all duration-300 ease-out"
+                            style={{ width: `${visibleNavSections.length ? ((activeSectionIndex + 1) / visibleNavSections.length) * 100 : 0}%` }}
+                        />
+                    </div>
+                    <main className="min-h-0 flex-1 overflow-y-auto px-4 pt-5">
+                        {renderActiveForm()}
+                    </main>
+                </div>
+            )}
+
+            {!isMobileShell && (
+            <>
             <NavSidebar
                 activeSection={activeSection}
                 onSectionClick={setActiveSection}
@@ -867,7 +948,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
                     </div>
                 </div>
             </main>
-            
+            </>
+            )}
+
             {/* Hidden High-Quality Capture Area - Visible to DOM but moved far off-screen */}
             <div 
                 id="print-resume-container"
@@ -920,6 +1003,107 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
                 currentData={formData}
                 onImportData={handleImportJsonData}
             />
+
+            {isMobileShell && (
+                <>
+                    <PreviewModal
+                        isOpen={isMobilePreviewOpen}
+                        onClose={() => setIsMobilePreviewOpen(false)}
+                        formData={formData}
+                        selectedTemplate={selectedTemplate}
+                        visibleSections={visibleSections}
+                        settings={settings}
+                    />
+
+                    {/* Replaces NavSidebar's nested "Toggle Sections" scrolling box —
+                        summoned on demand instead of always taking up sidebar space. */}
+                    <BottomSheet
+                        isOpen={isSectionsSheetOpen}
+                        onClose={() => setIsSectionsSheetOpen(false)}
+                        title="Sections"
+                        heightClassName="max-h-[75vh]"
+                    >
+                        <div className="px-3 pb-1">
+                            {visibleNavSections.map((section) => {
+                                const isCurrent = section.id === activeSection;
+                                return (
+                                    <button
+                                        key={section.id}
+                                        type="button"
+                                        onClick={() => { setActiveSection(section.id); setIsSectionsSheetOpen(false); }}
+                                        className={`tap-target flex w-full items-center gap-3 rounded-xl px-3 text-left transition ${isCurrent ? 'bg-primary-light' : 'active:bg-gray-50'}`}
+                                    >
+                                        <span className={`flex-1 text-[14.5px] font-semibold ${isCurrent ? 'text-primary-dark' : 'text-dark'}`}>
+                                            {t('nav.' + section.id, section.name)}
+                                        </span>
+                                        {isCurrent && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <div className="flex items-center justify-center gap-1.5 border-t border-border px-5 py-3.5 text-[12.5px] font-semibold text-gray-500">
+                            <span className="text-primary">{progress}%</span> of this resume is filled in
+                        </div>
+                    </BottomSheet>
+
+                    {/* Where HeaderActions' desktop toolbar row (AI Enhance, Load
+                        Example, Save Draft, JSON Backup, language) lives on mobile. */}
+                    <BottomSheet
+                        isOpen={isMoreSheetOpen}
+                        onClose={() => setIsMoreSheetOpen(false)}
+                        title="More"
+                    >
+                        <div className="divide-y divide-border px-2 pb-2">
+                            <button
+                                type="button"
+                                onClick={() => { setIsMoreSheetOpen(false); setIsAiActionModalOpen(true); }}
+                                className="tap-target flex w-full items-center gap-3 px-3 text-left"
+                            >
+                                <Sparkles size={18} strokeWidth={1.75} className="text-primary" />
+                                <span className="text-[14.5px] font-semibold text-dark">{t('btn.aiEnhance', 'AI Enhance')}</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setIsMoreSheetOpen(false); handleLoadExample(); }}
+                                className="tap-target flex w-full items-center gap-3 px-3 text-left"
+                            >
+                                <RefreshCw size={18} strokeWidth={1.75} className="text-gray-500" />
+                                <span className="text-[14.5px] font-semibold text-dark">{t('btn.loadExample', 'Load Example')}</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setIsMoreSheetOpen(false); handleSaveDraft(); }}
+                                className="tap-target flex w-full items-center gap-3 px-3 text-left"
+                            >
+                                <Save size={18} strokeWidth={1.75} className="text-gray-500" />
+                                <span className="text-[14.5px] font-semibold text-dark">{t('btn.saveDraft', 'Save Draft')}</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setIsMoreSheetOpen(false); setIsJsonModalOpen(true); }}
+                                className="tap-target flex w-full items-center gap-3 px-3 text-left"
+                            >
+                                <Download size={18} strokeWidth={1.75} className="text-gray-500" />
+                                <span className="text-[14.5px] font-semibold text-dark">{t('btn.backup', 'JSON Backup')}</span>
+                            </button>
+                            <label className="flex items-center gap-3 px-3 py-2.5">
+                                <Globe size={18} strokeWidth={1.75} className="shrink-0 text-gray-500" />
+                                <select
+                                    value={language}
+                                    onChange={(e) => setLanguage(e.target.value as any)}
+                                    className="w-full bg-transparent text-[14.5px] font-semibold text-dark focus:outline-none"
+                                >
+                                    {LANGUAGE_OPTIONS.map((opt) => (
+                                        <option key={opt.code} value={opt.code}>
+                                            {opt.flag} {opt.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                        </div>
+                    </BottomSheet>
+                </>
+            )}
         </div>
     );
 }

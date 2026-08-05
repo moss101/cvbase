@@ -8,6 +8,8 @@ import {
     downloadInvoice,
 } from '../../services/subscriptionService';
 import type { Invoice } from '../../types';
+import { useMobileShell } from '../../lib/useMobileShell';
+import { Download } from 'lucide-react';
 
 interface BillingDashboardProps {
     onChangePlan: () => void;
@@ -51,6 +53,7 @@ const BillingDashboard: React.FC<BillingDashboardProps> = ({ onChangePlan }) => 
     const { billing, plan, openPortal } = useSubscription();
     const { user, userProfile } = useAuth();
     const [confirmCancel, setConfirmCancel] = useState(false);
+    const isMobileShell = useMobileShell();
 
     const sub = billing.subscription;
     const isFree = sub.planId === 'free';
@@ -147,10 +150,10 @@ const BillingDashboard: React.FC<BillingDashboardProps> = ({ onChangePlan }) => 
                         </button>
                         {!isFree && !sub.cancelAtPeriodEnd && (
                             confirmCancel ? (
-                                <span className="flex items-center gap-2 text-sm">
-                                    <span className={isFree ? 'text-gray-600' : 'text-slate-300'}>Cancel at period end?</span>
-                                    <button onClick={() => { openPortal(); setConfirmCancel(false); }} className="px-3 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition">Yes, cancel</button>
-                                    <button onClick={() => setConfirmCancel(false)} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${isFree ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-white/10 text-white hover:bg-white/20'}`}>Keep plan</button>
+                                <span className="flex flex-wrap items-center gap-2 text-sm">
+                                    <span className={`w-full sm:w-auto ${isFree ? 'text-gray-600' : 'text-slate-300'}`}>Cancel at period end?</span>
+                                    <button onClick={() => { openPortal(); setConfirmCancel(false); }} className="tap-target px-3 rounded-lg bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition">Yes, cancel</button>
+                                    <button onClick={() => setConfirmCancel(false)} className={`tap-target px-3 rounded-lg text-xs font-bold transition ${isFree ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-white/10 text-white hover:bg-white/20'}`}>Keep plan</button>
                                 </span>
                             ) : (
                                 <button
@@ -205,7 +208,7 @@ const BillingDashboard: React.FC<BillingDashboardProps> = ({ onChangePlan }) => 
                                         ) : (
                                             <button onClick={openPortal} className="text-[11px] font-bold text-gray-400 hover:text-primary transition px-1.5">Make default</button>
                                         )}
-                                        <button onClick={openPortal} className="text-gray-300 hover:text-rose-500 transition p-1" title="Remove card">
+                                        <button onClick={openPortal} className="tap-target flex items-center justify-center text-gray-300 hover:text-rose-500 transition" title="Remove card">
                                             <span className="material-symbols-outlined text-base">delete</span>
                                         </button>
                                     </div>
@@ -224,6 +227,31 @@ const BillingDashboard: React.FC<BillingDashboardProps> = ({ onChangePlan }) => 
                         <div className="text-center py-8">
                             <span className="material-symbols-outlined text-4xl text-gray-200">receipt</span>
                             <p className="text-sm text-gray-500 mt-2">No payments yet — invoices appear here after your first subscription.</p>
+                        </div>
+                    ) : isMobileShell ? (
+                        <div className="divide-y divide-gray-100 border-t border-gray-100">
+                            {billing.invoices.map(inv => (
+                                <div key={inv.id} className="flex items-center justify-between gap-3 py-3.5">
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <p className="truncate font-mono text-xs font-bold text-gray-600">{inv.number}</p>
+                                            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide ${STATUS_CHIP[inv.status]}`}>{inv.status}</span>
+                                        </div>
+                                        <p className="mt-1 truncate text-sm text-gray-700">{getPlan(inv.planId).name} · {inv.cycle}</p>
+                                        <p className="text-[11px] text-gray-400">{fmtDate(inv.date)}</p>
+                                    </div>
+                                    <div className="flex shrink-0 items-center gap-2">
+                                        <p className="font-bold text-gray-800">{formatMoney(inv.total)}</p>
+                                        <button
+                                            onClick={() => handleDownload(inv)}
+                                            aria-label="Download receipt"
+                                            className="tap-target flex items-center justify-center rounded-lg text-gray-400 transition hover:bg-primary/5 hover:text-primary"
+                                        >
+                                            <Download size={17} strokeWidth={2} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     ) : (
                         <div className="overflow-x-auto">

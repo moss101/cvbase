@@ -453,11 +453,11 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
                 <span className="material-symbols-outlined text-primary">description</span>
                 Your CV
               </h2>
-              <div className="flex gap-3 mb-4">
+              <div className="flex flex-col sm:flex-row gap-3 mb-4">
                 <button
                   onClick={() => cvFileInput.current?.click()}
                   disabled={parsing !== null}
-                  className="flex-1 rounded-2xl border-2 border-dashed border-gray-300 py-6 text-sm font-semibold text-gray-600 hover:border-primary hover:text-primary transition disabled:opacity-50"
+                  className="tap-target flex-1 rounded-2xl border-2 border-dashed border-gray-300 py-6 text-sm font-semibold text-gray-600 hover:border-primary hover:text-primary transition disabled:opacity-50"
                 >
                   {parsing === 'cv' ? 'Reading…' : cvFileName ?? `Upload (${SUPPORTED_EXTENSIONS.join(', ')})`}
                 </button>
@@ -468,7 +468,7 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
                 <button
                   onClick={usePrimaryResume}
                   disabled={parsing !== null}
-                  className="rounded-2xl bg-white/60 border border-gray-200 px-4 text-xs font-bold text-gray-600 hover:bg-white transition disabled:opacity-50"
+                  className="tap-target flex items-center justify-center rounded-2xl bg-white/60 border border-gray-200 px-4 text-xs font-bold text-gray-600 hover:bg-white transition disabled:opacity-50"
                 >
                   Use my saved resume
                 </button>
@@ -531,10 +531,10 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
             <button
               onClick={deleteMyData}
-              className="text-xs text-gray-400 hover:text-red-500 underline transition"
+              className="text-xs text-gray-400 hover:text-red-500 underline transition text-center sm:text-left"
               title="Removes all PRISM pipeline runs: uploaded text, checkpoints, drafts and results."
             >
               Delete my PRISM data
@@ -542,7 +542,7 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
             <button
               onClick={startAnalyze}
               disabled={!inputsReady || parsing !== null}
-              className="px-8 py-3 rounded-2xl bg-gradient-to-r from-primary to-secondary text-white font-bold shadow-lg shadow-primary/30 hover:opacity-90 active:scale-95 transition disabled:opacity-40 disabled:pointer-events-none"
+              className="tap-target w-full sm:w-auto px-8 py-3 rounded-2xl bg-gradient-to-r from-primary to-secondary text-white font-bold shadow-lg shadow-primary/30 hover:opacity-90 active:scale-95 transition disabled:opacity-40 disabled:pointer-events-none"
             >
               Tailor my resume
             </button>

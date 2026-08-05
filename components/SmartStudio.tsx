@@ -16,6 +16,9 @@ import { useAuth } from './AuthProvider';
 import * as trackerRepo from '../services/repos/trackerRepo';
 import { callFn } from '../services/api';
 import type { AtsReport } from '../lib/ats';
+import { useMobileShell } from '../lib/useMobileShell';
+import BottomSheet from './mobile/BottomSheet';
+import { ListPlus, Check as CheckIcon, ArrowLeft, ArrowRight, Trash2 } from 'lucide-react';
 
 interface SmartStudioProps {
   resumeData?: ResumeData | null;
@@ -56,6 +59,7 @@ const fallbackResume = (resumeText: string): ResumeData => ({
 });
 
 export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
+  const isMobileShell = useMobileShell();
   // Navigation tabs of Smart Studio
   const [activeSubTab, setActiveSubTab] = useState<'match' | 'linkedin' | 'cover' | 'tracker' | 'trajectory'>('match');
 
@@ -936,7 +940,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                     {/* Search Algorithm Insights */}
                     <div className="py-4 space-y-2">
                       <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold block">LinkedIn Recruiter Algorithm Insights</span>
-                      <p className="text-xs text-slate-600 leading-relaxed bg-amber-50/40 text-justify border border-amber-200 p-3 rounded-xl">
+                      <p className="text-xs text-amber-900 leading-relaxed bg-amber-50/40 text-justify border border-amber-200 p-3 rounded-xl">
                         💡 {linkedinResult.searchVisibilityFeedback}
                       </p>
                     </div>
@@ -1139,7 +1143,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                 applied: { name: 'Applied', bg: 'bg-indigo-50/40', text: 'text-blue-700', dot: 'bg-blue-500' },
                 interview: { name: 'Interviewing', bg: 'bg-amber-50/40', text: 'text-amber-700', dot: 'bg-amber-500' },
                 offer: { name: 'Offer Approved', bg: 'bg-green-50/45', text: 'text-green-700', dot: 'bg-green-500' },
-                rejected: { name: 'Archived / Rejected', bg: 'bg-rose-50/30', text: 'text-slate-400', dot: 'bg-rose-400' }
+                rejected: { name: 'Archived / Rejected', bg: 'bg-rose-50/30', text: 'text-rose-700', dot: 'bg-rose-400' }
               };
 
               const columnJobs = jobs.filter(j => j.status === statusColumn);
@@ -1190,36 +1194,38 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                             <span className="text-[8px] font-bold font-mono text-slate-400">SHIFT:</span>
                             <div className="flex items-center gap-1">
                               {statusColumn !== 'wishlist' && (
-                                <button 
+                                <button
                                   onClick={() => {
                                     const statuses: JobStatus[] = ['wishlist', 'applied', 'interview', 'offer', 'rejected'];
                                     const prevIdx = statuses.indexOf(statusColumn) - 1;
                                     handleUpdateJobStatus(job.id, statuses[prevIdx]);
                                   }}
-                                  className="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-950 transition-colors flex items-center justify-center shrink-0"
+                                  aria-label="Move to previous stage"
+                                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-950 active:scale-95"
                                 >
-                                  <span className="material-symbols-outlined text-[10px] font-bold">arrow_back</span>
+                                  <ArrowLeft size={14} strokeWidth={2.5} />
                                 </button>
                               )}
-                              
-                              <button 
+
+                              <button
                                 onClick={() => handleDeleteJob(job.id)}
-                                className="p-1 rounded hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors flex items-center justify-center font-bold"
-                                title="Delete job"
+                                aria-label="Delete job"
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500 active:scale-95"
                               >
-                                <span className="material-symbols-outlined text-[10px]">delete</span>
+                                <Trash2 size={14} strokeWidth={2} />
                               </button>
 
                               {statusColumn !== 'rejected' && (
-                                <button 
+                                <button
                                   onClick={() => {
                                     const statuses: JobStatus[] = ['wishlist', 'applied', 'interview', 'offer', 'rejected'];
                                     const nextIdx = statuses.indexOf(statusColumn) + 1;
                                     handleUpdateJobStatus(job.id, statuses[nextIdx]);
                                   }}
-                                  className="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-950 transition-colors flex items-center justify-center shrink-0 font-bold"
+                                  aria-label="Move to next stage"
+                                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-950 active:scale-95"
                                 >
-                                  <span className="material-symbols-outlined text-[10px] font-bold">arrow_forward</span>
+                                  <ArrowRight size={14} strokeWidth={2.5} />
                                 </button>
                               )}
                             </div>
@@ -1454,22 +1460,12 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
         </div>
       )}
 
-      {/* Modal for Creating New Tracker Position */}
-      {showAddJobModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in" onClick={() => setShowAddJobModal(false)}>
-          <div 
-            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-slate-200 text-slate-800"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-4">
-              <h3 className="font-extrabold text-slate-900 uppercase font-mono tracking-widest text-xs flex items-center gap-1.5 p-0.5">
-                <span className="material-symbols-outlined text-blue-600">playlist_add</span>
-                New Application Card
-              </h3>
-              <button onClick={() => setShowAddJobModal(false)} className="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
-            </div>
-
-            <form onSubmit={handleCreateJob} className="space-y-4 text-xs">
+      {/* New Tracker Position — a centered modal on desktop, a bottom sheet on
+          mobile (this file's only modal that wasn't already using the shell's
+          sheet pattern). */}
+      {(() => {
+        const addJobForm = (
+          <form onSubmit={handleCreateJob} className="space-y-4 text-xs">
               <div className="space-y-1 text-left">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Job Title *</label>
                 <input
@@ -1477,7 +1473,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                   required
                   value={newJobTitle}
                   onChange={(e) => setNewJobTitle(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-200 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 font-semibold"
+                  className="tap-target w-full px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-200 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 font-semibold"
                   placeholder="e.g. Director, Corporate Systems Integration"
                 />
               </div>
@@ -1489,7 +1485,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                   required
                   value={newJobCompany}
                   onChange={(e) => setNewJobCompany(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-200 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 font-semibold"
+                  className="tap-target w-full px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-200 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 font-semibold"
                   placeholder="e.g. JPMorgan Chase"
                 />
               </div>
@@ -1500,7 +1496,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                   type="url"
                   value={newJobUrl}
                   onChange={(e) => setNewJobUrl(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-200 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 font-semibold"
+                  className="tap-target w-full px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-200 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 font-semibold"
                   placeholder="e.g. https://careers.company.com/..."
                 />
               </div>
@@ -1517,15 +1513,40 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-slate-900 rounded-xl text-white font-mono font-bold tracking-widest text-xs uppercase cursor-pointer hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5 mt-2"
+                className="tap-target w-full py-3 bg-slate-900 rounded-xl text-white font-mono font-bold tracking-widest text-xs uppercase cursor-pointer hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5 mt-2 active:scale-[0.98]"
               >
-                <span className="material-symbols-outlined text-sm">done</span>
+                <CheckIcon size={14} strokeWidth={2.5} />
                 Deploy to Target list
               </button>
             </form>
+        );
+
+        if (isMobileShell) {
+          return (
+            <BottomSheet isOpen={showAddJobModal} onClose={() => setShowAddJobModal(false)} title="New Application Card">
+              <div className="px-5 pb-2">{addJobForm}</div>
+            </BottomSheet>
+          );
+        }
+
+        return showAddJobModal ? (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in" onClick={() => setShowAddJobModal(false)}>
+            <div
+              className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-slate-200 text-slate-800"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-4">
+                <h3 className="font-extrabold text-slate-900 uppercase font-mono tracking-widest text-xs flex items-center gap-1.5 p-0.5">
+                  <ListPlus size={16} strokeWidth={2} className="text-blue-600" />
+                  New Application Card
+                </h3>
+                <button onClick={() => setShowAddJobModal(false)} className="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+              </div>
+              {addJobForm}
+            </div>
           </div>
-        </div>
-      )}
+        ) : null;
+      })()}
     </div>
   );
 };

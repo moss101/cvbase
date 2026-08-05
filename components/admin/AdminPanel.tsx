@@ -15,6 +15,7 @@ import {
     type AdminStats,
     type AdminUser,
 } from '../../services/adminApi';
+import { useMobileShell } from '../../lib/useMobileShell';
 
 /**
  * Admin panel.
@@ -250,6 +251,7 @@ const ProviderEditor: React.FC<{
 };
 
 const AdminPanel: React.FC = () => {
+    const isMobileShell = useMobileShell();
     const [section, setSection] = useState<Section>('overview');
     const [stats, setStats] = useState<AdminStats | null>(null);
     const [providers, setProviders] = useState<AdminProvider[]>([]);
@@ -480,39 +482,66 @@ const AdminPanel: React.FC = () => {
             )}
 
             {section === 'users' && (
-                <div className="overflow-x-auto">
-                    <table className="w-full min-w-[520px] text-left text-sm">
-                        <thead className="border-b border-border text-xs uppercase tracking-wider text-slate-500">
-                            <tr>
-                                <th className="py-2 pr-4 font-semibold">Email</th>
-                                <th className="py-2 pr-4 font-semibold">Name</th>
-                                <th className="py-2 pr-4 font-semibold">Role</th>
-                                <th className="py-2 font-semibold">Joined</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                <div>
+                    {isMobileShell ? (
+                        <ul className="divide-y divide-border rounded-2xl border border-border">
                             {users.map((u) => (
-                                <tr key={u.id} className="border-b border-border/60">
-                                    <td className="py-2.5 pr-4 text-dark">{u.email}</td>
-                                    <td className="py-2.5 pr-4 text-slate-500">
-                                        {`${u.first_name} ${u.last_name}`.trim() || '—'}
-                                    </td>
-                                    <td className="py-2.5 pr-4">
-                                        {u.is_admin ? (
-                                            <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-primary">
-                                                admin
-                                            </span>
-                                        ) : (
-                                            <span className="text-slate-500">user</span>
-                                        )}
-                                    </td>
-                                    <td className="py-2.5 text-slate-500">
-                                        {new Date(u.created_at).toLocaleDateString()}
-                                    </td>
-                                </tr>
+                                <li key={u.id} className="flex items-start justify-between gap-3 p-4">
+                                    <div className="min-w-0">
+                                        <p className="truncate font-semibold text-dark">{u.email}</p>
+                                        <p className="mt-0.5 text-sm text-slate-500">
+                                            {`${u.first_name} ${u.last_name}`.trim() || '—'}
+                                        </p>
+                                        <p className="mt-1 text-xs text-slate-400">
+                                            Joined {new Date(u.created_at).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                    {u.is_admin ? (
+                                        <span className="shrink-0 rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-primary">
+                                            admin
+                                        </span>
+                                    ) : (
+                                        <span className="shrink-0 text-xs text-slate-500">user</span>
+                                    )}
+                                </li>
                             ))}
-                        </tbody>
-                    </table>
+                        </ul>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full min-w-[520px] text-left text-sm">
+                                <thead className="border-b border-border text-xs uppercase tracking-wider text-slate-500">
+                                    <tr>
+                                        <th className="py-2 pr-4 font-semibold">Email</th>
+                                        <th className="py-2 pr-4 font-semibold">Name</th>
+                                        <th className="py-2 pr-4 font-semibold">Role</th>
+                                        <th className="py-2 font-semibold">Joined</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {users.map((u) => (
+                                        <tr key={u.id} className="border-b border-border/60">
+                                            <td className="py-2.5 pr-4 text-dark">{u.email}</td>
+                                            <td className="py-2.5 pr-4 text-slate-500">
+                                                {`${u.first_name} ${u.last_name}`.trim() || '—'}
+                                            </td>
+                                            <td className="py-2.5 pr-4">
+                                                {u.is_admin ? (
+                                                    <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-primary">
+                                                        admin
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-slate-500">user</span>
+                                                )}
+                                            </td>
+                                            <td className="py-2.5 text-slate-500">
+                                                {new Date(u.created_at).toLocaleDateString()}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                     <p className="mt-4 text-xs text-slate-500">
                         Read-only. Granting admin is deliberately not possible from the app — it is
                         a database-level change, so a compromised admin session cannot mint more
@@ -531,16 +560,19 @@ const AdminPanel: React.FC = () => {
                     {audit.map((entry) => (
                         <li
                             key={entry.id}
-                            className="flex flex-wrap items-baseline justify-between gap-2 rounded-xl border border-border px-4 py-3 text-sm"
+                            className="rounded-xl border border-border px-4 py-3 text-sm"
                         >
-                            <span className="font-medium text-dark">{entry.action}</span>
-                            <span className="text-slate-500">
-                                {entry.target_id || entry.target_type}
-                            </span>
-                            <span className="text-slate-500">{entry.actor_email}</span>
-                            <span className="text-xs text-slate-400">
-                                {new Date(entry.created_at).toLocaleString()}
-                            </span>
+                            <div className="flex items-start justify-between gap-3">
+                                <span className="font-medium text-dark">{entry.action}</span>
+                                <span className="shrink-0 text-xs text-slate-400">
+                                    {new Date(entry.created_at).toLocaleString()}
+                                </span>
+                            </div>
+                            <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-slate-500">
+                                <span>{entry.target_id || entry.target_type}</span>
+                                <span className="text-slate-300">·</span>
+                                <span>{entry.actor_email}</span>
+                            </div>
                         </li>
                     ))}
                 </ul>

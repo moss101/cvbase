@@ -16,6 +16,7 @@ import {
     type RecPriority,
 } from '../../services/atsEngine';
 import { useSubscription } from '../SubscriptionProvider';
+import { useMobileShell } from '../../lib/useMobileShell';
 
 interface AtsAnalyzerProps {
     savedResume: ResumeData | null;
@@ -120,6 +121,8 @@ const LAST_JD_KEY = 'cvbase-ats-last-jd';
 export const AtsAnalyzer: React.FC<AtsAnalyzerProps> = ({ savedResume, onUpgrade }) => {
     const { plan, remaining, consume } = useSubscription();
     const liveAllowed = plan.limits.liveAtsRescore;
+    const isMobileShell = useMobileShell();
+    const scoreRingSize = isMobileShell ? 112 : 150;
 
     const [source, setSource] = useState<ResumeSource>(savedResume ? 'saved' : 'paste');
     const [pastedText, setPastedText] = useState('');
@@ -217,7 +220,7 @@ export const AtsAnalyzer: React.FC<AtsAnalyzerProps> = ({ savedResume, onUpgrade
             key={id}
             disabled={disabled}
             onClick={() => setSource(id)}
-            className={`flex-1 min-w-[140px] p-3.5 rounded-2xl border text-left transition-all ${
+            className={`tap-target p-3.5 rounded-2xl border text-left transition-all ${
                 source === id ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/30' : 'border-gray-200 bg-white/60 hover:border-gray-300'
             } ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
         >
@@ -255,7 +258,7 @@ export const AtsAnalyzer: React.FC<AtsAnalyzerProps> = ({ savedResume, onUpgrade
                             <span className="material-symbols-outlined text-primary text-xl">description</span> 1 · Your resume
                         </h3>
                         <p className="text-xs text-gray-500 mb-4">Choose where your resume comes from.</p>
-                        <div className="flex flex-wrap gap-3 mb-4">
+                        <div className="grid grid-cols-1 gap-3 mb-4 sm:grid-cols-3">
                             {sourceBtn('saved', 'cloud_done', 'Saved resume', savedResume ? `${savedResume.contact.firstName || 'Your'} resume in the builder` : 'No draft yet', !savedResume)}
                             {sourceBtn('upload', 'upload_file', 'Upload file', 'PDF, DOCX or TXT')}
                             {sourceBtn('paste', 'content_paste', 'Paste text', 'Copy & paste the content')}
@@ -388,9 +391,9 @@ export const AtsAnalyzer: React.FC<AtsAnalyzerProps> = ({ savedResume, onUpgrade
                             {/* Score header */}
                             <div className="glass-card rounded-3xl p-6 !translate-y-0">
                                 <div className="flex flex-col sm:flex-row items-center gap-6">
-                                    <div className="flex gap-6">
-                                        <ScoreRing score={report.atsScore} label="ATS Compatibility" sublabel="Parse & quality score" />
-                                        <ScoreRing score={report.matchScore} label="Job Match" sublabel={job ? (job.title || 'vs. pasted job') : 'Add a job description'} />
+                                    <div className="flex gap-4 sm:gap-6">
+                                        <ScoreRing score={report.atsScore} label="ATS Compatibility" sublabel="Parse & quality score" size={scoreRingSize} />
+                                        <ScoreRing score={report.matchScore} label="Job Match" sublabel={job ? (job.title || 'vs. pasted job') : 'Add a job description'} size={scoreRingSize} />
                                     </div>
                                     <div className="flex-1 w-full">
                                         {report.roleFit ? (

@@ -24,6 +24,8 @@ import SettingsPanel from './SettingsPanel';
 import AdminPanel from './admin/AdminPanel';
 import { fetchIsAdmin } from '../services/adminApi';
 import type { LegalTab } from './LegalPage';
+import { useMobileShell } from '../lib/useMobileShell';
+import DashboardMobile from './mobile/DashboardMobile';
 
 export type DashboardTab = 'dashboard' | 'resumes' | 'templates' | 'profile' | 'smart-studio' | 'ats' | 'billing' | 'prism' | 'settings' | 'admin';
 
@@ -209,6 +211,36 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
     const todayLabel = new Intl.DateTimeFormat('en', {
         weekday: 'short', month: 'short', day: 'numeric',
     }).format(new Date());
+
+    const isMobileShell = useMobileShell();
+
+    if (isMobileShell) {
+        return (
+            <div className="dashboard-shell h-[100dvh] w-full overflow-hidden relative">
+                <DashboardMobile
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    savedResume={savedResume}
+                    greeting={greeting}
+                    lastAtsScore={lastAtsScore}
+                    prismEnabled={prismEnabled}
+                    isAdmin={isAdmin}
+                    categories={categories}
+                    selectedCategory={selectedCategory}
+                    setSelectedCategory={setSelectedCategory}
+                    filteredTemplates={filteredTemplates}
+                    onCreateNew={onCreateNew}
+                    onEditExisting={onEditExisting}
+                    onEditResume={onEditResume}
+                    onViewResources={onViewResources}
+                    onViewPricing={onViewPricing}
+                    onViewLegal={onViewLegal}
+                    onOpenAuth={() => setIsAuthModalOpen(true)}
+                />
+                <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+            </div>
+        );
+    }
 
     return (
         <div className="dashboard-shell flex h-[100dvh] w-full overflow-hidden relative">

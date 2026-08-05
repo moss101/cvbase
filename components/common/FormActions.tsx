@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { useMobileShell } from '../../lib/useMobileShell';
+import StickyActionBar from '../mobile/StickyActionBar';
 
 interface FormActionsProps {
     onClear: () => void;
@@ -7,6 +9,31 @@ interface FormActionsProps {
 }
 
 const FormActions: React.FC<FormActionsProps> = ({ onClear, onNext }) => {
+    const isMobileShell = useMobileShell();
+
+    // Mobile: a single flex-1 primary ("Save & Next") plus a small demoted
+    // secondary, sticky in the safe area — not two equal-weight buttons.
+    if (isMobileShell) {
+        return (
+            <StickyActionBar>
+                <button
+                    type="button"
+                    onClick={onClear}
+                    className="tap-target shrink-0 rounded-xl px-3 text-sm font-semibold text-gray-500 transition active:scale-95"
+                >
+                    Clear
+                </button>
+                <button
+                    type="button"
+                    onClick={onNext}
+                    className="tap-target flex flex-1 items-center justify-center rounded-xl bg-primary text-[15px] font-bold text-white shadow-sm transition active:scale-[0.98]"
+                >
+                    Save &amp; Next
+                </button>
+            </StickyActionBar>
+        );
+    }
+
     return (
         <div className="flex gap-5 justify-end mt-10 pt-8 border-t border-border">
             <button

@@ -5,6 +5,10 @@ import ContentHeader from '../common/ContentHeader';
 import TipsCard from '../common/TipsCard';
 import type { ResumeData, TemplateId, SectionId, ResumeSettings } from '../../types';
 import { AVAILABLE_TEMPLATES } from '../../constants';
+import { exampleData } from '../../exampleData';
+import { useMobileShell } from '../../lib/useMobileShell';
+import StickyActionBar from '../mobile/StickyActionBar';
+import { Download, Check, ClipboardCheck, ScanLine, Palette, Type, Ruler } from 'lucide-react';
 import ResumePreview from '../ResumePreview';
 import GsbExecutiveTemplate from '../templates/GsbExecutiveTemplate';
 import IvyEliteTemplate from '../templates/IvyEliteTemplate';
@@ -107,11 +111,15 @@ const TabButton: React.FC<{ active: boolean; onClick: () => void; children: Reac
     </button>
 );
 
-const TemplateCard: React.FC<{id: TemplateId, name: string, category: string, isSelected: boolean, onClick: (id: TemplateId) => void, formData: ResumeData, visibleSections: SectionId[], settings: ResumeSettings}> = ({ id, name, category, isSelected, onClick, formData, visibleSections, settings }) => {
+const TemplateCard: React.FC<{id: TemplateId, name: string, category: string, isSelected: boolean, onClick: (id: TemplateId) => void, visibleSections: SectionId[], settings: ResumeSettings}> = ({ id, name, category, isSelected, onClick, visibleSections, settings }) => {
     // Templates render at a fixed A4 width; fit the thumbnail to its column.
     const thumbFit = useFitScale<HTMLDivElement>(794);
     const renderTemplate = () => {
-        const props = { formData, isCardPreview: true, visibleSections, settings };
+        // Browsing thumbnails always show representative example content, never
+        // the user's own (often still-empty) draft — otherwise a new user sees a
+        // grid of blank pages. Seeing *your* data in a template happens in the
+        // live preview (NavSidebar's card / PreviewModal), not this picker.
+        const props = { formData: exampleData, isCardPreview: true, visibleSections, settings };
         switch (id) {
             case 'gsb-executive': return <GsbExecutiveTemplate {...props} />;
             case 'ivy-elite': return <IvyEliteTemplate {...props} />;
@@ -200,11 +208,10 @@ const TemplateCard: React.FC<{id: TemplateId, name: string, category: string, is
                  </div>
             </div>
             <div className={`p-3 rounded-xl border-2 transition-all h-full flex flex-col ${isSelected ? 'border-primary shadow-lg ring-2 ring-primary/20 bg-primary/5' : 'border-gray-200 bg-white hover:border-primary/50 hover:shadow-md'}`}>
-                <div ref={thumbFit.ref} className="bg-gray-100 h-48 rounded-lg flex items-center justify-center text-gray-400 overflow-hidden relative border border-gray-200 mb-3">
-                    {/* Scaled to the card's real width instead of a fixed 0.25,
-                        so the top of the CV is framed the same in every column.
-                        The old -translate-y-[15%] was compensating for the
-                        mismatch and is no longer needed. */}
+                {/* aspect-[210/297] (A4) instead of a fixed height crop, so the
+                    whole page is always visible — a fixed px height showed only
+                    the top ~30-40% on a narrow single-column mobile card. */}
+                <div ref={thumbFit.ref} className="bg-gray-100 aspect-[210/297] rounded-lg flex items-center justify-center text-gray-400 overflow-hidden relative border border-gray-200 mb-3">
                     <div
                         className="absolute top-0 left-0 w-[794px] origin-top-left pointer-events-none bg-white"
                         style={{ transform: `scale(${thumbFit.scale})` }}
@@ -213,9 +220,15 @@ const TemplateCard: React.FC<{id: TemplateId, name: string, category: string, is
                     </div>
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors"></div>
                 </div>
-                <div className="flex justify-between items-center mt-auto">
-                    <p className={`font-bold text-sm ${isSelected ? 'text-primary' : 'text-gray-700'}`}>{name}</p>
-                    <span className="text-[10px] font-semibold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md uppercase tracking-wider">{category}</span>
+                <div className="flex justify-between items-center mt-auto gap-2">
+                    {/* Selection also reads here, not just the top-corner badge —
+                        the card is now a full A4 page tall, so a checkmark fixed
+                        to the top can be scrolled out of view when you tap. */}
+                    <p className={`flex items-center gap-1.5 font-bold text-sm ${isSelected ? 'text-primary' : 'text-gray-700'}`}>
+                        {isSelected && <Check size={14} strokeWidth={3} className="shrink-0" />}
+                        {name}
+                    </p>
+                    <span className="text-[10px] font-semibold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0">{category}</span>
                 </div>
             </div>
         </div>
@@ -242,6 +255,7 @@ const atsFonts = [
 const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDOCX, onOpenVersions, versionsEnabled, selectedTemplate, onTemplateChange, formData, onOpenAtsModal, visibleSections, settings, onSettingsChange }) => {
     const [activeTab, setActiveTab] = useState<Tab>('templates');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
+    const isMobileShell = useMobileShell();
 
     const colors = [
         { hex: '#ff6b4a', name: 'Coral' },
@@ -345,10 +359,9 @@ const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDO
                                      id={t.id as TemplateId} 
                                      name={t.name} 
                                      category={t.category}
-                                     isSelected={selectedTemplate === t.id} 
-                                     onClick={onTemplateChange} 
-                                     formData={formData} 
-                                     visibleSections={visibleSections} 
+                                     isSelected={selectedTemplate === t.id}
+                                     onClick={onTemplateChange}
+                                     visibleSections={visibleSections}
                                      settings={settings} 
                                  />
                              ))}
@@ -356,99 +369,121 @@ const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDO
                     </div>
                 )}
                  {activeTab === 'ats' && (
-                    <div className="animate-fade-in max-w-2xl mx-auto text-center py-8">
-                        <div className="bg-blue-50 rounded-2xl p-8 border border-blue-100 mb-8">
-                            <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center mx-auto mb-4 shadow-sm text-secondary">
-                                <span className="material-symbols-outlined text-3xl">document_scanner</span>
+                    <div className="animate-fade-in mx-auto max-w-2xl py-4 text-center">
+                        <div className="rounded-2xl border border-border bg-white p-8">
+                            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary-light text-primary-dark">
+                                <ClipboardCheck size={26} strokeWidth={1.75} />
                             </div>
-                            <h3 className="text-2xl font-bold text-dark mb-3">ATS Compliance Check</h3>
-                            <p className="text-gray-600 leading-relaxed mb-6">
+                            <h3 className="mb-3 text-xl font-bold text-dark sm:text-2xl">ATS Compliance Check</h3>
+                            <p className="mb-6 leading-relaxed text-gray-600">
                                 Many companies use Applicant Tracking Systems (ATS) to filter resumes before a human sees them.
                                 Our AI-powered checker analyzes your resume for readability, keyword optimization, and formatting issues.
                             </p>
                             <button
                                 type="button"
-                                className="px-8 py-3 rounded-lg font-bold cursor-pointer transition-all bg-secondary text-white shadow-lg shadow-secondary/20 hover:bg-blue-600 hover:-translate-y-0.5"
                                 onClick={onOpenAtsModal}
+                                className="tap-target mx-auto flex items-center justify-center gap-2 rounded-xl bg-primary px-8 text-[15px] font-bold text-white transition active:scale-[0.98]"
                             >
+                                <ScanLine size={18} strokeWidth={2} />
                                 Run Free Scan
                             </button>
                         </div>
                     </div>
                 )}
                 {activeTab === 'formatting' && (
-                    <div className="animate-fade-in grid grid-cols-1 gap-8">
+                    <div className="animate-fade-in grid grid-cols-1 gap-6">
                         <p className="text-gray-500 text-sm italic">These settings apply to all templates automatically.</p>
-                        
+
                         {/* Colors */}
-                        <div className="p-6 border border-border rounded-2xl bg-white shadow-sm">
-                            <h4 className="font-bold text-gray-800 text-sm uppercase tracking-wide mb-4 flex items-center gap-2">
-                                <span className="material-symbols-outlined text-primary text-lg">palette</span>
+                        <div className="rounded-2xl border border-border bg-white p-5 sm:p-6">
+                            <h4 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-800">
+                                <Palette size={17} strokeWidth={1.75} className="text-primary" />
                                 Accent Color
                             </h4>
                              <div className="flex flex-wrap gap-3">
                                 {colors.map((color) => (
-                                    <button 
-                                        key={color.hex} 
+                                    <button
+                                        key={color.hex}
                                         onClick={() => onSettingsChange(prev => ({ ...prev, themeColor: color.hex }))}
-                                        className={`w-12 h-12 rounded-full cursor-pointer transition-transform hover:scale-110 flex items-center justify-center relative shadow-sm border-2 ${settings.themeColor === color.hex ? 'border-gray-400 scale-110' : 'border-transparent'}`}
+                                        aria-label={color.name}
+                                        className={`tap-target relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 transition-transform active:scale-95 ${settings.themeColor === color.hex ? 'border-gray-400 scale-110' : 'border-transparent'}`}
                                         style={{ backgroundColor: color.hex }}
-                                        title={color.name}
                                     >
                                         {settings.themeColor === color.hex && (
-                                            <span className="material-symbols-outlined text-white text-xl drop-shadow-md">check</span>
+                                            <Check size={18} strokeWidth={3} className="text-white drop-shadow" />
                                         )}
                                     </button>
                                 ))}
                              </div>
+                             <p className="mt-3 text-xs font-semibold text-gray-500">
+                                {colors.find(c => c.hex === settings.themeColor)?.name ?? 'Custom'}
+                             </p>
                         </div>
 
-                        {/* Typography Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Typography */}
+                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             {/* Font Family */}
-                            <div className="p-6 border border-border rounded-2xl bg-white shadow-sm">
-                                <h4 className="font-bold text-gray-800 text-sm uppercase tracking-wide mb-4 flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-primary text-lg">font_download</span>
+                            <div className="rounded-2xl border border-border bg-white p-5 sm:p-6">
+                                <h4 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-800">
+                                    <Type size={17} strokeWidth={1.75} className="text-primary" />
                                     Typography
                                 </h4>
-                                 <div className="grid grid-cols-2 gap-2 max-h-[240px] overflow-y-auto custom-scrollbar pr-2">
+                                 <div className="custom-scrollbar grid max-h-[240px] grid-cols-2 gap-2 overflow-y-auto pr-2">
                                      {atsFonts.map((font) => (
-                                         <button 
+                                         <button
                                             key={font.name}
                                             onClick={() => onSettingsChange(prev => ({ ...prev, fontFamily: font.value }))}
-                                            className={`p-3 rounded-lg border text-left transition-all group ${settings.fontFamily === font.value ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                                            className={`tap-target rounded-lg border p-3 text-left transition-all ${settings.fontFamily === font.value ? 'border-primary bg-primary/5' : 'border-gray-200 active:bg-gray-50'}`}
                                          >
-                                             <span className="block font-bold text-dark text-sm mb-0.5" style={{fontFamily: font.value}}>{font.name}</span>
-                                             <span className="text-[10px] text-gray-400 uppercase tracking-wider group-hover:text-gray-500">{font.type}</span>
+                                             <span className="mb-0.5 block truncate text-sm font-bold text-dark" style={{fontFamily: font.value}}>{font.name}</span>
+                                             <span className="text-[10px] uppercase tracking-wider text-gray-400">{font.type}</span>
                                          </button>
                                      ))}
                                  </div>
                             </div>
 
                             {/* Font Size */}
-                            <div className="p-6 border border-border rounded-2xl bg-white shadow-sm">
-                                <h4 className="font-bold text-gray-800 text-sm uppercase tracking-wide mb-4 flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-primary text-lg">format_size</span>
+                            <div className="rounded-2xl border border-border bg-white p-5 sm:p-6">
+                                <h4 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-800">
+                                    <Ruler size={17} strokeWidth={1.75} className="text-primary" />
                                     Text Size
                                 </h4>
-                                 <div className="flex flex-col gap-3">
+                                 <div className="flex flex-col gap-2.5">
                                      {['small', 'medium', 'large'].map((size) => (
-                                         <button 
-                                            key={size} 
+                                         <button
+                                            key={size}
                                             onClick={() => onSettingsChange(prev => ({ ...prev, fontSize: size as 'small' | 'medium' | 'large' }))}
-                                            className={`flex items-center justify-between p-4 rounded-xl border transition-all ${settings.fontSize === size ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20' : 'border-gray-200 hover:bg-gray-50'}`}
+                                            className={`tap-target flex items-center justify-between rounded-xl border px-4 transition-all ${settings.fontSize === size ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-gray-200 active:bg-gray-50'}`}
                                         >
-                                            <span className="capitalize font-semibold text-gray-700">{size}</span>
+                                            <span className="font-semibold capitalize text-gray-700">{size}</span>
                                             <span className={`font-serif text-gray-400 ${size === 'small' ? 'text-xs' : size === 'medium' ? 'text-sm' : 'text-base'}`}>Aa</span>
                                         </button>
                                      ))}
                                  </div>
-                                 <p className="text-xs text-gray-400 mt-4 text-center">Adjusts global text density to fit more or less content.</p>
+                                 <p className="mt-4 text-center text-xs text-gray-400">Adjusts global text density to fit more or less content.</p>
                             </div>
                         </div>
                     </div>
                 )}
             </div>
+
+            {/* This screen has its own tab strip (Templates/Formatting/ATS/Download)
+                instead of the usual FormActions, so on mobile there was never a
+                persistent affordance telling you what to do next once you'd picked
+                a template. The Download tab already has its own prominent buttons,
+                so this stays out of the way there. */}
+            {isMobileShell && activeTab !== 'download' && (
+                <StickyActionBar>
+                    <button
+                        type="button"
+                        onClick={onDownloadPDF}
+                        className="tap-target flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-[15px] font-bold text-white shadow-sm transition active:scale-[0.98]"
+                    >
+                        <Download size={16} strokeWidth={2} />
+                        Download PDF
+                    </button>
+                </StickyActionBar>
+            )}
         </>
     );
 };

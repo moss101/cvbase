@@ -22,6 +22,13 @@ export const NAV_SECTIONS: { id: SectionId; name: string; optional?: boolean }[]
     { id: 'finalize', name: 'Finalize & Download' },
 ];
 
+/** NAV_SECTIONS filtered to what's actually shown for a given resume: required
+ *  sections plus whichever optional ones the user has turned on. Shared by the
+ *  sidebar, the mobile sections sheet, the mobile progress bar, and the
+ *  "next section" step logic — one filter, one order, everywhere. */
+export const getVisibleNavSections = (visibleSections: SectionId[]) =>
+    NAV_SECTIONS.filter((section) => !section.optional || visibleSections.includes(section.id));
+
 export const INITIAL_STATE: ResumeData = {
     contact: {
         firstName: '',

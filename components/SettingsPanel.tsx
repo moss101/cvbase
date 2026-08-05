@@ -197,7 +197,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                             <p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink-faint">
                                 Text size
                             </p>
-                            <div role="radiogroup" aria-label="Text size" className="grid grid-cols-4 gap-2">
+                            <div role="radiogroup" aria-label="Text size" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                                 {TEXT_SCALES.map((scale) => {
                                     const active = scale === textScale;
                                     return (
