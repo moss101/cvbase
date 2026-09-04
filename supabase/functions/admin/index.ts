@@ -1,6 +1,10 @@
 import { getUser, serviceClient } from '../_shared/auth.ts';
 import { handleOptions } from '../_shared/cors.ts';
 import { fail, HttpError, ok } from '../_shared/respond.ts';
+import { aggregateLlmCalls, type LlmCallRow } from './llmStats.ts';
+import { maskKey, maskProviderRow } from './mask.ts';
+import { isProviderId } from './providerId.ts';
+import { pageParams, parseAdminRoute, userSearchFilter } from './routes.ts';
 
 /**
  * Admin API — the only server-side surface the admin panel talks to.
@@ -14,13 +18,18 @@ import { fail, HttpError, ok } from '../_shared/respond.ts';
  * policies, so PostgREST cannot read it at all; this function reads it with the
  * service role and returns masked previews. A key can be written and replaced
  * from the panel, but never read back.
+ *
+ * The ops routes (`ops/*`, `users/<id>/usage`) are read-only. They return
+ * operational metadata — counts, latencies, statuses — and never user content:
+ * no CV text, no JD text, no prompts. Reads of user data are audited too, so
+ * the trail shows who looked at whom, not only who changed what.
  */
 
-/** Shows enough of a key to recognise it, never enough to use it. */
-function maskKey(key: string): string {
-  if (key.length <= 8) return '••••';
-  return `${key.slice(0, 4)}••••${key.slice(-4)}`;
-}
+/** Responses carry GET as well as the shared POST-only default. */
+const ADMIN_CORS = { 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' };
+
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
 
 interface AdminActor {
   id: string;
@@ -79,16 +88,19 @@ async function listProviders() {
   if (error) throw new HttpError(500, 'providers_read_failed');
 
   // Replace the key array with counts + masked previews before it leaves here.
-  return (data ?? []).map((row) => {
-    const keys: string[] = Array.isArray(row.api_keys) ? row.api_keys : [];
-    const { api_keys: _dropped, ...rest } = row;
-    return { ...rest, key_count: keys.length, key_previews: keys.map(maskKey) };
-  });
+  return (data ?? []).map(maskProviderRow);
+}
+
+/** `provider_id` must be a member of the `ProviderId` union the router knows. */
+function requireProviderId(raw: unknown): string {
+  const providerId = String(raw ?? '').trim();
+  if (!providerId) throw new HttpError(400, 'provider_id_required');
+  if (!isProviderId(providerId)) throw new HttpError(400, 'invalid_provider_id');
+  return providerId;
 }
 
 async function upsertProvider(actor: AdminActor, body: Record<string, unknown>) {
-  const providerId = String(body.provider_id ?? '').trim();
-  if (!providerId) throw new HttpError(400, 'provider_id_required');
+  const providerId = requireProviderId(body.provider_id);
 
   const patch: Record<string, unknown> = {
     provider_id: providerId,
@@ -132,8 +144,8 @@ async function upsertProvider(actor: AdminActor, body: Record<string, unknown>) 
   return data;
 }
 
-async function deleteProvider(actor: AdminActor, providerId: string) {
-  if (!providerId) throw new HttpError(400, 'provider_id_required');
+async function deleteProvider(actor: AdminActor, rawProviderId: unknown) {
+  const providerId = requireProviderId(rawProviderId);
   const { error } = await serviceClient()
     .from('llm_providers')
     .delete()
@@ -143,15 +155,165 @@ async function deleteProvider(actor: AdminActor, providerId: string) {
   return { deleted: providerId };
 }
 
-async function listUsers(limit: number, offset: number) {
+const USER_COLUMNS = 'id, email, first_name, last_name, is_admin, created_at';
+
+async function listUsers(actor: AdminActor, q: string, limit: number, offset: number) {
   const svc = serviceClient();
-  const { data, error, count } = await svc
+  const filter = userSearchFilter(q);
+  let query = svc
     .from('profiles')
-    .select('id, email, first_name, last_name, is_admin, created_at', { count: 'exact' })
+    .select(USER_COLUMNS, { count: 'exact' });
+  if (filter?.column === 'id') query = query.eq('id', filter.value);
+  else if (filter) query = query.ilike('email', filter.pattern);
+
+  const { data, error, count } = await query
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
   if (error) throw new HttpError(500, 'users_read_failed');
+
+  // Reads of the user list are audited: who searched for what, and how much
+  // came back. The query is an id or an email prefix, never a secret.
+  await audit(actor, 'users.list', 'profiles', '', {
+    q: filter ? q.trim().slice(0, 120) : '',
+    match: filter?.column ?? null,
+    limit,
+    offset,
+    returned: data?.length ?? 0,
+  });
   return { users: data ?? [], total: count ?? 0 };
+}
+
+/**
+ * One user's footprint: plan, monthly counters, resume count, PRISM run and
+ * AI-call tallies. Everything here is a number or a status — the CV/JD text
+ * that PRISM runs carry is never selected.
+ */
+async function getUserUsage(actor: AdminActor, userId: string) {
+  const svc = serviceClient();
+  const since30d = new Date(Date.now() - 30 * DAY_MS).toISOString();
+
+  const [profile, subscription, counters, resumes, runs, aiLogs] = await Promise.all([
+    svc.from('profiles').select(USER_COLUMNS).eq('id', userId).maybeSingle(),
+    svc
+      .from('subscriptions')
+      .select('plan_id, status, cycle, current_period_end, cancel_at_period_end')
+      .eq('user_id', userId)
+      .maybeSingle(),
+    svc
+      .from('usage_counters')
+      .select('month, ats_scans, ai_actions')
+      .eq('user_id', userId)
+      .order('month', { ascending: false })
+      .limit(6),
+    svc.from('resumes').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    svc
+      .from('prism_runs')
+      .select('status, tokens_used, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(200),
+    svc
+      .from('ai_logs')
+      .select('function, status')
+      .eq('user_id', userId)
+      .gte('created_at', since30d)
+      .limit(1000),
+  ]);
+
+  if (profile.error) throw new HttpError(500, 'users_read_failed');
+  if (!profile.data) throw new HttpError(404, 'user_not_found');
+
+  const runRows = (runs.data ?? []) as { status: string; tokens_used: number | null; created_at: string }[];
+  const prism = { total: runRows.length, completed: 0, failed: 0, tokens: 0, last_at: runRows[0]?.created_at ?? null };
+  for (const r of runRows) {
+    if (r.status === 'completed' || r.status === 'review') prism.completed += 1;
+    if (r.status === 'failed') prism.failed += 1;
+    prism.tokens += Number(r.tokens_used) || 0;
+  }
+
+  const byFunction = new Map<string, { calls: number; errors: number }>();
+  for (const row of (aiLogs.data ?? []) as { function: string; status: string | null }[]) {
+    const b = byFunction.get(row.function) ?? { calls: 0, errors: 0 };
+    b.calls += 1;
+    if (row.status && row.status !== 'ok' && row.status !== 'success') b.errors += 1;
+    byFunction.set(row.function, b);
+  }
+
+  await audit(actor, 'users.usage', 'profiles', userId);
+
+  return {
+    user: profile.data,
+    subscription: subscription.data ?? null,
+    usage: counters.data ?? [],
+    resumes: resumes.count ?? 0,
+    prism,
+    ai_calls_30d: [...byFunction.entries()]
+      .map(([fn, b]) => ({ function: fn, ...b }))
+      .sort((a, b) => b.calls - a.calls),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Ops — read-only operational views.
+// ---------------------------------------------------------------------------
+
+async function listAlerts(limit: number) {
+  const { data, error } = await serviceClient()
+    .from('ops_alerts')
+    .select('id, kind, observed, threshold, detail, created_at')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw new HttpError(500, 'alerts_read_failed');
+  return data ?? [];
+}
+
+/** Rows in the 24h window are capped; past the cap the aggregate is a sample. */
+const LLM_WINDOW_ROWS = 5000;
+const LLM_RECENT_ROWS = 50;
+
+async function getLlmCalls() {
+  const since = new Date(Date.now() - DAY_MS).toISOString();
+  const { data, error } = await serviceClient()
+    .from('llm_call_logs')
+    .select('id, provider, model, status, latency_ms, tokens, used_fallback, fallback_reason, key_slot, created_at')
+    .gte('created_at', since)
+    .order('created_at', { ascending: false })
+    .limit(LLM_WINDOW_ROWS);
+  if (error) throw new HttpError(500, 'llm_calls_read_failed');
+
+  const rows = (data ?? []) as (LlmCallRow & { id: string })[];
+  return {
+    window_hours: 24,
+    since,
+    sampled: rows.length,
+    truncated: rows.length >= LLM_WINDOW_ROWS,
+    providers: aggregateLlmCalls(rows),
+    recent: rows.slice(0, LLM_RECENT_ROWS),
+  };
+}
+
+async function listPrismRuns(limit: number) {
+  const svc = serviceClient();
+  const since = new Date(Date.now() - DAY_MS).toISOString();
+  const [runs, total, failed] = await Promise.all([
+    svc
+      .from('prism_runs')
+      // Metadata only — jd_text / cv_text / result are personal content.
+      .select('id, user_id, status, template_id, tokens_used, error_code, created_at, updated_at')
+      .order('created_at', { ascending: false })
+      .limit(limit),
+    svc.from('prism_runs').select('id', { count: 'exact', head: true }).gte('updated_at', since),
+    svc
+      .from('prism_runs')
+      .select('id', { count: 'exact', head: true })
+      .gte('updated_at', since)
+      .eq('status', 'failed'),
+  ]);
+  if (runs.error) throw new HttpError(500, 'prism_runs_read_failed');
+  return {
+    runs: runs.data ?? [],
+    last_24h: { total: total.count ?? 0, failed: failed.count ?? 0 },
+  };
 }
 
 async function getStats() {
@@ -189,35 +351,44 @@ Deno.serve(async (req: Request) => {
   try {
     const actor = await requireAdmin(req);
     const url = new URL(req.url);
-    // Everything after /admin — the function name itself is stripped.
-    const route = url.pathname.replace(/^\/admin\/?/, '').replace(/\/+$/, '');
+    const route = parseAdminRoute(req.method, url.pathname);
+    if (!route) throw new HttpError(404, 'unknown_admin_route');
+
+    const params = url.searchParams;
     const body = req.method === 'POST'
       ? ((await req.json().catch(() => ({}))) as Record<string, unknown>)
       : {};
 
-    switch (`${req.method} ${route}`) {
-      case 'GET stats':
-        return ok(await getStats());
-      case 'GET providers':
-        return ok(await listProviders());
-      case 'POST providers':
-        return ok(await upsertProvider(actor, body));
-      case 'POST providers/delete':
-        return ok(await deleteProvider(actor, String(body.provider_id ?? '')));
-      case 'GET users':
-        return ok(
-          await listUsers(
-            Math.min(Number(url.searchParams.get('limit')) || 50, 200),
-            Number(url.searchParams.get('offset')) || 0,
-          ),
-        );
-      case 'GET audit':
-        return ok(await listAudit(Math.min(Number(url.searchParams.get('limit')) || 100, 500)));
-      default:
-        throw new HttpError(404, 'unknown_admin_route');
-    }
+    const data = await (async () => {
+      switch (route.kind) {
+        case 'stats':
+          return getStats();
+        case 'providers.list':
+          return listProviders();
+        case 'providers.upsert':
+          return upsertProvider(actor, body);
+        case 'providers.delete':
+          return deleteProvider(actor, body.provider_id);
+        case 'users.list': {
+          const { limit, offset } = pageParams(params, { limit: 50, max: 200 });
+          return listUsers(actor, params.get('q') ?? '', limit, offset);
+        }
+        case 'users.usage':
+          return getUserUsage(actor, route.userId);
+        case 'audit.list':
+          return listAudit(pageParams(params, { limit: 100, max: 500 }).limit);
+        case 'ops.alerts':
+          return listAlerts(pageParams(params, { limit: 50, max: 200 }).limit);
+        case 'ops.llmCalls':
+          return getLlmCalls();
+        case 'ops.prismRuns':
+          return listPrismRuns(pageParams(params, { limit: 50, max: 200 }).limit);
+      }
+    })();
+
+    return ok(data, { headers: ADMIN_CORS });
   } catch (err) {
-    return fail(err);
+    return fail(err, { headers: ADMIN_CORS });
   }
 });
 

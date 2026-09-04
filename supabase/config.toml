@@ -289,6 +289,11 @@ enabled = false
 # Stripe webhook signature instead.
 verify_jwt = false
 
+[functions.health]
+# Unauthenticated uptime probe: GET /health -> { ok, version, db, llm, ts }.
+# It returns no secrets and no error detail, only a status and a provider count.
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 # Configure one of the supported request policies: `oneshot`, `per_worker`.

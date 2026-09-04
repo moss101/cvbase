@@ -1,4 +1,4 @@
-import type { ProviderCall, ProviderCallOpts, ProviderCallResult } from '../types.ts';
+import type { ProviderCall, ProviderCallOpts, ProviderCallResult, ProviderId } from '../types.ts';
 import { ProviderError, type FailureKind } from '../errors.ts';
 
 /**
@@ -47,7 +47,14 @@ interface AnthropicResponse {
   usage?: { input_tokens?: number; output_tokens?: number };
 }
 
-export function anthropicCall(baseUrl: string): ProviderCall {
+/**
+ * @param baseUrl  host root; `/v1/messages` is appended here.
+ * @param provider the configured provider id to report in errors — `anthropic`
+ *   by default, but a `custom` (or aggregator) row with `dialect = anthropic`
+ *   passes its own id so logs and fallback reasons name the row, not the
+ *   wire format.
+ */
+export function anthropicCall(baseUrl: string, provider: ProviderId = 'anthropic'): ProviderCall {
   return async (opts: ProviderCallOpts): Promise<ProviderCallResult> => {
     // The router passes system and user turns through one `messages` array;
     // Anthropic wants the system prompt hoisted to a top-level field.
@@ -92,16 +99,16 @@ export function anthropicCall(baseUrl: string): ProviderCall {
       });
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') {
-        throw new ProviderError('anthropic', 'timeout', undefined, `anthropic: request timed out after ${opts.timeoutMs}ms`);
+        throw new ProviderError(provider, 'timeout', undefined, `${provider}: request timed out after ${opts.timeoutMs}ms`);
       }
-      throw new ProviderError('anthropic', 'transient', undefined, `anthropic: network error — ${e instanceof Error ? e.message : String(e)}`);
+      throw new ProviderError(provider, 'transient', undefined, `${provider}: network error — ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       clearTimeout(timer);
     }
 
     if (!res.ok) {
       const errBody = await res.text().catch(() => '');
-      throw new ProviderError('anthropic', statusToKind(res.status), res.status, `anthropic HTTP ${res.status}: ${errBody.slice(0, 500)}`);
+      throw new ProviderError(provider, statusToKind(res.status), res.status, `${provider} HTTP ${res.status}: ${errBody.slice(0, 500)}`);
     }
 
     const json = await res.json() as AnthropicResponse;
@@ -113,7 +120,7 @@ export function anthropicCall(baseUrl: string): ProviderCall {
      */
     if (json.stop_reason === 'refusal') {
       const category = json.stop_details?.category ?? 'unspecified';
-      throw new ProviderError('anthropic', 'invalid_response', res.status, `anthropic: request refused by safety classifier (${category})`);
+      throw new ProviderError(provider, 'invalid_response', res.status, `${provider}: request refused by safety classifier (${category})`);
     }
 
     const blocks = json.content ?? [];
@@ -124,7 +131,7 @@ export function anthropicCall(baseUrl: string): ProviderCall {
       const toolName = opts.tool.name;
       const call = blocks.find((b) => b.type === 'tool_use' && b.name === toolName);
       if (!call) {
-        throw new ProviderError('anthropic', 'invalid_response', res.status, `anthropic: forced tool call did not return a tool_use block (stop_reason=${json.stop_reason ?? 'unknown'})`);
+        throw new ProviderError(provider, 'invalid_response', res.status, `${provider}: forced tool call did not return a tool_use block (stop_reason=${json.stop_reason ?? 'unknown'})`);
       }
       // `input` arrives parsed; the router contract is a raw JSON string.
       return { toolArguments: JSON.stringify(call.input ?? {}), promptTokens, completionTokens };
@@ -136,7 +143,7 @@ export function anthropicCall(baseUrl: string): ProviderCall {
       .join('');
 
     if (!text) {
-      throw new ProviderError('anthropic', 'invalid_response', res.status, `anthropic: no text content in response (stop_reason=${json.stop_reason ?? 'unknown'})`);
+      throw new ProviderError(provider, 'invalid_response', res.status, `${provider}: no text content in response (stop_reason=${json.stop_reason ?? 'unknown'})`);
     }
 
     return { content: text, promptTokens, completionTokens };

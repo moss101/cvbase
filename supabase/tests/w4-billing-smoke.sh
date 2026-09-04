@@ -37,18 +37,46 @@ curl -s -o /dev/null -X PATCH "$API/rest/v1/subscriptions?user_id=eq.$UID" -H "a
 after=$(psql "$PSQL" -tA -c "select coalesce(plan_id,'none') from subscriptions where user_id='$UID';")
 [ "$before" = "$after" ] && ok "client cannot self-upgrade via RLS ($before unchanged)" || bad "RLS let client change plan: $before -> $after"
 
-if [ -n "$WHSEC" ]; then
-  post(){ local ts sig; ts=$(date +%s); sig=$(python3 -c "import hmac,hashlib;p=open('$1','rb').read();print(hmac.new(b'$WHSEC', b'$ts.'+p, hashlib.sha256).hexdigest())"); curl -s -o /dev/null -w "%{http_code}" --max-time 60 -X POST "$API/functions/v1/stripe-webhook" -H "Content-Type: application/json" -H "Stripe-Signature: t=$ts,v1=$sig" --data-binary @"$1"; }
+# server-side resume limit: a free user gets exactly one resume (trigger resumes_enforce_limit)
+ins(){ curl -s -o "$2" -w "%{http_code}" -X POST "$API/rest/v1/resumes" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $T" -H "Content-Type: application/json" -H "Prefer: return=minimal" -d "{\"user_id\":\"$UID\",\"title\":\"$1\"}"; }
+[ "$(ins one /tmp/w4r1.txt)" = "201" ] && ok "free user: first resume insert allowed" || bad "first resume insert refused: $(cat /tmp/w4r1.txt)"
+c=$(ins two /tmp/w4r2.txt); grep -q resume_limit_reached /tmp/w4r2.txt && [ "$c" = "400" ] && ok "free user: second resume refused with resume_limit_reached" || bad "second resume: http $c $(cat /tmp/w4r2.txt | head -c 160)"
 
-  python3 -c "import json;open('/tmp/w4a.json','w').write(json.dumps({'type':'checkout.session.completed','data':{'object':{'client_reference_id':'$UID','customer':'cus_smoke','subscription':'sub_smoke','metadata':{'user_id':'$UID','plan_id':'pro','cycle':'monthly'}}}}))"
-  post /tmp/w4a.json >/dev/null
-  [ "$(psql "$PSQL" -tA -c "select plan_id||'/'||status from subscriptions where user_id='$UID';")" = "pro/active" ] && ok "webhook upgrades subscription to pro/active" || bad "webhook did not set pro/active"
+if [ -n "$WHSEC" ]; then
+  NOW=$(date +%s); PRICE=$(python3 -c "import json;print(json.load(open('config/stripe-prices.json'))['pro:monthly'])")
+  # post <file> -> http code; body saved to /tmp/w4resp.json
+  post(){ local ts sig; ts=$(date +%s); sig=$(python3 -c "import hmac,hashlib;p=open('$1','rb').read();print(hmac.new(b'$WHSEC', b'$ts.'+p, hashlib.sha256).hexdigest())"); curl -s -o /tmp/w4resp.json -w "%{http_code}" --max-time 60 -X POST "$API/functions/v1/stripe-webhook" -H "Content-Type: application/json" -H "Stripe-Signature: t=$ts,v1=$sig" --data-binary @"$1"; }
+  # ev <file> <id> <created> <type> <object-json>
+  ev(){ python3 -c "import json,sys;open('$1','w').write(json.dumps({'id':'$2','created':int('$3'),'type':'$4','data':{'object':json.loads(sys.argv[1])}}))" "$5"; }
+  substate(){ psql "$PSQL" -tA -c "select plan_id||'/'||status||'/'||coalesce(stripe_event_created::text,'-') from subscriptions where user_id='$UID';"; }
+
+  ev /tmp/w4a.json "evt_smoke_a_$NOW" "$NOW" checkout.session.completed "{\"client_reference_id\":\"$UID\",\"customer\":\"cus_smoke\",\"subscription\":\"sub_smoke\",\"metadata\":{\"user_id\":\"$UID\",\"plan_id\":\"pro\",\"cycle\":\"monthly\"}}"
+  [ "$(post /tmp/w4a.json)" = "200" ] && [ "$(substate)" = "pro/active/$NOW" ] && ok "webhook upgrades subscription to pro/active (event_created recorded)" || bad "webhook did not set pro/active: $(substate) $(cat /tmp/w4resp.json)"
   [ "$(linkedin)" != "403" ] && ok "after purchase: ai-linkedin UNLOCKED (entitlement flipped)" || bad "still gated after purchase"
 
-  python3 -c "import json;open('/tmp/w4b.json','w').write(json.dumps({'type':'customer.subscription.deleted','data':{'object':{'id':'sub_smoke','customer':'cus_smoke','status':'canceled','metadata':{'user_id':'$UID'}}}}))"
+  # idempotency: the same event id delivered twice is acknowledged, not re-applied
+  c=$(post /tmp/w4a.json); grep -q '"duplicate":true' /tmp/w4resp.json && [ "$c" = "200" ] && ok "duplicate delivery -> 200 {duplicate:true}" || bad "duplicate delivery: http $c $(cat /tmp/w4resp.json)"
+  [ "$(psql "$PSQL" -tA -c "select count(*) from stripe_events where id='evt_smoke_a_$NOW' and processed_at is not null;")" = "1" ] && ok "stripe_events ledger row marked processed" || bad "stripe_events row missing/unprocessed"
+
+  # dunning: payment_failed -> past_due (plan kept, grace); invoice.paid -> active again
+  ev /tmp/w4f.json "evt_smoke_f_$NOW" "$((NOW+1))" invoice.payment_failed "{\"customer\":\"cus_smoke\",\"subscription\":\"sub_smoke\",\"subscription_details\":{\"metadata\":{\"user_id\":\"$UID\"}},\"lines\":{\"data\":[]}}"
+  post /tmp/w4f.json >/dev/null
+  [ "$(substate)" = "pro/past_due/$((NOW+1))" ] && ok "invoice.payment_failed -> pro/past_due" || bad "payment_failed: $(substate)"
+  ev /tmp/w4p.json "evt_smoke_p_$NOW" "$((NOW+2))" invoice.paid "{\"customer\":\"cus_smoke\",\"subscription\":\"sub_smoke\",\"lines\":{\"data\":[{\"period\":{\"start\":$NOW,\"end\":$((NOW+2592000))}}]}}"
+  post /tmp/w4p.json >/dev/null
+  [ "$(substate)" = "pro/active/$((NOW+2))" ] && ok "invoice.paid (user resolved via stripe_customer_id) -> pro/active" || bad "invoice.paid: $(substate)"
+  [ -n "$(psql "$PSQL" -tA -c "select current_period_end from subscriptions where user_id='$UID' and current_period_end is not null;")" ] && ok "invoice.paid refreshed current_period_end" || bad "period end not refreshed"
+
+  ev /tmp/w4b.json "evt_smoke_b_$NOW" "$((NOW+3))" customer.subscription.deleted "{\"id\":\"sub_smoke\",\"customer\":\"cus_smoke\",\"status\":\"canceled\",\"metadata\":{\"user_id\":\"$UID\"}}"
   post /tmp/w4b.json >/dev/null
-  [ "$(psql "$PSQL" -tA -c "select plan_id from subscriptions where user_id='$UID';")" = "free" ] && ok "cancel reverts subscription to free" || bad "cancel did not revert to free"
+  [ "$(substate)" = "free/canceled/$((NOW+3))" ] && ok "cancel reverts subscription to free" || bad "cancel did not revert to free: $(substate)"
   [ "$(linkedin)" = "403" ] && ok "after cancel: ai-linkedin re-locked (403)" || bad "not re-locked after cancel"
+
+  # out-of-order: a stale 'updated' (created before the delete) must not resurrect the plan
+  ev /tmp/w4s.json "evt_smoke_s_$NOW" "$((NOW-100))" customer.subscription.updated "{\"id\":\"sub_smoke\",\"customer\":\"cus_smoke\",\"status\":\"active\",\"items\":{\"data\":[{\"price\":{\"id\":\"$PRICE\"}}]},\"metadata\":{\"user_id\":\"$UID\"}}"
+  c=$(post /tmp/w4s.json); grep -q '"stale":true' /tmp/w4resp.json && [ "$c" = "200" ] && [ "$(substate)" = "free/canceled/$((NOW+3))" ] && ok "out-of-order stale update ignored -> 200 {stale:true}, still free" || bad "stale update: http $c $(cat /tmp/w4resp.json) state=$(substate)"
+
+  psql "$PSQL" -tA -c "delete from stripe_events where id like 'evt_smoke_%_$NOW';" >/dev/null
 else
   echo "SKIP: STRIPE_WEBHOOK_SECRET empty — set it (stripe listen) to test the reducer + entitlement flip"
 fi

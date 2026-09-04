@@ -106,10 +106,15 @@ Then exercise every path — none of these has run yet:
 
 ## Phase 4 — Edge functions
 
-- [ ] `deno check supabase/functions/admin/index.ts` — CI does not cover it
+- [ ] `deno check --node-modules-dir=none supabase/functions/admin/index.ts supabase/functions/health/index.ts` (also run by CI)
 - [ ] `supabase functions deploy` (all)
 - [ ] Stripe webhook endpoint points at the deployed `stripe-webhook`, and its
-      signing secret matches `STRIPE_WEBHOOK_SECRET`
+      signing secret matches `STRIPE_WEBHOOK_SECRET`; subscribed events:
+      `checkout.session.completed`, `customer.subscription.*` (created/updated/
+      deleted/paused/resumed/trial_will_end), `invoice.paid`, `invoice.payment_failed`
+- [ ] Migrations `20260901100000`–`20260901100200` pushed (`stripe_events`,
+      `apply_stripe_subscription`, resume-limit trigger); optionally
+      `supabase secrets set STRIPE_AUTOMATIC_TAX=1` once Stripe Tax is enabled
 - [ ] **Admin gate probes** — both must hold:
       ```bash
       curl -s -o /dev/null -w '%{http_code}\n' -H "Authorization: Bearer $NON_ADMIN_JWT" "$SUPABASE_URL/functions/v1/admin/providers"
@@ -184,7 +189,16 @@ an address you can read the code from).
 
 - [ ] Error monitoring wired (Sentry or equivalent) — there is none today, so
       right now a production crash is invisible
-- [ ] Uptime check on the site and one edge function
+- [ ] Uptime check on the site and on the health probe:
+      `GET $SUPABASE_URL/functions/v1/health` (deployed with `--no-verify-jwt`;
+      `verify_jwt = false` in `supabase/config.toml`) — `200 { ok: true, db: "ok", llm: N }`
+      when healthy, `503` when the database is unreachable. Alert on non-200
+      and on `llm: 0` (routing has no keyed provider). The admin Overview tab's
+      Health card reads the same URL
+- [ ] `pg_cron` enabled on the hosted project (Dashboard → Database →
+      Extensions) and the three jobs present in `cron.job`
+      (`prism_alert_scan`, `prism_prune_runs`, `ops_prune_logs`) — see
+      docs/ADMIN.md "Scheduled jobs"
 - [ ] Supabase backups on, and a restore actually tested
 - [ ] Rollback rehearsed: web is a host rollback; mobile is a phased release —
       **halt-and-fix, since a bad build cannot be recalled from installed devices**

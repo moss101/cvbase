@@ -11,7 +11,8 @@ import { ProviderError } from './errors.ts';
 // shares one account. Cooldown state is a module-scope in-memory Map —
 // best-effort only, since edge isolates are short-lived: a cold isolate
 // starts with an empty map and simply walks the pool from index 0, which is
-// still correct, just not yet informed by recent failures.
+// still correct, just not yet informed by recent failures. `initKeyHealth`
+// narrows that gap by seeding the map from `llm_key_health` once per isolate.
 // =========================================================================
 
 interface CooldownState {
@@ -30,8 +31,73 @@ function isOnCooldown(provider: ProviderId, index: number): boolean {
   return !!state && state.until > Date.now();
 }
 
-function setCooldown(provider: ProviderId, index: number, ms: number): void {
-  cooldowns.set(cooldownKey(provider, index), { until: Date.now() + ms });
+// ---------------------------------------------------------------------------
+// Optional cross-isolate key health. A cooldown set in one isolate is
+// invisible to the next cold start; persisting it lets a fresh isolate skip
+// a key that is known to be dead. Strictly best-effort: the table may not
+// exist yet, the read may fail, the write may race — none of that can
+// affect a call.
+// ---------------------------------------------------------------------------
+
+// deno-lint-ignore no-explicit-any
+type KeyHealthClient = { from: (t: string) => any };
+
+let healthClient: KeyHealthClient | null = null;
+let healthLoaded: Promise<void> | null = null;
+
+/**
+ * Seeds in-memory cooldowns from `llm_key_health` (rows whose
+ * `cooldown_until` is still in the future) and remembers the client so later
+ * cooldowns are written back. Idempotent — the load happens once per
+ * isolate and later calls resolve immediately. Never rejects.
+ */
+export function initKeyHealth(client: KeyHealthClient): Promise<void> {
+  healthClient = client;
+  if (healthLoaded) return healthLoaded;
+  healthLoaded = (async () => {
+    try {
+      const { data, error } = await client
+        .from('llm_key_health')
+        .select('provider_id, key_index, cooldown_until')
+        .gt('cooldown_until', new Date().toISOString());
+      if (error || !Array.isArray(data)) return;
+      for (const row of data as Record<string, unknown>[]) {
+        const provider = row?.provider_id;
+        const index = row?.key_index;
+        const until = typeof row?.cooldown_until === 'string' ? Date.parse(row.cooldown_until) : NaN;
+        if (typeof provider !== 'string' || typeof index !== 'number' || !Number.isFinite(until)) continue;
+        if (until > Date.now()) cooldowns.set(cooldownKey(provider as ProviderId, index), { until });
+      }
+    } catch {
+      // A missing table or a transient read failure just means "start cold".
+    }
+  })();
+  return healthLoaded;
+}
+
+function persistCooldown(provider: ProviderId, index: number, until: number, reason: string): void {
+  if (!healthClient) return;
+  try {
+    const p = healthClient
+      .from('llm_key_health')
+      .upsert({
+        provider_id: provider,
+        key_index: index,
+        cooldown_until: new Date(until).toISOString(),
+        reason,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'provider_id,key_index' });
+    // PostgREST builders are thenables; swallow whatever they settle to.
+    Promise.resolve(p).then(() => {}, () => {});
+  } catch {
+    // never let the health write affect the call
+  }
+}
+
+function setCooldown(provider: ProviderId, index: number, ms: number, reason: string): void {
+  const until = Date.now() + ms;
+  cooldowns.set(cooldownKey(provider, index), { until });
+  if (ms > 0) persistCooldown(provider, index, until, reason);
 }
 
 function rotationOrder(provider: ProviderId, poolSize: number): number[] {
@@ -41,6 +107,7 @@ function rotationOrder(provider: ProviderId, poolSize: number): number[] {
 }
 
 function sleep(ms: number): Promise<void> {
+  if (ms <= 0) return Promise.resolve();
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -52,10 +119,30 @@ function toProviderError(provider: ProviderId, e: unknown): ProviderError {
   return new ProviderError(provider, 'unknown', undefined, e instanceof Error ? e.message : String(e));
 }
 
+export const DEFAULT_BACKOFF_BASE_MS = 800;
+export const MAX_BACKOFF_MS = 10_000;
+
+/**
+ * Full-jitter exponential backoff: `base * 2^retry * U(0.5, 1.5)`, capped at
+ * MAX_BACKOFF_MS. `retry` is 0 for the wait before the first retry. Jitter
+ * matters here because a provider-wide 503 hits every warm isolate at once;
+ * without it they all retry in lockstep. `rand` is injectable for tests.
+ */
+export function backoffDelayMs(retry: number, baseMs: number = DEFAULT_BACKOFF_BASE_MS, rand: () => number = Math.random): number {
+  if (baseMs <= 0) return 0;
+  const raw = baseMs * Math.pow(2, Math.max(0, retry));
+  const jittered = raw * (0.5 + rand());
+  return Math.round(Math.min(MAX_BACKOFF_MS, jittered));
+}
+
 export interface KeyPoolConfig {
+  /** Retries per key AFTER the first attempt, for transient errors only.
+   *  `2` = 2 retries = 3 attempts. `0` disables retrying. */
   retriesPerKey: number;
   rateLimitCooldownMs: number;
   badKeyCooldownMs: number;
+  /** Base for `backoffDelayMs`; defaults to 800ms. `0` disables the sleep. */
+  backoffBaseMs?: number;
 }
 
 export interface KeyPoolCallResult {
@@ -65,10 +152,10 @@ export interface KeyPoolCallResult {
 
 /**
  * Tries every key in the pool (round-robin start, cooldown-skipped) before
- * giving up. Per key: a bounded transient-error retry (`retriesPerKey`,
- * 800ms*attempt backoff — ported from the old gemini.ts withRetry) — auth/
- * balance/rate_limit errors rotate to the next key immediately instead of
- * retrying the same one, since retrying won't help within this call. Only
+ * giving up. Per key: the first attempt plus a bounded transient-error retry
+ * budget (`retriesPerKey`, jittered exponential backoff between attempts) —
+ * auth/balance/rate_limit errors rotate to the next key immediately instead
+ * of retrying the same one, since retrying won't help within this call. Only
  * once every key has been tried (and, for transient errors, retried its
  * budget) does this throw — the router treats that as "pool exhausted" and
  * moves to the fallback provider. This is what prevents falling back on the
@@ -86,12 +173,13 @@ export async function callWithKeyPool(
     throw new ProviderError(provider, 'auth', undefined, `${provider}: no API keys configured`);
   }
   const order = rotationOrder(provider, apiKeys.length);
+  const maxAttempts = 1 + Math.max(0, Math.floor(cfg.retriesPerKey));
+  const backoffBase = cfg.backoffBaseMs ?? DEFAULT_BACKOFF_BASE_MS;
   let lastErr: ProviderError | undefined;
 
   for (const index of order) {
     if (isOnCooldown(provider, index)) continue;
     const opts = makeCallOpts(apiKeys[index]);
-    const maxAttempts = Math.max(1, cfg.retriesPerKey);
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
@@ -101,17 +189,17 @@ export async function callWithKeyPool(
         const err = toProviderError(provider, e);
         lastErr = err;
         if (err.kind === 'auth' || err.kind === 'balance') {
-          setCooldown(provider, index, cfg.badKeyCooldownMs);
+          setCooldown(provider, index, cfg.badKeyCooldownMs, err.kind);
           break;
         }
         if (err.kind === 'rate_limit') {
-          setCooldown(provider, index, cfg.rateLimitCooldownMs);
+          setCooldown(provider, index, cfg.rateLimitCooldownMs, err.kind);
           break;
         }
         // transient / timeout / invalid_response / unknown: bounded retry
         // on this same key before moving on to the next one.
         if (attempt === maxAttempts - 1) break;
-        await sleep(800 * (attempt + 1));
+        await sleep(backoffDelayMs(attempt, backoffBase));
       }
     }
   }
@@ -119,10 +207,12 @@ export async function callWithKeyPool(
   throw lastErr ?? new ProviderError(provider, 'unknown', undefined, `${provider}: key pool exhausted`);
 }
 
-/** Test-only: clears module-scope cooldown/cursor state so tests don't leak
- *  round-robin position or cooldowns across cases. Not used by production
- *  code paths. */
+/** Test-only: clears module-scope cooldown/cursor/health state so tests
+ *  don't leak round-robin position or cooldowns across cases. Not used by
+ *  production code paths. */
 export function _resetKeyPoolStateForTests(): void {
   cooldowns.clear();
   cursors.clear();
+  healthClient = null;
+  healthLoaded = null;
 }
