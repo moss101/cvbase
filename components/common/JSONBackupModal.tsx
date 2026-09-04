@@ -3,6 +3,7 @@ import type { ResumeData } from '../../types';
 import { useDialog } from '../../lib/useDialog';
 import { DatabaseBackup, CircleCheck, CircleAlert, Download, FileUp, Eye, TriangleAlert } from 'lucide-react';
 import { useTranslation } from '../../services/translationService';
+import { saveFile } from '../../lib/export/saveFile';
 
 interface JSONBackupModalProps {
     isOpen: boolean;
@@ -27,19 +28,17 @@ export const JSONBackupModal: React.FC<JSONBackupModalProps> = ({
 
     if (!isOpen) return null;
 
-    // Direct JSON file download for exports
-    const handleExport = () => {
+    // JSON file export — routed through saveFile so it also works inside the
+    // native Capacitor WebView (a plain anchor/data-URI download is a no-op
+    // there; saveFile falls back to Filesystem + the system Share sheet).
+    const handleExport = async () => {
         try {
             const dataStr = JSON.stringify(currentData, null, 4);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
+            const blob = new Blob([dataStr], { type: 'application/json' });
             const exportFileDefaultName = `cvbase_backup_${new Date().toISOString().slice(0, 10)}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
+
+            await saveFile({ blob, filename: exportFileDefaultName, mimeType: 'application/json' });
+
             setSuccessMessage(t('jsonBackup.exportSuccess', 'Resume data successfully exported to JSON!'));
             setTimeout(() => setSuccessMessage(null), 3000);
         } catch (err) {
