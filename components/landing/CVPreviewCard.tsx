@@ -1,12 +1,17 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { useTranslation } from '../../services/translationService';
 
 /**
  * A realistic miniature resume used as the hero visual.
  * Pure presentational markup — intentionally not driven by ResumeData
  * so the hero stays lightweight and loads instantly.
+ * The sample person's details (name, titles, employers, degree, skills)
+ * are mock example content, not translated — same treatment as exampleData.ts.
+ * Only the surrounding chrome labels are translated.
  */
 const CVPreviewCard: React.FC = () => {
+    const { t } = useTranslation();
     return (
         <div className="relative" aria-hidden="true">
             {/* Back sheet peeking out, like a second page on the desk */}
@@ -48,7 +53,7 @@ const CVPreviewCard: React.FC = () => {
                     <div className="px-7 py-6 space-y-5">
                         {/* Profile — one line "being written" by the AI */}
                         <section>
-                            <h3 className="font-label text-[0.6rem] tracking-[0.2em] text-ink-faint uppercase mb-2">Profile</h3>
+                            <h3 className="font-label text-[0.6rem] tracking-[0.2em] text-ink-faint uppercase mb-2">{t('landing.cvPreview.profile', 'Profile')}</h3>
                             <div className="space-y-1.5">
                                 <div className="h-1.5 rounded-full bg-ink/[0.12] w-full" />
                                 <div className="h-1.5 rounded-full bg-ink/[0.12] w-[92%]" />
@@ -61,7 +66,7 @@ const CVPreviewCard: React.FC = () => {
 
                         {/* Experience — first bullet underlined in red like an editor's pick */}
                         <section>
-                            <h3 className="font-label text-[0.6rem] tracking-[0.2em] text-ink-faint uppercase mb-2.5">Experience</h3>
+                            <h3 className="font-label text-[0.6rem] tracking-[0.2em] text-ink-faint uppercase mb-2.5">{t('landing.cvPreview.experience', 'Experience')}</h3>
                             <div className="space-y-3.5">
                                 <div className="flex gap-3">
                                     <span className="mt-1 shrink-0 w-2 h-2 rounded-full bg-ember" />
@@ -100,7 +105,7 @@ const CVPreviewCard: React.FC = () => {
 
                         {/* Skills */}
                         <section>
-                            <h3 className="font-label text-[0.6rem] tracking-[0.2em] text-ink-faint uppercase mb-2">Skills</h3>
+                            <h3 className="font-label text-[0.6rem] tracking-[0.2em] text-ink-faint uppercase mb-2">{t('landing.cvPreview.skills', 'Skills')}</h3>
                             <div className="flex flex-wrap gap-1.5">
                                 {['Product Strategy', 'Roadmapping', 'SQL', 'A/B Testing', 'Figma'].map((skill) => (
                                     <span key={skill} className="px-2.5 py-1 rounded-md bg-paper-deep border border-ink/[0.07] text-ink-soft text-[0.66rem] font-semibold">
@@ -112,7 +117,7 @@ const CVPreviewCard: React.FC = () => {
 
                         {/* Education */}
                         <section>
-                            <h3 className="font-label text-[0.6rem] tracking-[0.2em] text-ink-faint uppercase mb-2">Education</h3>
+                            <h3 className="font-label text-[0.6rem] tracking-[0.2em] text-ink-faint uppercase mb-2">{t('landing.cvPreview.education', 'Education')}</h3>
                             <div className="flex items-baseline justify-between gap-2">
                                 <p className="text-[0.78rem] font-semibold text-ink">BSc Business & Economics · UCL</p>
                                 <p className="font-label text-[0.6rem] text-ink-faint shrink-0">2014 – 2018</p>
@@ -131,7 +136,7 @@ const CVPreviewCard: React.FC = () => {
                 className="absolute -right-2 sm:-right-7 top-[4.5rem] select-none"
             >
                 <span className="block px-4 py-2 rounded-md border-[2.5px] border-ember/80 text-ember/90 font-label font-semibold text-[0.78rem] tracking-[0.28em] uppercase bg-paper-bright/40 backdrop-blur-[1px] shadow-[0_8px_20px_-8px_rgba(200,68,44,0.4)]">
-                    Shortlisted
+                    {t('landing.cvPreview.shortlisted', 'Shortlisted')}
                 </span>
             </motion.div>
 
@@ -156,8 +161,8 @@ const CVPreviewCard: React.FC = () => {
                     <span className="absolute inset-0 grid place-items-center font-label text-[0.72rem] font-semibold text-ink">94</span>
                 </div>
                 <div>
-                    <p className="font-label text-[0.62rem] tracking-[0.16em] uppercase text-ink-faint leading-tight">ATS Score</p>
-                    <p className="text-[0.8rem] font-semibold text-ink mt-0.5">Excellent match</p>
+                    <p className="font-label text-[0.62rem] tracking-[0.16em] uppercase text-ink-faint leading-tight">{t('landing.cvPreview.atsScore', 'ATS Score')}</p>
+                    <p className="text-[0.8rem] font-semibold text-ink mt-0.5">{t('landing.cvPreview.excellentMatch', 'Excellent match')}</p>
                 </div>
             </motion.div>
 
@@ -175,8 +180,8 @@ const CVPreviewCard: React.FC = () => {
                     </svg>
                 </span>
                 <div>
-                    <p className="font-label text-[0.62rem] tracking-[0.16em] uppercase text-ink-faint leading-tight">AI Edit</p>
-                    <p className="text-[0.8rem] font-semibold text-ink mt-0.5">Stronger verbs applied</p>
+                    <p className="font-label text-[0.62rem] tracking-[0.16em] uppercase text-ink-faint leading-tight">{t('landing.cvPreview.aiEdit', 'AI Edit')}</p>
+                    <p className="text-[0.8rem] font-semibold text-ink mt-0.5">{t('landing.cvPreview.strongerVerbsApplied', 'Stronger verbs applied')}</p>
                 </div>
             </motion.div>
         </div>

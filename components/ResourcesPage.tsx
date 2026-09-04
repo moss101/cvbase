@@ -5,6 +5,7 @@ import {
     Target, Star, FileText, PenTool, CircleCheck, Search, Check, CircleQuestionMark,
     Copy, ShieldCheck,
 } from 'lucide-react';
+import { useTranslation } from '../services/translationService';
 
 interface ResourcesPageProps {
     onBack: () => void;
@@ -43,6 +44,7 @@ const CHECKLIST_ITEMS = [
 ];
 
 export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPageProps) {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<'guides' | 'verbs' | 'checklist' | 'ats_analyzer'>('guides');
     const [copiedVerb, setCopiedVerb] = useState<string | null>(null);
     const [verbSearch, setVerbSearch] = useState('');
@@ -130,30 +132,30 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
             
             const formattingAlerts: string[] = [];
             if (!atsResumeInput.includes('@') || !atsResumeInput.match(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/)) {
-                formattingAlerts.push('Missing contact parameters (phone, email). Ensure formatting details are highlighted.');
+                formattingAlerts.push(t('resources.ats.alertMissingContact', 'Missing contact parameters (phone, email). Ensure formatting details are highlighted.'));
             }
             if (atsResumeInput.toLowerCase().includes('nest') || atsResumeInput.toLowerCase().includes('curriculum')) {
-                formattingAlerts.push('Atypical section naming noticed. Maintain standard names (Experience, Projects, Education).');
+                formattingAlerts.push(t('resources.ats.alertAtypicalSection', 'Atypical section naming noticed. Maintain standard names (Experience, Projects, Education).'));
             }
             if (atsResumeInput.split(/\s+/).length < 150) {
-                formattingAlerts.push('Highly sparse text block. Extend accomplishment metrics to withstand candidate rank algorithms.');
+                formattingAlerts.push(t('resources.ats.alertSparseText', 'Highly sparse text block. Extend accomplishment metrics to withstand candidate rank algorithms.'));
             }
 
             const feedback: string[] = [];
             if (score >= 80) {
-                feedback.push('Excellent match density! This material is highly aligned with key recruitment indexes.');
+                feedback.push(t('resources.ats.feedbackExcellent', 'Excellent match density! This material is highly aligned with key recruitment indexes.'));
             } else if (score >= 60) {
-                feedback.push('Satisfactory alignment, but adding specific missed skills or power action verbs will lift execution status.');
+                feedback.push(t('resources.ats.feedbackSatisfactory', 'Satisfactory alignment, but adding specific missed skills or power action verbs will lift execution status.'));
             } else {
-                feedback.push('Low parse alignment. Rephrase weak sentences using quantified metrics, and map keywords exactly.');
+                feedback.push(t('resources.ats.feedbackLow', 'Low parse alignment. Rephrase weak sentences using quantified metrics, and map keywords exactly.'));
             }
 
             setAtsAnalysis({
                 score: Math.min(score, 100),
                 feedback,
-                matchedKeywords: matchedKeywords.length > 0 ? matchedKeywords : ['general keywords'],
-                missingKeywords: missingKeywords.length > 0 ? missingKeywords : ['No major missing key components found'],
-                formattingAlerts: formattingAlerts.length > 0 ? formattingAlerts : ['All formatting looks completely parseable'],
+                matchedKeywords: matchedKeywords.length > 0 ? matchedKeywords : [t('resources.ats.matchedFallback', 'general keywords')],
+                missingKeywords: missingKeywords.length > 0 ? missingKeywords : [t('resources.ats.missingFallback', 'No major missing key components found')],
+                formattingAlerts: formattingAlerts.length > 0 ? formattingAlerts : [t('resources.ats.formattingFallback', 'All formatting looks completely parseable')],
                 metricsDensity
             });
             setIsAnalyzing(false);
@@ -171,6 +173,15 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
         (CHECKLIST_ITEMS.filter(it => checkedItems[it.id]).length / CHECKLIST_ITEMS.length) * 100
     );
 
+    const categoryLabels: Record<string, string> = {
+        all: t('resources.verbs.category.all', 'All'),
+        leadership: t('resources.verbs.category.leadership', 'Leadership'),
+        creativity: t('resources.verbs.category.creativity', 'Creativity'),
+        operations: t('resources.verbs.category.operations', 'Operations'),
+        research: t('resources.verbs.category.research', 'Research'),
+        delivery: t('resources.verbs.category.delivery', 'Delivery'),
+    };
+
     return (
         <div className="min-h-screen bg-slate-50 text-slate-800">
             {/* Minimalist Top Nav */}
@@ -179,7 +190,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                     <button 
                         onClick={onBack}
                         className="flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer"
-                        title="Back to Suite"
+                        title={t('resources.header.backTitle', 'Back to Suite')}
                     >
                         <ArrowLeft className="w-4 h-4" aria-hidden="true" />
                     </button>
@@ -187,7 +198,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                         <div className="w-8 h-8 bg-gradient-to-tr from-primary to-secondary rounded-lg flex items-center justify-center shadow-md shadow-primary/20">
                             <BookOpenText className="w-[1em] h-[1em] text-white text-sm" aria-hidden="true" />
                         </div>
-                        <span className="font-extrabold text-xl tracking-tight text-slate-950">CVBase Resources</span>
+                        <span className="font-extrabold text-xl tracking-tight text-slate-950">{t('resources.header.brand', 'CVBase Resources')}</span>
                     </div>
                 </div>
 
@@ -196,13 +207,13 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                         onClick={onBack}
                         className="text-xs font-bold text-slate-650 hover:text-slate-905 uppercase tracking-wider transition"
                     >
-                        Dashboard
+                        {t('resources.header.dashboard', 'Dashboard')}
                     </button>
                     <button
                         onClick={onStartBuilding}
                         className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider transition shadow-sm cursor-pointer"
                     >
-                        Build My Resume
+                        {t('resources.header.buildResume', 'Build My Resume')}
                     </button>
                 </div>
             </header>
@@ -218,30 +229,30 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                     <div className="space-y-6 lg:w-3/5 text-left">
                         <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold tracking-widest uppercase text-indigo-300">
                             <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
-                            Career Advisory Board
+                            {t('resources.hero.badge', 'Career Advisory Board')}
                         </div>
                         <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
-                            The Blueprint to Withstand <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">Automated HR Screens</span>
+                            {t('resources.hero.titleLine1', 'The Blueprint to Withstand')} <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">{t('resources.hero.titleLine2', 'Automated HR Screens')}</span>
                         </h1>
                         <p className="text-slate-350 text-sm md:text-base leading-relaxed font-normal max-w-xl">
-                            Unlock expert formatting strategies, parse-compliance calculators, power verb banks, and interactive checklists designed purely under strict HTML/CSS print guidelines.
+                            {t('resources.hero.description', 'Unlock expert formatting strategies, parse-compliance calculators, power verb banks, and interactive checklists designed purely under strict HTML/CSS print guidelines.')}
                         </p>
-                        
+
                         <div className="flex gap-4 pt-2">
                             <button
                                 onClick={() => setActiveTab('ats_analyzer')}
                                 className="px-5 py-3 rounded-xl bg-white text-slate-950 font-bold text-xs uppercase tracking-wider shadow-md hover:bg-slate-100 transition duration-150 flex items-center gap-2 cursor-pointer"
                             >
                                 <Wifi className="w-[1em] h-[1em] text-sm text-indigo-600" aria-hidden="true" />
-                                Test ATS Compliance
+                                {t('resources.hero.testAts', 'Test ATS Compliance')}
                             </button>
                             <button
                                 onClick={() => setActiveTab('verbs')}
                                 className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-xs uppercase tracking-wider transition duration-150 flex items-center gap-2 cursor-pointer"
                             >
                                 <Type className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
-                                Action Verbs Dict
+                                {t('resources.hero.actionVerbsDict', 'Action Verbs Dict')}
                             </button>
                         </div>
                     </div>
@@ -266,12 +277,12 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                 
                                 <rect x="20" y="115" width="100" height="14" rx="4" fill="#1e2c4a" />
                                 <circle cx="32" cy="122" r="4" fill="#38bdf8" />
-                                <text x="44" y="125" fill="#38bdf8" fontSize="8" fontWeight="bold">ATS OPTIMIZED</text>
+                                <text x="44" y="125" fill="#38bdf8" fontSize="8" fontWeight="bold">{t('resources.hero.svgAtsOptimized', 'ATS OPTIMIZED')}</text>
                             </svg>
-                            
+
                             <div className="mt-4 flex items-center justify-between text-xs">
-                                <span className="font-mono text-[10px] text-slate-400">STRUCTURAL METADATA DIAGRAM</span>
-                                <span className="text-[#34d399] font-bold text-[10px] uppercase tracking-widest">100% Vector</span>
+                                <span className="font-mono text-[10px] text-slate-400">{t('resources.hero.diagramLabel', 'STRUCTURAL METADATA DIAGRAM')}</span>
+                                <span className="text-[#34d399] font-bold text-[10px] uppercase tracking-widest">{t('resources.hero.vectorBadge', '100% Vector')}</span>
                             </div>
                         </div>
                     </div>
@@ -287,21 +298,21 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                         className={`py-3.5 px-2.5 font-bold text-xs uppercase tracking-wider flex items-center gap-2 whitespace-nowrap border-b-2 transition-all cursor-pointer ${activeTab === 'guides' ? 'border-primary text-slate-950 font-black' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
                     >
                         <BookOpen className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
-                        Career Strategy Guides
+                        {t('resources.tabs.guides', 'Career Strategy Guides')}
                     </button>
                     <button
                         onClick={() => setActiveTab('verbs')}
                         className={`py-3.5 px-2.5 font-bold text-xs uppercase tracking-wider flex items-center gap-2 whitespace-nowrap border-b-2 transition-all cursor-pointer ${activeTab === 'verbs' ? 'border-primary text-slate-950 font-black' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
                     >
                         <SpellCheck className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
-                        Power Action Verbs
+                        {t('resources.tabs.verbs', 'Power Action Verbs')}
                     </button>
                     <button
                         onClick={() => setActiveTab('checklist')}
                         className={`py-3.5 px-2.5 font-bold text-xs uppercase tracking-wider flex items-center gap-2 whitespace-nowrap border-b-2 transition-all cursor-pointer ${activeTab === 'checklist' ? 'border-primary text-slate-950 font-black' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
                     >
                         <ListChecks className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
-                        Interactive Checklist
+                        {t('resources.tabs.checklist', 'Interactive Checklist')}
                         {completionRate > 0 && (
                             <span className="bg-primary/10 text-primary text-[10px] px-1.5 py-0.5 rounded-full font-extrabold">{completionRate}%</span>
                         )}
@@ -311,7 +322,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                         className={`py-3.5 px-2.5 font-bold text-xs uppercase tracking-wider flex items-center gap-2 whitespace-nowrap border-b-2 transition-all cursor-pointer ${activeTab === 'ats_analyzer' ? 'border-primary text-slate-950 font-black' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
                     >
                         <Wrench className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
-                        ATS Compliance Sandbox
+                        {t('resources.tabs.ats', 'ATS Compliance Sandbox')}
                     </button>
                 </div>
 
@@ -326,14 +337,14 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                     <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
                                         <Target className="w-[1em] h-[1em]" aria-hidden="true" />
                                     </div>
-                                    <h4 className="font-extrabold text-slate-900 text-base leading-snug">The Ultimate ATS Algorithm Hack</h4>
+                                    <h4 className="font-extrabold text-slate-900 text-base leading-snug">{t('resources.guides.card1.title', 'The Ultimate ATS Algorithm Hack')}</h4>
                                     <p className="text-xs text-slate-500 leading-relaxed text-justify">
-                                        Corporate Applicant Tracking Systems (ATS) score candidates based on keyword frequency, title alignment, and structural text readability. Learn how to design a high-fidelity plain layout that parses perfectly on Workday, Taleo, and Greenhouse ecosystems.
+                                        {t('resources.guides.card1.body', 'Corporate Applicant Tracking Systems (ATS) score candidates based on keyword frequency, title alignment, and structural text readability. Learn how to design a high-fidelity plain layout that parses perfectly on Workday, Taleo, and Greenhouse ecosystems.')}
                                     </p>
                                 </div>
                                 <div className="pt-6 border-t border-slate-100 mt-6 flex justify-between items-center text-[11px] font-bold text-slate-400">
-                                    <span>5 min read</span>
-                                    <span className="text-primary hover:underline cursor-pointer flex items-center gap-1">ATS COMPLIANT</span>
+                                    <span>{t('resources.guides.card1.readTime', '5 min read')}</span>
+                                    <span className="text-primary hover:underline cursor-pointer flex items-center gap-1">{t('resources.guides.card1.tag', 'ATS COMPLIANT')}</span>
                                 </div>
                             </div>
 
@@ -343,14 +354,14 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                     <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
                                         <Star className="w-[1em] h-[1em]" aria-hidden="true" />
                                     </div>
-                                    <h4 className="font-extrabold text-slate-900 text-base leading-snug">Writing Impactful STAR Bullet Points</h4>
+                                    <h4 className="font-extrabold text-slate-900 text-base leading-snug">{t('resources.guides.card2.title', 'Writing Impactful STAR Bullet Points')}</h4>
                                     <p className="text-xs text-slate-500 leading-relaxed text-justify">
-                                        Never write passive resume lines like "Assisted with tech projects." Use the **STAR formula**: Describe the **Situation**, state your **Task**, list your dynamic **Action**, and state the verifiable **Result**. Aim to quantify at least 50% of your listed achievements.
+                                        {t('resources.guides.card2.body', 'Never write passive resume lines like "Assisted with tech projects." Use the **STAR formula**: Describe the **Situation**, state your **Task**, list your dynamic **Action**, and state the verifiable **Result**. Aim to quantify at least 50% of your listed achievements.')}
                                     </p>
                                 </div>
                                 <div className="pt-6 border-t border-slate-100 mt-6 flex justify-between items-center text-[11px] font-bold text-slate-400">
-                                    <span>4 min read</span>
-                                    <span className="text-emerald-600 hover:underline cursor-pointer flex items-center gap-1">STAR METHOD</span>
+                                    <span>{t('resources.guides.card2.readTime', '4 min read')}</span>
+                                    <span className="text-emerald-600 hover:underline cursor-pointer flex items-center gap-1">{t('resources.guides.card2.tag', 'STAR METHOD')}</span>
                                 </div>
                             </div>
 
@@ -360,14 +371,14 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                     <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
                                         <FileText className="w-[1em] h-[1em]" aria-hidden="true" />
                                     </div>
-                                    <h4 className="font-extrabold text-slate-900 text-base leading-snug">Single vs. Two-Page CV Structures</h4>
+                                    <h4 className="font-extrabold text-slate-900 text-base leading-snug">{t('resources.guides.card3.title', 'Single vs. Two-Page CV Structures')}</h4>
                                     <p className="text-xs text-slate-500 leading-relaxed text-justify">
-                                        Candidates with under 5 years of active career history must stick to a pristine single A4 sheet layout. Experienced professionals can scale up to 2 pages, provided the second page lists highly specialized tech credentials and leadership architectures.
+                                        {t('resources.guides.card3.body', 'Candidates with under 5 years of active career history must stick to a pristine single A4 sheet layout. Experienced professionals can scale up to 2 pages, provided the second page lists highly specialized tech credentials and leadership architectures.')}
                                     </p>
                                 </div>
                                 <div className="pt-6 border-t border-slate-100 mt-6 flex justify-between items-center text-[11px] font-bold text-slate-400">
-                                    <span>6 min read</span>
-                                    <span className="text-blue-600 hover:underline cursor-pointer flex items-center gap-1">A4 PAGE-BREAKS</span>
+                                    <span>{t('resources.guides.card3.readTime', '6 min read')}</span>
+                                    <span className="text-blue-600 hover:underline cursor-pointer flex items-center gap-1">{t('resources.guides.card3.tag', 'A4 PAGE-BREAKS')}</span>
                                 </div>
                             </div>
 
@@ -376,19 +387,19 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                         {/* Layout Advice and HR Specs banner */}
                         <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col lg:flex-row gap-8 items-center justify-between text-left">
                             <div className="space-y-3 lg:w-2/3">
-                                <h3 className="text-xl font-extrabold text-slate-900">Why CVBase Vector Resumes Rank Higher</h3>
+                                <h3 className="text-xl font-extrabold text-slate-900">{t('resources.guides.banner.title', 'Why CVBase Vector Resumes Rank Higher')}</h3>
                                 <p className="text-xs text-slate-500 leading-relaxed text-justify">
-                                    Standard document editors convert text lines into disorganized visual clusters or nested matrices which scanners read as garbled gibberish. CVBase maintains strict linear character codes. Every printed block features crisp, searchable vector properties, achieving flawless parse integrity across recursive indexing scrapers.
+                                    {t('resources.guides.banner.body', 'Standard document editors convert text lines into disorganized visual clusters or nested matrices which scanners read as garbled gibberish. CVBase maintains strict linear character codes. Every printed block features crisp, searchable vector properties, achieving flawless parse integrity across recursive indexing scrapers.')}
                                 </p>
                                 <div className="flex flex-wrap gap-x-6 gap-y-2 pt-1 font-mono text-[10px] text-slate-400 font-bold uppercase">
                                     <span className="flex items-center gap-1 text-slate-600">
-                                        <CircleCheck className="w-3 h-3 text-green-500" aria-hidden="true" /> No flat graphics
+                                        <CircleCheck className="w-3 h-3 text-green-500" aria-hidden="true" /> {t('resources.guides.banner.point1', 'No flat graphics')}
                                     </span>
                                     <span className="flex items-center gap-1 text-slate-600">
-                                        <CircleCheck className="w-3 h-3 text-green-500" aria-hidden="true" /> Selectable character layers
+                                        <CircleCheck className="w-3 h-3 text-green-500" aria-hidden="true" /> {t('resources.guides.banner.point2', 'Selectable character layers')}
                                     </span>
                                     <span className="flex items-center gap-1 text-slate-600">
-                                        <CircleCheck className="w-3 h-3 text-green-500" aria-hidden="true" /> True-to-life standard layout margins
+                                        <CircleCheck className="w-3 h-3 text-green-500" aria-hidden="true" /> {t('resources.guides.banner.point3', 'True-to-life standard layout margins')}
                                     </span>
                                 </div>
                             </div>
@@ -400,9 +411,9 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                     <PenTool className="w-6 h-6 text-indigo-650" aria-hidden="true" />
                                 </div>
                                 <div className="space-y-1">
-                                    <h5 className="font-extrabold text-slate-900 text-xs uppercase font-mono tracking-wider">A4 Grid Mechanics</h5>
+                                    <h5 className="font-extrabold text-slate-900 text-xs uppercase font-mono tracking-wider">{t('resources.guides.banner.cardTitle', 'A4 Grid Mechanics')}</h5>
                                     <p className="text-[10px] text-slate-400 leading-normal">
-                                        Strict CSS print standards. Never clip headers or leave Orphan values at page bottoms.
+                                        {t('resources.guides.banner.cardBody', 'Strict CSS print standards. Never clip headers or leave Orphan values at page bottoms.')}
                                     </p>
                                 </div>
                             </div>
@@ -416,12 +427,12 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
                                 <div className="text-left">
-                                    <h3 className="text-lg font-extrabold text-slate-900">Power Action Verbs Dictionary</h3>
-                                    <p className="text-xs text-slate-500">Inject high-impact verbs into your achievements to immediately command attention.</p>
+                                    <h3 className="text-lg font-extrabold text-slate-900">{t('resources.verbs.title', 'Power Action Verbs Dictionary')}</h3>
+                                    <p className="text-xs text-slate-500">{t('resources.verbs.subtitle', 'Inject high-impact verbs into your achievements to immediately command attention.')}</p>
                                 </div>
                                 <div className="flex gap-2">
                                     <span className="text-[10px] font-mono text-slate-400 font-bold uppercase bg-slate-50 px-2.5 py-1 rounded">
-                                        {filteredVerbs.length} VERBS FOUND
+                                        {t('resources.verbs.countFound', '{count} VERBS FOUND').replace('{count}', String(filteredVerbs.length))}
                                     </span>
                                 </div>
                             </div>
@@ -432,7 +443,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                     <Search className="w-[1em] h-[1em] absolute left-3 top-2.5 text-slate-400 text-sm" aria-hidden="true" />
                                     <input
                                         type="text"
-                                        placeholder="Search power verbs or definitions..."
+                                        placeholder={t('resources.verbs.searchPlaceholder', 'Search power verbs or definitions...')}
                                         value={verbSearch}
                                         onChange={(e) => setVerbSearch(e.target.value)}
                                         className="w-full pl-9 pr-4 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 font-medium"
@@ -445,7 +456,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                             onClick={() => setVerbFilter(cat)}
                                             className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition ${verbFilter === cat ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                                         >
-                                            {cat}
+                                            {categoryLabels[cat] ?? cat}
                                         </button>
                                     ))}
                                 </div>
@@ -462,20 +473,20 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                             <div className="flex justify-between items-center">
                                                 <h4 className="font-extrabold text-indigo-750 text-sm">{item.verb}</h4>
                                                 <span className="text-[8px] font-mono font-bold uppercase text-slate-400 bg-slate-200/50 px-1.5 py-0.5 rounded">
-                                                    {item.category}
+                                                    {categoryLabels[item.category] ?? item.category}
                                                 </span>
                                             </div>
-                                            <p className="text-[11px] text-slate-450 leading-normal">{item.definition}</p>
+                                            <p className="text-[11px] text-slate-450 leading-normal">{t(`resources.verbs.definition.${item.verb.toLowerCase()}`, item.definition)}</p>
                                         </div>
-                                        
+
                                         <div className="mt-3 bg-white p-2.5 rounded-lg border border-slate-200 text-[10px] text-slate-650 italic leading-snug">
-                                            "{item.example}"
+                                            "{t(`resources.verbs.example.${item.verb.toLowerCase()}`, item.example)}"
                                         </div>
 
                                         <button
                                             onClick={() => handleCopyVerb(item.verb)}
                                             className="absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition duration-150 text-slate-350 hover:text-indigo-600 p-1"
-                                            title="Click to copy verb"
+                                            title={t('resources.verbs.copyTitle', 'Click to copy verb')}
                                         >
                                             {copiedVerb === item.verb
                                                 ? <Check className="w-3 h-3" aria-hidden="true" />
@@ -487,7 +498,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                 {filteredVerbs.length === 0 && (
                                     <div className="col-span-2 text-center py-10 text-slate-400">
                                         <CircleQuestionMark className="w-8 h-8 mb-1" aria-hidden="true" />
-                                        <p className="text-xs">No verbs match your current search constraints.</p>
+                                        <p className="text-xs">{t('resources.verbs.noResults', 'No verbs match your current search constraints.')}</p>
                                     </div>
                                 )}
                             </div>
@@ -502,24 +513,24 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                         <div className="lg:col-span-8 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
                             <div className="flex justify-between items-center text-left border-b border-slate-100 pb-4">
                                 <div>
-                                    <h3 className="text-lg font-extrabold text-slate-900">High-Fidelity Writing Checklist</h3>
-                                    <p className="text-xs text-slate-500">Step-by-step standards to secure and bulletproof candidate ranking.</p>
+                                    <h3 className="text-lg font-extrabold text-slate-900">{t('resources.checklist.title', 'High-Fidelity Writing Checklist')}</h3>
+                                    <p className="text-xs text-slate-500">{t('resources.checklist.subtitle', 'Step-by-step standards to secure and bulletproof candidate ranking.')}</p>
                                 </div>
-                                <button 
+                                <button
                                     onClick={() => {
                                         setCheckedItems({});
                                         localStorage.removeItem('cvbase-resources-checklist');
                                     }}
                                     className="text-[10px] uppercase font-bold text-slate-400 hover:text-rose-600 tracking-wider cursor-pointer"
-                                    title="Reset verification state"
+                                    title={t('resources.checklist.resetTitle', 'Reset verification state')}
                                 >
-                                    Reset Checks
+                                    {t('resources.checklist.resetButton', 'Reset Checks')}
                                 </button>
                             </div>
 
                             <div className="space-y-4">
                                 {CHECKLIST_ITEMS.map(item => (
-                                    <div 
+                                    <div
                                         key={item.id}
                                         onClick={() => toggleCheckItem(item.id)}
                                         className={`p-4 rounded-xl border flex items-start gap-4 cursor-pointer transition-all ${checkedItems[item.id] ? 'bg-green-50/40 border-green-200 shadow-xs' : 'bg-slate-50 border-slate-200 hover:bg-slate-100/50'}`}
@@ -531,7 +542,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                         </div>
                                         <div className="space-y-0.5 text-left">
                                             <p className={`text-xs leading-relaxed font-medium ${checkedItems[item.id] ? 'text-slate-550 line-through' : 'text-slate-800'}`}>
-                                                {item.text}
+                                                {t(`resources.checklist.items.${item.id}`, item.text)}
                                             </p>
                                         </div>
                                     </div>
@@ -542,10 +553,10 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                         {/* Completion score indicator */}
                         <div className="lg:col-span-4 bg-slate-900 text-white p-6 rounded-3xl space-y-6 border border-white/5 shadow-lg">
                             <div className="space-y-1 text-left">
-                                <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold block">// VERIFICATION KPI</span>
-                                <h4 className="text-lg font-black">Document Readiness Score</h4>
+                                <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold block">{t('resources.checklist.kpiLabel', '// VERIFICATION KPI')}</span>
+                                <h4 className="text-lg font-black">{t('resources.checklist.readinessTitle', 'Document Readiness Score')}</h4>
                                 <p className="text-xs text-slate-400 leading-relaxed">
-                                    Tick off requirements as you polish your draft inside CVBase's main builder templates.
+                                    {t('resources.checklist.readinessBody', "Tick off requirements as you polish your draft inside CVBase's main builder templates.")}
                                 </p>
                             </div>
 
@@ -568,14 +579,14 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                 </svg>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                                     <span className="text-3xl font-black font-mono">{completionRate}%</span>
-                                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">VERIFIED</span>
+                                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{t('resources.checklist.verifiedLabel', 'VERIFIED')}</span>
                                 </div>
                             </div>
 
                             <p className="text-[11px] text-slate-400 leading-relaxed italic text-center">
-                                {completionRate === 100 
-                                    ? '🎉 Your career document aligns with gold-standard recruiter parsing algorithms!' 
-                                    : 'Resolve outstanding checks to lift parse scores and withstand candidate screening.'}
+                                {completionRate === 100
+                                    ? t('resources.checklist.completeMessage', '🎉 Your career document aligns with gold-standard recruiter parsing algorithms!')
+                                    : t('resources.checklist.incompleteMessage', 'Resolve outstanding checks to lift parse scores and withstand candidate screening.')}
                             </p>
                         </div>
                     </div>
@@ -588,28 +599,28 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                             {/* Inputs Block */}
                             <div className="lg:col-span-7 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
                                 <div className="text-left border-b border-slate-100 pb-4">
-                                    <h3 className="text-lg font-extrabold text-slate-900">Prerequsite Sandbox Parsing</h3>
-                                    <p className="text-xs text-slate-500">Test character structures, metric occurrences, and draft similarities.</p>
+                                    <h3 className="text-lg font-extrabold text-slate-900">{t('resources.ats.title', 'Prerequsite Sandbox Parsing')}</h3>
+                                    <p className="text-xs text-slate-500">{t('resources.ats.subtitle', 'Test character structures, metric occurrences, and draft similarities.')}</p>
                                 </div>
 
                                 <div className="space-y-4">
                                     <div className="space-y-1.5 text-left">
-                                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Resume Plain-Text Snippet</label>
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{t('resources.ats.resumeLabel', 'Resume Plain-Text Snippet')}</label>
                                         <textarea
                                             value={atsResumeInput}
                                             onChange={(e) => setAtsResumeInput(e.target.value)}
                                             className="w-full h-40 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-mono focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 border-slate-350"
-                                            placeholder="Paste a draft of your bullet achievements, summaries, or skills here..."
+                                            placeholder={t('resources.ats.resumePlaceholder', 'Paste a draft of your bullet achievements, summaries, or skills here...')}
                                         />
                                     </div>
 
                                     <div className="space-y-1.5 text-left">
-                                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Target Job Requirements (JD)</label>
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{t('resources.ats.jdLabel', 'Target Job Requirements (JD)')}</label>
                                         <textarea
                                             value={atsJdInput}
                                             onChange={(e) => setAtsJdInput(e.target.value)}
                                             className="w-full h-40 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-sans focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 border-slate-350"
-                                            placeholder="Paste details of the target job posting to scan critical core nouns..."
+                                            placeholder={t('resources.ats.jdPlaceholder', 'Paste details of the target job posting to scan critical core nouns...')}
                                         />
                                     </div>
 
@@ -621,12 +632,12 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                         {isAnalyzing ? (
                                             <>
                                                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                Running algorithmic scan comparisons...
+                                                {t('resources.ats.analyzing', 'Running algorithmic scan comparisons...')}
                                             </>
                                         ) : (
                                             <>
                                                 <Wrench className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
-                                                COMPUTE ATS PARSABILITY INDEX
+                                                {t('resources.ats.computeButton', 'COMPUTE ATS PARSABILITY INDEX')}
                                             </>
                                         )}
                                     </button>
@@ -640,18 +651,18 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                         <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
                                             <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-150 flex flex-col items-center justify-center shrink-0">
                                                 <span className="text-xl font-black text-indigo-700">{atsAnalysis.score}</span>
-                                                <span className="text-[8px] font-bold text-indigo-400 uppercase tracking-widest">SCORE</span>
+                                                <span className="text-[8px] font-bold text-indigo-400 uppercase tracking-widest">{t('resources.ats.scoreUnit', 'SCORE')}</span>
                                             </div>
                                             <div className="text-left space-y-0.5">
-                                                <h4 className="font-extrabold text-slate-900 text-sm">ATS Alignment Score</h4>
-                                                <p className="text-[11px] text-slate-500">Based on diagnostic keywords & metrics occurrence.</p>
+                                                <h4 className="font-extrabold text-slate-900 text-sm">{t('resources.ats.scoreTitle', 'ATS Alignment Score')}</h4>
+                                                <p className="text-[11px] text-slate-500">{t('resources.ats.scoreSubtitle', 'Based on diagnostic keywords & metrics occurrence.')}</p>
                                             </div>
                                         </div>
 
                                         {/* Feedback list */}
                                         <div className="space-y-4 text-left">
                                             <div className="space-y-1">
-                                                <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold">EXECUTIVE DIAGNOSTIC FEEDBACK</span>
+                                                <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold">{t('resources.ats.feedbackLabel', 'EXECUTIVE DIAGNOSTIC FEEDBACK')}</span>
                                                 {atsAnalysis.feedback.map((f, i) => (
                                                     <p key={i} className="text-xs text-slate-650 bg-slate-55 pb-1 select-none pr-2 leading-relaxed text-left">
                                                         {f}
@@ -662,7 +673,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                             <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-3">
                                                 {/* Keywords Found */}
                                                 <div className="space-y-1.5">
-                                                    <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold block">Keywords Matched</span>
+                                                    <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold block">{t('resources.ats.matchedLabel', 'Keywords Matched')}</span>
                                                     <div className="flex flex-wrap gap-1">
                                                         {atsAnalysis.matchedKeywords.map(kw => (
                                                             <span key={kw} className="text-[9.5px] font-medium bg-green-50 text-green-700 border border-green-200 px-1.5 py-0.5 rounded uppercase">
@@ -674,7 +685,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
 
                                                 {/* Missing Keywords */}
                                                 <div className="space-y-1.5">
-                                                    <span className="text-[9px] font-mono uppercase tracking-widest text-[#b45309] font-bold block">Suggested Additions</span>
+                                                    <span className="text-[9px] font-mono uppercase tracking-widest text-[#b45309] font-bold block">{t('resources.ats.missingLabel', 'Suggested Additions')}</span>
                                                     <div className="flex flex-wrap gap-1">
                                                         {atsAnalysis.missingKeywords.map(kw => (
                                                             <span key={kw} className="text-[9.5px] font-medium bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded uppercase">
@@ -688,8 +699,8 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                             {/* Metrics occurrences */}
                                             <div className="border-t border-slate-100 pt-3 space-y-1">
                                                 <div className="flex justify-between items-center text-[10px] font-mono text-slate-400 font-bold">
-                                                    <span>METRIC OCCURRENCES VALUE</span>
-                                                    <span className="text-indigo-650">{atsAnalysis.metricsDensity}% Density</span>
+                                                    <span>{t('resources.ats.metricsLabel', 'METRIC OCCURRENCES VALUE')}</span>
+                                                    <span className="text-indigo-650">{t('resources.ats.densitySuffix', '{density}% Density').replace('{density}', String(atsAnalysis.metricsDensity))}</span>
                                                 </div>
                                                 <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                                     <div className="h-full bg-indigo-600 transition-all duration-300" style={{ width: `${atsAnalysis.metricsDensity}%` }}></div>
@@ -698,7 +709,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
 
                                             {/* Formatting alerts */}
                                             <div className="border-t border-slate-100 pt-3 space-y-1">
-                                                <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold block">Formating parameters check</span>
+                                                <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold block">{t('resources.ats.formattingLabel', 'Formating parameters check')}</span>
                                                 <ul className="text-[10px] text-slate-500 space-y-1 list-disc pl-4 leading-normal">
                                                     {atsAnalysis.formattingAlerts.map((alert, i) => (
                                                         <li key={i}>{alert}</li>
@@ -710,9 +721,9 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                 ) : (
                                     <div className="border-2 border-dashed border-slate-200 rounded-3xl p-10 text-center text-slate-400/85 h-full flex flex-col justify-center items-center min-h-[300px]">
                                         <ShieldCheck className="w-10 h-10 mb-2 text-slate-300" aria-hidden="true" />
-                                        <h5 className="font-bold text-slate-600 text-sm mb-0.5">Scoring Engine Awaiting Data</h5>
+                                        <h5 className="font-bold text-slate-600 text-sm mb-0.5">{t('resources.ats.emptyTitle', 'Scoring Engine Awaiting Data')}</h5>
                                         <p className="max-w-xs text-[11px] text-slate-400 leading-normal mx-auto">
-                                            Insert your accomplishments draft and job details in the left form fields to render dynamic performance diagnostics.
+                                            {t('resources.ats.emptyBody', 'Insert your accomplishments draft and job details in the left form fields to render dynamic performance diagnostics.')}
                                         </p>
                                     </div>
                                 )}

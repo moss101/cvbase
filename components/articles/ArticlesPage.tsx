@@ -29,6 +29,7 @@ import {
   type ArticleCategory,
   type ArticleIndexEntry,
 } from '../../lib/articles/articles';
+import { useTranslation } from '../../services/translationService';
 
 const PILLAR_ICON: Record<ArticleCategory, ComponentType<{ className?: string; style?: CSSProperties }>> = {
   'Resume Writing': FileText,
@@ -44,6 +45,14 @@ const PILLAR_BLURB: Record<ArticleCategory, string> = {
   'Career Development': 'Role transitions, compensation strategy, and long-horizon moves that compound.',
   'Professional Development': 'Skills, certifications, and learning rituals that get you promoted, not just busy.',
   'Personality Development': 'Communication, presence, and the soft signals that decide close calls.',
+};
+
+const PILLAR_BLURB_KEY: Record<ArticleCategory, string> = {
+  'Resume Writing': 'resumeWriting',
+  'Interview Prep': 'interviewPrep',
+  'Career Development': 'careerDevelopment',
+  'Professional Development': 'professionalDevelopment',
+  'Personality Development': 'personalityDevelopment',
 };
 
 function pickFeatured(articles: ArticleIndexEntry[]): ArticleIndexEntry[] {
@@ -66,6 +75,7 @@ interface ArticlesPageProps {
 }
 
 export function ArticlesPage({ onBack, onStartBuilding }: ArticlesPageProps) {
+  const { t } = useTranslation();
   const [articles, setArticles] = useState<ArticleIndexEntry[] | null>(null);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
 
@@ -80,7 +90,7 @@ export function ArticlesPage({ onBack, onStartBuilding }: ArticlesPageProps) {
   if (!articles) {
     return (
       <div className="flex items-center justify-center py-32 text-sm" style={{ color: '#6b6b6b' }}>
-        Loading articles…
+        {t('articles.page.loadingList', 'Loading articles…')}
       </div>
     );
   }
@@ -109,6 +119,7 @@ function ArticlesHome({
   articles: ArticleIndexEntry[];
   onSelectArticle: (slug: string) => void;
 }) {
+  const { t } = useTranslation();
   const categories = useMemo(() => getAllCategories(articles), [articles]);
 
   const counts = useMemo(() => articles.reduce(
@@ -155,19 +166,18 @@ function ArticlesHome({
                   border: '1px solid rgba(184,134,85,0.25)',
                 }}
               >
-                <BookOpen className="h-3 w-3" /> Career Library
+                <BookOpen className="h-3 w-3" /> {t('articles.page.hero.badge', 'Career Library')}
               </div>
               <h1
                 className="font-serif-display"
                 style={{ fontSize: 'clamp(2.2rem, 5vw, 4rem)', color: '#415a4d', lineHeight: 1.02 }}
               >
-                The playbooks behind a{' '}
-                <em style={{ color: '#b88655', fontStyle: 'italic' }}>deliberate</em> career.
+                {t('articles.page.hero.titlePart1', 'The playbooks behind a')}{' '}
+                <em style={{ color: '#b88655', fontStyle: 'italic' }}>{t('articles.page.hero.titleEmphasis', 'deliberate')}</em>{t('articles.page.hero.titlePart2', ' career.')}
               </h1>
               <p className="mt-5 max-w-xl text-[16px] leading-relaxed" style={{ color: '#555' }}>
-                {counts.All.toLocaleString()} long-form guides covering resumes, interviews, compensation,
-                and the quiet habits that separate the top of the pack. Searchable, tagged, and curated
-                — not a content farm.
+                {t('articles.page.hero.description', '{count} long-form guides covering resumes, interviews, compensation, and the quiet habits that separate the top of the pack. Searchable, tagged, and curated — not a content farm.')
+                  .replace('{count}', counts.All.toLocaleString())}
               </p>
 
               <div className="mt-7 flex flex-wrap gap-2">
@@ -205,7 +215,7 @@ function ArticlesHome({
                 >
                   <div className="mb-5 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em]">
                     <Sparkles className="h-3 w-3" style={{ color: '#b88655' }} />
-                    <span style={{ color: '#b88655' }}>Editor&apos;s pick</span>
+                    <span style={{ color: '#b88655' }}>{t('articles.page.hero.editorsPick', "Editor's pick")}</span>
                     <span style={{ color: '#999' }}>·</span>
                     <span style={{ color: '#415a4d' }}>{heroFeature.category}</span>
                   </div>
@@ -247,10 +257,10 @@ function ArticlesHome({
           <div className="mx-auto max-w-7xl">
             <div className="mb-6 flex items-end justify-between">
               <h2 className="font-serif-display" style={{ fontSize: '1.6rem', color: '#415a4d', lineHeight: 1.2 }}>
-                Also reading this week
+                {t('articles.page.alsoReading', 'Also reading this week')}
               </h2>
               <span className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: '#b88655' }}>
-                Curated picks
+                {t('articles.page.curatedPicks', 'Curated picks')}
               </span>
             </div>
             <div className="grid gap-5 md:grid-cols-2">
@@ -301,10 +311,10 @@ function ArticlesHome({
                 className="mb-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em]"
                 style={{ background: 'rgba(65,90,77,0.08)', color: '#415a4d', border: '1px solid rgba(65,90,77,0.15)' }}
               >
-                <Target className="h-3 w-3" /> Reading by topic
+                <Target className="h-3 w-3" /> {t('articles.page.readingByTopic.badge', 'Reading by topic')}
               </div>
               <h2 className="font-serif-display" style={{ fontSize: 'clamp(1.7rem, 3vw, 2.4rem)', color: '#415a4d', lineHeight: 1.15 }}>
-                Pick a pillar, go deep.
+                {t('articles.page.readingByTopic.title', 'Pick a pillar, go deep.')}
               </h2>
             </div>
           </div>
@@ -335,17 +345,17 @@ function ArticlesHome({
                       <Icon className="h-5 w-5" />
                     </div>
                     <span className="text-[11px] font-bold uppercase tracking-[0.14em]" style={{ color: tint.textColor }}>
-                      {counts[cat]} guides
+                      {t('articles.page.pillar.guidesCount', '{count} guides').replace('{count}', String(counts[cat]))}
                     </span>
                   </div>
                   <h3 className="font-serif-display mb-2" style={{ fontSize: '1.25rem', color: '#262626', lineHeight: 1.2 }}>
                     {cat}
                   </h3>
                   <p className="mb-5 text-sm leading-relaxed" style={{ color: '#666' }}>
-                    {PILLAR_BLURB[cat]}
+                    {t(`articles.page.pillar.blurb.${PILLAR_BLURB_KEY[cat]}`, PILLAR_BLURB[cat])}
                   </p>
                   <span className="inline-flex items-center gap-1.5 text-sm font-semibold" style={{ color: '#415a4d' }}>
-                    Browse {cat.split(' ')[0].toLowerCase()} guides
+                    {t('articles.page.pillar.browseCta', 'Browse {topic} guides').replace('{topic}', cat.split(' ')[0].toLowerCase())}
                     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </span>
                 </button>
@@ -380,6 +390,7 @@ function ArticleDetail({
   onBackToApp: () => void;
   onStartBuilding?: () => void;
 }) {
+  const { t } = useTranslation();
   const [article, setArticle] = useState<Article | null | undefined>(undefined);
   const [related, setRelated] = useState<ArticleIndexEntry[]>([]);
 
@@ -400,7 +411,7 @@ function ArticleDetail({
   if (article === undefined) {
     return (
       <div className="flex items-center justify-center py-32 text-sm" style={{ color: '#6b6b6b' }}>
-        Loading article…
+        {t('articles.page.detail.loading', 'Loading article…')}
       </div>
     );
   }
@@ -408,9 +419,9 @@ function ArticleDetail({
   if (article === null) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <p style={{ color: '#262626' }}>Article not found.</p>
+        <p style={{ color: '#262626' }}>{t('articles.page.detail.notFound', 'Article not found.')}</p>
         <button onClick={onBack} className="mt-4 underline" style={{ color: '#415a4d' }}>
-          Back to Resources
+          {t('articles.page.detail.backToResources', 'Back to Resources')}
         </button>
       </div>
     );
@@ -427,7 +438,7 @@ function ArticleDetail({
         style={{ color: '#6b6b6b' }}
       >
         <ArrowLeft className="w-4 h-4" />
-        <span>Back to Resources</span>
+        <span>{t('articles.page.detail.backToResources', 'Back to Resources')}</span>
       </button>
 
       <article className="max-w-4xl mx-auto">
@@ -512,7 +523,7 @@ function ArticleDetail({
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              <span>{article.readTime} read</span>
+              <span>{t('articles.page.detail.readTimeSuffix', '{readTime} read').replace('{readTime}', article.readTime)}</span>
             </div>
           </div>
         </header>
@@ -560,7 +571,7 @@ function ArticleDetail({
               <h3 className="text-lg font-semibold mb-1" style={{ color: '#262626' }}>{article.authorName}</h3>
               <p className="mb-2 text-sm" style={{ color: '#6b6b6b' }}>{article.authorTitle}</p>
               <p className="text-sm" style={{ color: '#6b6b6b' }}>
-                Expert contributor at CVbase, helping job seekers accelerate their careers.
+                {t('articles.page.author.bio', 'Expert contributor at CVbase, helping job seekers accelerate their careers.')}
               </p>
             </div>
           </div>
@@ -568,7 +579,7 @@ function ArticleDetail({
 
         {related.length > 0 && (
           <section>
-            <h2 className="text-2xl font-bold mb-6" style={{ color: '#262626' }}>Related Articles</h2>
+            <h2 className="text-2xl font-bold mb-6" style={{ color: '#262626' }}>{t('articles.page.related.title', 'Related Articles')}</h2>
             <div className="grid md:grid-cols-3 gap-6">
               {related.map((r) => (
                 <ArticleCard key={r.id} article={r} onSelect={onSelectArticle} />
@@ -588,9 +599,9 @@ function ArticleDetail({
           boxShadow: '0 4px 24px rgba(65,90,77,0.08)',
         }}
       >
-        <h2 className="text-2xl font-bold mb-4" style={{ color: '#262626' }}>Ready to Put This Into Practice?</h2>
+        <h2 className="text-2xl font-bold mb-4" style={{ color: '#262626' }}>{t('articles.page.cta.title', 'Ready to Put This Into Practice?')}</h2>
         <p className="mb-6" style={{ color: '#5a5a5a' }}>
-          Use CVbase&apos;s AI-powered tools to optimize your resume, practice interviews, and land your dream job.
+          {t('articles.page.cta.subtitle', "Use CVbase's AI-powered tools to optimize your resume, practice interviews, and land your dream job.")}
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
@@ -599,7 +610,7 @@ function ArticleDetail({
             className="px-6 py-3 rounded-xl font-medium transition-all"
             style={{ background: 'linear-gradient(135deg, #415a4d, #5a7a6a)', color: '#fff', boxShadow: '0 4px 16px rgba(65,90,77,0.25)' }}
           >
-            Get Started Free
+            {t('articles.page.cta.getStarted', 'Get Started Free')}
           </button>
           <button
             type="button"
@@ -607,7 +618,7 @@ function ArticleDetail({
             className="px-6 py-3 rounded-xl font-medium transition-all"
             style={{ border: '1px solid rgba(65,90,77,0.18)', color: '#415a4d', background: 'rgba(255,255,255,0.50)' }}
           >
-            Browse More Articles
+            {t('articles.page.cta.browseMore', 'Browse More Articles')}
           </button>
         </div>
       </section>

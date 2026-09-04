@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { ArticleCategory } from '../../lib/articles/articles-types';
+import { useTranslation } from '../../services/translationService';
 
 interface CategoryFilterProps {
   categories: ArticleCategory[];
@@ -14,6 +15,7 @@ export function CategoryFilter({
   onSelect,
   articleCounts,
 }: CategoryFilterProps) {
+  const { t } = useTranslation();
   const base: CSSProperties = {
     padding: '6px 16px',
     borderRadius: 24,
@@ -51,7 +53,7 @@ export function CategoryFilter({
           if (selectedCategory !== 'All') e.currentTarget.style.background = 'rgba(255,255,255,0.45)';
         }}
       >
-        All
+        {t('articles.filter.all', 'All')}
         {articleCounts && (
           <span style={{ marginLeft: 6, opacity: 0.65, fontWeight: 500 }}>
             ({articleCounts['All']})

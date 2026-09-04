@@ -1,18 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../../services/translationService';
 
 interface HeaderProps {
     onLogin: () => void;
     onCreateCV: () => void;
     onNavigate: (target: 'templates' | 'builder' | 'examples' | 'resources' | 'pricing') => void;
 }
-
-const NAV_LINKS: { label: string; target: 'templates' | 'builder' | 'examples' | 'resources' | 'pricing' }[] = [
-    { label: 'Templates', target: 'templates' },
-    { label: 'Builder', target: 'builder' },
-    { label: 'Examples', target: 'examples' },
-    { label: 'Resources', target: 'resources' },
-    { label: 'Pricing', target: 'pricing' },
-];
 
 const Wordmark: React.FC<{ inverted?: boolean }> = ({ inverted }) => (
     <span className={`font-display text-[1.45rem] font-semibold tracking-tight leading-none ${inverted ? 'text-paper' : 'text-ink'}`}>
@@ -21,8 +14,17 @@ const Wordmark: React.FC<{ inverted?: boolean }> = ({ inverted }) => (
 );
 
 const Header: React.FC<HeaderProps> = ({ onLogin, onCreateCV, onNavigate }) => {
+    const { t } = useTranslation();
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+
+    const NAV_LINKS: { label: string; target: 'templates' | 'builder' | 'examples' | 'resources' | 'pricing' }[] = [
+        { label: t('landing.header.nav.templates', 'Templates'), target: 'templates' },
+        { label: t('landing.header.nav.builder', 'Builder'), target: 'builder' },
+        { label: t('landing.header.nav.examples', 'Examples'), target: 'examples' },
+        { label: t('landing.header.nav.resources', 'Resources'), target: 'resources' },
+        { label: t('landing.header.nav.pricing', 'Pricing'), target: 'pricing' },
+    ];
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 8);
@@ -48,7 +50,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onCreateCV, onNavigate }) => {
                 notch and status bar on device; env() resolves to 0 on the web. */}
             <header className="fixed top-0 inset-x-0 z-50 px-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] sm:px-6 sm:pt-[calc(1.25rem+env(safe-area-inset-top,0px))] pointer-events-none">
                 <nav
-                    aria-label="Main"
+                    aria-label={t('landing.header.navMainAriaLabel', 'Main')}
                     className={`pointer-events-auto mx-auto max-w-5xl rounded-full border backdrop-blur-xl transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                         scrolled
                             ? 'bg-paper/85 border-ink/10 shadow-[0_12px_40px_-12px_rgba(27,23,19,0.18)]'
@@ -60,7 +62,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onCreateCV, onNavigate }) => {
                             href="#top"
                             onClick={(e) => { e.preventDefault(); setMobileOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                             className="shrink-0"
-                            aria-label="CVbase home"
+                            aria-label={t('landing.header.homeAriaLabel', 'CVbase home')}
                         >
                             <Wordmark />
                         </a>
@@ -84,13 +86,13 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onCreateCV, onNavigate }) => {
                                 onClick={onLogin}
                                 className="px-4 py-2 rounded-full text-[0.9rem] font-semibold text-ink hover:bg-ink/[0.05] transition-colors duration-300"
                             >
-                                Log in
+                                {t('landing.header.login', 'Log in')}
                             </button>
                             <button
                                 onClick={onCreateCV}
                                 className="group flex items-center gap-2 pl-5 pr-1.5 py-1.5 rounded-full text-[0.9rem] font-semibold text-paper bg-ink hover:bg-ink/90 active:scale-[0.98] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
                             >
-                                Create CV
+                                {t('landing.header.createCv', 'Create CV')}
                                 <span className="grid place-items-center w-8 h-8 rounded-full bg-ember text-paper transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 group-hover:scale-105" aria-hidden="true">
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                                         <path d="M5 12h14m0 0l-6-6m6 6l-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -104,7 +106,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onCreateCV, onNavigate }) => {
                             className="lg:hidden relative grid place-items-center w-11 h-11 rounded-full hover:bg-ink/[0.05] transition-colors duration-300"
                             onClick={() => setMobileOpen((v) => !v)}
                             aria-expanded={mobileOpen}
-                            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                            aria-label={mobileOpen ? t('landing.header.closeMenu', 'Close menu') : t('landing.header.openMenu', 'Open menu')}
                         >
                             <span
                                 className={`absolute h-[1.5px] w-5 bg-mark rounded-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
@@ -129,7 +131,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onCreateCV, onNavigate }) => {
                 aria-hidden={!mobileOpen}
             >
                 <div className="flex flex-col justify-between h-full px-8 pt-[calc(8rem+env(safe-area-inset-top,0px))] pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))]">
-                    <nav aria-label="Mobile">
+                    <nav aria-label={t('landing.header.navMobileAriaLabel', 'Mobile')}>
                         <ul className="space-y-1">
                             {NAV_LINKS.map((link, i) => (
                                 <li key={link.target} className="overflow-hidden">
@@ -157,7 +159,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onCreateCV, onNavigate }) => {
                             onClick={() => { setMobileOpen(false); onCreateCV(); }}
                             className="group flex w-full items-center justify-between pl-6 pr-2 py-2 rounded-full text-base font-semibold text-paper bg-ink active:scale-[0.98] transition-transform duration-300"
                         >
-                            Create my CV
+                            {t('landing.header.createMyCv', 'Create my CV')}
                             <span className="grid place-items-center w-10 h-10 rounded-full bg-ember text-paper" aria-hidden="true">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                                     <path d="M5 12h14m0 0l-6-6m6 6l-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -168,7 +170,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onCreateCV, onNavigate }) => {
                             onClick={() => { setMobileOpen(false); onLogin(); }}
                             className="w-full py-3.5 rounded-full text-base font-semibold text-ink border border-ink/15 hover:bg-ink/[0.04] transition-colors duration-300"
                         >
-                            Log in
+                            {t('landing.header.login', 'Log in')}
                         </button>
                     </div>
                 </div>

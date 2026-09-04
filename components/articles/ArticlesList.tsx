@@ -3,6 +3,7 @@ import { Search, BookOpen, TrendingUp, Sparkles, ChevronLeft, ChevronRight } fro
 import { ArticleCard } from './ArticleCard';
 import { CategoryFilter } from './CategoryFilter';
 import type { ArticleCategory, ArticleIndexEntry } from '../../lib/articles/articles-types';
+import { useTranslation } from '../../services/translationService';
 
 const ARTICLES_PER_PAGE = 12;
 
@@ -54,6 +55,7 @@ export interface ArticlesListProps {
 }
 
 export function ArticlesList({ articles, categories, counts, total, onSelectArticle, hideHero = false }: ArticlesListProps) {
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<ArticleCategory | 'All'>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -97,18 +99,17 @@ export function ArticlesList({ articles, categories, counts, total, onSelectArti
         >
           <BookOpen className="w-4 h-4" style={{ color: '#b88655' }} />
           <span className="text-sm font-semibold" style={{ color: '#b88655' }}>
-            Career Resources &amp; Guides
+            {t('articles.list.hero.badge', 'Career Resources & Guides')}
           </span>
         </div>
 
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          <span style={{ color: '#b88655' }}>Resources</span>{' '}
-          <span style={{ color: '#262626' }}>to Accelerate Your Career</span>
+          <span style={{ color: '#b88655' }}>{t('articles.list.hero.titleHighlight', 'Resources')}</span>{' '}
+          <span style={{ color: '#262626' }}>{t('articles.list.hero.titleRest', 'to Accelerate Your Career')}</span>
         </h1>
 
         <p className="text-lg mb-8 leading-relaxed" style={{ color: '#5a5a5a' }}>
-          Expert guides, tips, and strategies to help you land your dream job.
-          From resume writing to acing interviews, we&apos;ve got you covered.
+          {t('articles.list.hero.subtitle', "Expert guides, tips, and strategies to help you land your dream job. From resume writing to acing interviews, we've got you covered.")}
         </p>
 
         <div className="relative max-w-xl mx-auto">
@@ -118,7 +119,7 @@ export function ArticlesList({ articles, categories, counts, total, onSelectArti
           />
           <input
             type="text"
-            placeholder="Search articles..."
+            placeholder={t('articles.list.hero.searchPlaceholder', 'Search articles...')}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full pl-11 pr-4 py-3 text-sm focus:outline-none transition-all"
@@ -137,9 +138,9 @@ export function ArticlesList({ articles, categories, counts, total, onSelectArti
 
       <section className="grid grid-cols-3 gap-4 max-w-2xl mx-auto mb-12">
         {[
-          { icon: BookOpen,   label: 'Articles',       value: total.toLocaleString() },
-          { icon: TrendingUp, label: 'Categories',     value: categories.length },
-          { icon: Sparkles,   label: 'Weekly updates', value: 'New' },
+          { icon: BookOpen,   label: t('articles.list.stat.articles', 'Articles'),       value: total.toLocaleString() },
+          { icon: TrendingUp, label: t('articles.list.stat.categories', 'Categories'),     value: categories.length },
+          { icon: Sparkles,   label: t('articles.list.stat.weeklyUpdates', 'Weekly updates'), value: t('articles.list.stat.new', 'New') },
         ].map((stat) => (
           <div
             key={stat.label}
@@ -167,7 +168,7 @@ export function ArticlesList({ articles, categories, counts, total, onSelectArti
             />
             <input
               type="text"
-              placeholder="Search all articles…"
+              placeholder={t('articles.list.searchAllPlaceholder', 'Search all articles…')}
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full pl-11 pr-4 py-3 text-sm focus:outline-none transition-all"
@@ -196,12 +197,16 @@ export function ArticlesList({ articles, categories, counts, total, onSelectArti
 
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm" style={{ color: '#6b6b6b' }}>
-          Showing {paginatedArticles.length} of {filteredArticles.length.toLocaleString()} articles
-          {searchQuery && ` for "${searchQuery}"`}
+          {t('articles.list.showingCount', 'Showing {shown} of {total} articles')
+            .replace('{shown}', String(paginatedArticles.length))
+            .replace('{total}', filteredArticles.length.toLocaleString())}
+          {searchQuery && t('articles.list.showingForQuery', ' for "{query}"').replace('{query}', searchQuery)}
         </p>
         {totalPages > 1 && (
           <p className="text-sm" style={{ color: '#6b6b6b' }}>
-            Page {currentPage} of {totalPages}
+            {t('articles.list.pageOf', 'Page {current} of {total}')
+              .replace('{current}', String(currentPage))
+              .replace('{total}', String(totalPages))}
           </p>
         )}
       </div>
@@ -222,9 +227,9 @@ export function ArticlesList({ articles, categories, counts, total, onSelectArti
           <div className="text-center py-16">
             <Search className="w-12 h-12 mx-auto mb-4 opacity-30" style={{ color: '#415a4d' }} />
             <h3 className="text-xl font-semibold mb-2" style={{ color: '#262626' }}>
-              No articles found
+              {t('articles.list.empty.title', 'No articles found')}
             </h3>
-            <p style={{ color: '#6b6b6b' }}>Try adjusting your search or filter criteria</p>
+            <p style={{ color: '#6b6b6b' }}>{t('articles.list.empty.subtitle', 'Try adjusting your search or filter criteria')}</p>
           </div>
         )}
       </section>
@@ -232,7 +237,7 @@ export function ArticlesList({ articles, categories, counts, total, onSelectArti
       {totalPages > 1 && (
         <section className="flex items-center justify-center gap-2 mt-12 flex-wrap">
           <PageBtn onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage <= 1}>
-            <ChevronLeft className="w-4 h-4" /> Previous
+            <ChevronLeft className="w-4 h-4" /> {t('articles.list.pagination.previous', 'Previous')}
           </PageBtn>
 
           <div className="flex items-center gap-1">
@@ -257,7 +262,7 @@ export function ArticlesList({ articles, categories, counts, total, onSelectArti
           </div>
 
           <PageBtn onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}>
-            Next <ChevronRight className="w-4 h-4" />
+            {t('articles.list.pagination.next', 'Next')} <ChevronRight className="w-4 h-4" />
           </PageBtn>
         </section>
       )}
@@ -271,15 +276,15 @@ export function ArticlesList({ articles, categories, counts, total, onSelectArti
         }}
       >
         <h2 className="text-2xl md:text-3xl font-bold mb-4" style={{ color: '#262626' }}>
-          Stay Ahead of the Competition
+          {t('articles.list.newsletter.title', 'Stay Ahead of the Competition')}
         </h2>
         <p className="mb-6 max-w-xl mx-auto" style={{ color: '#5a5a5a' }}>
-          Get weekly career tips, job search strategies, and exclusive content delivered to your inbox.
+          {t('articles.list.newsletter.subtitle', 'Get weekly career tips, job search strategies, and exclusive content delivered to your inbox.')}
         </p>
         <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
           <input
             type="email"
-            placeholder="Enter your email"
+            placeholder={t('articles.list.newsletter.emailPlaceholder', 'Enter your email')}
             className="flex-1 px-4 py-3 rounded-xl text-sm focus:outline-none transition-all"
             style={INPUT}
             onFocus={(e) => {
@@ -301,7 +306,7 @@ export function ArticlesList({ articles, categories, counts, total, onSelectArti
             onMouseEnter={(e) => { e.currentTarget.style.filter = 'brightness(1.06)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; }}
           >
-            Subscribe
+            {t('articles.list.newsletter.subscribe', 'Subscribe')}
           </button>
         </div>
       </section>

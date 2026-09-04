@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { EASE_OUT_EXPO, EASE_IN_OUT_CUBIC } from './easing';
 import CVPreviewCard from './CVPreviewCard';
+import { useTranslation } from '../../services/translationService';
 
 interface HeroSectionProps {
     onCreateCV: () => void;
@@ -27,6 +28,7 @@ const fadeUp = {
 };
 
 const HeroSection: React.FC<HeroSectionProps> = ({ onCreateCV, onViewTemplates }) => {
+    const { t } = useTranslation();
     return (
         <section id="top" className="relative overflow-hidden pt-36 lg:pt-48 pb-24 lg:pb-32">
             {/* Typesetter's baseline grid, fading out toward the fold */}
@@ -55,7 +57,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onCreateCV, onViewTemplates }
                             variants={fadeUp}
                             className="font-label text-[0.72rem] tracking-[0.22em] uppercase text-ink-faint"
                         >
-                            The CV builder <span className="text-ember">·</span> rated 4.9/5 by 250,000+ job seekers
+                            {t('landing.hero.eyebrowPart1', 'The CV builder')} <span className="text-ember">·</span> {t('landing.hero.eyebrowPart2', 'rated 4.9/5 by 250,000+ job seekers')}
                         </motion.p>
 
                         <motion.h1
@@ -65,9 +67,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onCreateCV, onViewTemplates }
                             variants={fadeUp}
                             className="mt-7 font-display font-medium text-ink tracking-[-0.02em] text-[2.9rem] leading-[1.04] sm:text-6xl lg:text-[4.6rem] [text-wrap:balance]"
                         >
-                            The difference between applied and{' '}
+                            {t('landing.hero.headlinePart1', 'The difference between applied and')}{' '}
                             <span className="relative inline-block italic font-semibold text-ember whitespace-nowrap">
-                                hired
+                                {t('landing.hero.headlineHighlight', 'hired')}
                                 {/* Red editor's-pen circle, drawn on after the type settles */}
                                 <svg
                                     className="absolute -inset-x-5 -inset-y-2.5 w-[calc(100%+2.5rem)] h-[calc(100%+1.25rem)]"
@@ -97,9 +99,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onCreateCV, onViewTemplates }
                             variants={fadeUp}
                             className="mt-7 text-lg text-ink-soft leading-relaxed max-w-[34rem]"
                         >
-                            Recruiters spend seven seconds on a CV. CVbase gives you templates typeset like
-                            fine print, an AI editor that sharpens every line, and a structure tracking
-                            systems actually parse — so your seven seconds count.
+                            {t('landing.hero.subheading', 'Recruiters spend seven seconds on a CV. CVbase gives you templates typeset like fine print, an AI editor that sharpens every line, and a structure tracking systems actually parse — so your seven seconds count.')}
                         </motion.p>
 
                         <motion.div
@@ -113,7 +113,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onCreateCV, onViewTemplates }
                                 onClick={onCreateCV}
                                 className="group flex items-center justify-between sm:justify-center gap-3 pl-7 pr-2 py-2 rounded-full text-base font-semibold text-paper bg-ink hover:bg-ink/90 active:scale-[0.98] shadow-[0_16px_40px_-14px_rgba(27,23,19,0.5)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
                             >
-                                Create my CV — free
+                                {t('landing.hero.ctaPrimary', 'Create my CV — free')}
                                 <span className="grid place-items-center w-11 h-11 rounded-full bg-ember text-paper transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-px group-hover:scale-105" aria-hidden="true">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                                         <path d="M5 12h14m0 0l-6-6m6 6l-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -125,7 +125,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onCreateCV, onViewTemplates }
                                 className="group self-center sm:self-auto text-base font-semibold text-ink transition-colors duration-300 hover:text-ember"
                             >
                                 <span className="border-b border-ink/25 pb-0.5 transition-colors duration-300 group-hover:border-ember">
-                                    Browse the 75+ templates
+                                    {t('landing.hero.ctaSecondary', 'Browse the 75+ templates')}
                                 </span>
                             </button>
                         </motion.div>
@@ -136,9 +136,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onCreateCV, onViewTemplates }
                             animate="visible"
                             variants={fadeUp}
                             className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-2.5 font-label text-[0.7rem] tracking-[0.18em] uppercase text-ink-faint"
-                            aria-label="Key benefits"
+                            aria-label={t('landing.hero.keyBenefitsAriaLabel', 'Key benefits')}
                         >
-                            {['ATS-proof', 'AI-assisted', 'Private by default'].map((item) => (
+                            {[
+                                t('landing.hero.benefit.atsProof', 'ATS-proof'),
+                                t('landing.hero.benefit.aiAssisted', 'AI-assisted'),
+                                t('landing.hero.benefit.privateByDefault', 'Private by default'),
+                            ].map((item) => (
                                 <li key={item} className="flex items-center gap-2">
                                     <span className="text-ember" aria-hidden="true">✓</span>
                                     {item}
@@ -164,8 +168,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onCreateCV, onViewTemplates }
                                 ))}
                             </div>
                             <p className="text-[0.88rem] text-ink-soft leading-snug">
-                                <span className="font-semibold text-ink">2,140 CVs</span> built this week —
-                                <br className="hidden sm:block" /> most finished in under ten minutes.
+                                <span className="font-semibold text-ink">{t('landing.hero.socialProofCount', '2,140 CVs')}</span> {t('landing.hero.socialProofRest1', 'built this week —')}
+                                <br className="hidden sm:block" /> {t('landing.hero.socialProofRest2', 'most finished in under ten minutes.')}
                             </p>
                         </motion.div>
                     </div>

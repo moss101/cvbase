@@ -1,12 +1,15 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { useTranslation } from '../../services/translationService';
 
-const STEPS: { n: string; title: string; description: string; visual: React.ReactNode }[] = [
+type TFunction = (key: string, defaultText?: string) => string;
+
+const getSteps = (t: TFunction): { n: string; title: string; description: string; visual: React.ReactNode }[] => [
     {
         n: '01',
-        title: 'Choose a template',
+        title: t('landing.howItWorks.step1.title', 'Choose a template'),
         description:
-            'Pick a professionally typeset layout that fits your industry and seniority. Switch anytime — your content carries over untouched.',
+            t('landing.howItWorks.step1.description', 'Pick a professionally typeset layout that fits your industry and seniority. Switch anytime — your content carries over untouched.'),
         visual: (
             <div className="flex items-center justify-center gap-3 h-full">
                 <div className="w-16 h-[84px] rounded-md bg-paper-bright border border-ink/[0.08] shadow-sm rotate-[-6deg] overflow-hidden">
@@ -41,19 +44,19 @@ const STEPS: { n: string; title: string; description: string; visual: React.Reac
     },
     {
         n: '02',
-        title: 'Add your details',
+        title: t('landing.howItWorks.step2.title', 'Add your details'),
         description:
-            'Write with the AI editor at your shoulder — it tightens your wording and turns duties into achievements as you type.',
+            t('landing.howItWorks.step2.description', 'Write with the AI editor at your shoulder — it tightens your wording and turns duties into achievements as you type.'),
         visual: (
             <div className="flex flex-col justify-center gap-2.5 h-full px-4 max-w-xs mx-auto w-full">
                 <div className="rounded-lg bg-paper-bright border border-ink/[0.08] px-3.5 py-2.5">
-                    <p className="font-label text-[0.52rem] tracking-[0.18em] uppercase text-ink-faint">Job title</p>
-                    <p className="text-[0.78rem] font-semibold text-ink mt-0.5">Senior Product Manager</p>
+                    <p className="font-label text-[0.52rem] tracking-[0.18em] uppercase text-ink-faint">{t('landing.howItWorks.step2.jobTitleLabel', 'Job title')}</p>
+                    <p className="text-[0.78rem] font-semibold text-ink mt-0.5">{t('landing.howItWorks.step2.jobTitleValue', 'Senior Product Manager')}</p>
                 </div>
                 <div className="rounded-lg bg-paper-bright border-2 border-ember/70 shadow-[0_10px_24px_-10px_rgba(200,68,44,0.35)] px-3.5 py-2.5">
-                    <p className="font-label text-[0.52rem] tracking-[0.18em] uppercase text-ember">Achievement</p>
+                    <p className="font-label text-[0.52rem] tracking-[0.18em] uppercase text-ember">{t('landing.howItWorks.step2.achievementLabel', 'Achievement')}</p>
                     <div className="flex items-center gap-1 mt-0.5">
-                        <p className="text-[0.78rem] font-medium text-ink-soft">Led a team of 12 to ship</p>
+                        <p className="text-[0.78rem] font-medium text-ink-soft">{t('landing.howItWorks.step2.achievementText', 'Led a team of 12 to ship')}</p>
                         <span className="w-[2px] h-3.5 bg-ember rounded-sm animate-caret" />
                     </div>
                 </div>
@@ -61,16 +64,16 @@ const STEPS: { n: string; title: string; description: string; visual: React.Reac
                     <span className="grid place-items-center w-4 h-4 rounded-full bg-ink">
                         <svg width="8" height="8" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" fill="#FAF7F2" /></svg>
                     </span>
-                    <span className="font-label text-[0.56rem] tracking-[0.14em] uppercase text-ink-faint">AI is polishing…</span>
+                    <span className="font-label text-[0.56rem] tracking-[0.14em] uppercase text-ink-faint">{t('landing.howItWorks.step2.polishingStatus', 'AI is polishing…')}</span>
                 </div>
             </div>
         ),
     },
     {
         n: '03',
-        title: 'Send it with confidence',
+        title: t('landing.howItWorks.step3.title', 'Send it with confidence'),
         description:
-            'Export a pixel-perfect, ATS-ready PDF — checked, scored, and typeset. Then start clearing space in your calendar for interviews.',
+            t('landing.howItWorks.step3.description', 'Export a pixel-perfect, ATS-ready PDF — checked, scored, and typeset. Then start clearing space in your calendar for interviews.'),
         visual: (
             <div className="flex flex-col items-center justify-center gap-3 h-full">
                 <div className="flex items-center gap-3 rounded-xl bg-paper-bright border border-ink/[0.08] px-4 py-3">
@@ -92,7 +95,7 @@ const STEPS: { n: string; title: string; description: string; visual: React.Reac
                 </div>
                 <span className="inline-flex items-center gap-1.5 font-label text-[0.58rem] tracking-[0.16em] uppercase text-ember-deep">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                    Ready to send
+                    {t('landing.howItWorks.step3.readyStatus', 'Ready to send')}
                 </span>
             </div>
         ),
@@ -100,6 +103,8 @@ const STEPS: { n: string; title: string; description: string; visual: React.Reac
 ];
 
 const HowItWorks: React.FC = () => {
+    const { t } = useTranslation();
+    const STEPS = getSteps(t);
     return (
         <section id="how-it-works" className="py-24 lg:py-36">
             <div className="mx-auto max-w-7xl px-5 sm:px-8">
@@ -111,10 +116,10 @@ const HowItWorks: React.FC = () => {
                     className="max-w-2xl mb-12 lg:mb-16"
                 >
                     <p className="font-label text-[0.7rem] tracking-[0.24em] uppercase text-ink-faint">
-                        03 <span className="text-ember">—</span> The process
+                        03 <span className="text-ember">—</span> {t('landing.howItWorks.eyebrow', 'The process')}
                     </p>
                     <h2 className="mt-5 font-display font-medium tracking-[-0.015em] text-ink text-4xl sm:text-5xl leading-[1.08] [text-wrap:balance]">
-                        Blank page to interview-ready in <span className="italic text-ember">three moves</span>.
+                        {t('landing.howItWorks.heading.prefix', 'Blank page to interview-ready in')} <span className="italic text-ember">{t('landing.howItWorks.heading.highlight', 'three moves')}</span>.
                     </h2>
                 </motion.div>
 

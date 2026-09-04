@@ -1,11 +1,13 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { useTranslation } from '../../services/translationService';
 
 interface FinalCTAProps {
     onStartBuilding: () => void;
 }
 
 const FinalCTA: React.FC<FinalCTAProps> = ({ onStartBuilding }) => {
+    const { t } = useTranslation();
     return (
         <section id="pricing" className="relative bg-ink overflow-hidden">
             {/* Faint paper texture inside the ink */}
@@ -28,7 +30,7 @@ const FinalCTA: React.FC<FinalCTAProps> = ({ onStartBuilding }) => {
                     transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
                     className="font-label text-[0.7rem] tracking-[0.26em] uppercase text-paper/40"
                 >
-                    Free to start · no credit card · cancel anytime
+                    {t('landing.finalCta.eyebrow', 'Free to start · no credit card · cancel anytime')}
                 </motion.p>
 
                 <motion.h2
@@ -38,9 +40,9 @@ const FinalCTA: React.FC<FinalCTAProps> = ({ onStartBuilding }) => {
                     transition={{ duration: 0.9, delay: 0.1, ease: [0.32, 0.72, 0, 1] }}
                     className="mt-8 mx-auto max-w-4xl font-display font-medium tracking-[-0.02em] text-paper text-4xl sm:text-6xl lg:text-[4.4rem] leading-[1.06] [text-wrap:balance]"
                 >
-                    Eight minutes from now, you could be holding a{' '}
+                    {t('landing.finalCta.heading.prefix', 'Eight minutes from now, you could be holding a')}{' '}
                     <span className="relative inline-block whitespace-nowrap">
-                        <span className="italic text-ember-tint">better CV</span>
+                        <span className="italic text-ember-tint">{t('landing.finalCta.heading.highlight', 'better CV')}</span>
                         {/* HIRED stamp pressed over the corner of the phrase */}
                         <motion.span
                             initial={{ opacity: 0, scale: 1.7, rotate: -20 }}
@@ -50,7 +52,7 @@ const FinalCTA: React.FC<FinalCTAProps> = ({ onStartBuilding }) => {
                             className="absolute -top-9 -right-6 sm:-right-12 block px-3.5 py-1.5 rounded-md border-[2.5px] border-ember text-ember font-label font-semibold text-[0.85rem] sm:text-base tracking-[0.3em] uppercase select-none"
                             aria-hidden="true"
                         >
-                            Hired
+                            {t('landing.finalCta.hiredStamp', 'Hired')}
                         </motion.span>
                     </span>
                     .
@@ -67,7 +69,7 @@ const FinalCTA: React.FC<FinalCTAProps> = ({ onStartBuilding }) => {
                         onClick={onStartBuilding}
                         className="group inline-flex items-center gap-3 pl-8 pr-2.5 py-2.5 rounded-full text-lg font-semibold text-ink bg-paper hover:bg-paper-bright active:scale-[0.98] shadow-[0_24px_60px_-16px_rgba(250,247,242,0.35)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
                     >
-                        Start building now
+                        {t('landing.finalCta.ctaButton', 'Start building now')}
                         <span className="grid place-items-center w-12 h-12 rounded-full bg-ember text-paper transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-px group-hover:scale-105" aria-hidden="true">
                             <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
                                 <path d="M5 12h14m0 0l-6-6m6 6l-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -75,7 +77,7 @@ const FinalCTA: React.FC<FinalCTAProps> = ({ onStartBuilding }) => {
                         </span>
                     </button>
                     <p className="mt-7 text-[0.92rem] text-paper/45">
-                        Join 250,000+ job seekers whose CVs finally work as hard as they do.
+                        {t('landing.finalCta.subtext', 'Join 250,000+ job seekers whose CVs finally work as hard as they do.')}
                     </p>
                 </motion.div>
             </div>

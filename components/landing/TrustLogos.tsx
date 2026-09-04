@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '../../services/translationService';
 
 /** Social-proof placeholders rendered as styled wordmarks (no image assets needed). */
 const COMPANIES = [
@@ -15,12 +16,13 @@ const COMPANIES = [
 ];
 
 const TrustLogos: React.FC = () => {
+    const { t } = useTranslation();
     return (
-        <section aria-label="Trusted by job seekers worldwide" className="border-y border-ink/[0.07] bg-paper-deep/60">
+        <section aria-label={t('landing.trustLogos.ariaLabel', 'Trusted by job seekers worldwide')} className="border-y border-ink/[0.07] bg-paper-deep/60">
             <div className="mx-auto max-w-7xl px-5 sm:px-8 py-10">
                 <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-12">
                     <p className="shrink-0 font-label text-[0.66rem] tracking-[0.24em] uppercase text-ink-faint text-center lg:text-left lg:max-w-[200px] lg:leading-loose">
-                        Our users were hired at
+                        {t('landing.trustLogos.heading', 'Our users were hired at')}
                     </p>
 
                     {/* Marquee */}
