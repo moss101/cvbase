@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import type { ResumeData, JobApplication, JobStatus } from '../types';
-import mammoth from 'mammoth';
 import {
   optimizeLinkedInProfile,
   optimizeCoverLetter,
@@ -13,12 +12,19 @@ import {
   CareerTrajectoryResult
 } from '../services/smartStudioService';
 import { useAuth } from './AuthProvider';
+import { useToast } from './common/Toast';
+import { useTranslation, type Translate } from '../services/translationService';
 import * as trackerRepo from '../services/repos/trackerRepo';
 import { callFn } from '../services/api';
 import type { AtsReport } from '../lib/ats';
 import { useMobileShell } from '../lib/useMobileShell';
 import BottomSheet from './mobile/BottomSheet';
-import { ListPlus, Check as CheckIcon, ArrowLeft, ArrowRight, Trash2 } from 'lucide-react';
+import {
+  ListPlus, Check as CheckIcon, ArrowLeft, ArrowRight, Trash2, Award, Target, UserRoundSearch,
+  MessageSquareText, LayoutDashboard, TrendingUp, RefreshCw, FileUp, TriangleAlert, CloudUpload,
+  Info, Rocket, Medal, BadgeCheck, CirclePlus, Compass, Navigation, ChartColumn, CircleCheck, UserX,
+  ShieldCheck, Copy, NotebookPen, Plus,
+} from 'lucide-react';
 
 interface SmartStudioProps {
   resumeData?: ResumeData | null;
@@ -58,8 +64,25 @@ const fallbackResume = (resumeText: string): ResumeData => ({
   certifications: [], languages: [], awards: [], trainings: [], publications: [], volunteer: [], custom: [],
 });
 
+/**
+ * User-facing copy for a failed AI call. Entitlement errors get a specific
+ * message (and name the feature); everything else gets a calm retry line.
+ * `t` is passed in explicitly since this helper lives outside a component body.
+ */
+const aiErrorCopy = (e: unknown, feature: string, t: Translate): string => {
+  const code = (e as { code?: string })?.code;
+  if (code === 'feature_locked') return t('smartStudio.error.featureLocked', '{feature} is part of Smart Studio (Pro & Elite). Upgrade to unlock it.').replace('{feature}', feature);
+  if (code === 'limit_reached') return t('contact.error.limitReached', "You've used all your AI actions for this month. Upgrade for more.");
+  if (code === 'network_error' || (e instanceof TypeError && /fetch/i.test(e.message))) {
+    return t('resumeMgr.checkConnection', 'Check your connection and try again.');
+  }
+  return t('smartStudio.error.generic', 'Something went wrong on our side. Please try again.');
+};
+
 export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
   const isMobileShell = useMobileShell();
+  const { toast } = useToast();
+  const { t } = useTranslation();
   // Navigation tabs of Smart Studio
   const [activeSubTab, setActiveSubTab] = useState<'match' | 'linkedin' | 'cover' | 'tracker' | 'trajectory'>('match');
 
@@ -128,7 +151,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
           setIsParsingFile(false);
         };
         reader.onerror = () => {
-          setFileError("Failed to read text file.");
+          setFileError(t('smartStudio.upload.readTextFailed', 'Failed to read text file.'));
           setIsParsingFile(false);
         };
         reader.readAsText(file);
@@ -137,21 +160,23 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
         reader.onload = async (e) => {
           try {
             const arrayBuffer = e.target?.result as ArrayBuffer;
+            // The DOCX parser is ~300 KB; fetched the first time a .docx is dropped.
+            const { default: mammoth } = await import('mammoth');
             const result = await mammoth.extractRawText({ arrayBuffer });
             if (result.value) {
               setResumeText(result.value);
             } else {
-              setFileError("No text content found in DOCX file.");
+              setFileError(t('smartStudio.upload.noTextInDocx', 'No text content found in DOCX file.'));
             }
           } catch (err) {
             console.error("Mammoth DOCX parsing failed:", err);
-            setFileError("Failed to parse Word document.");
+            setFileError(t('smartStudio.upload.parseWordFailed', 'Failed to parse Word document.'));
           } finally {
             setIsParsingFile(false);
           }
         };
         reader.onerror = () => {
-          setFileError("Failed to load Word document.");
+          setFileError(t('smartStudio.upload.loadWordFailed', 'Failed to load Word document.'));
           setIsParsingFile(false);
         };
         reader.readAsArrayBuffer(file);
@@ -165,27 +190,27 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
             if (extractedText) {
               setResumeText(extractedText);
             } else {
-              setFileError("No text content could be extracted from this PDF.");
+              setFileError(t('smartStudio.upload.noTextInPdf', 'No text content could be extracted from this PDF.'));
             }
           } catch (err) {
             console.error("AI PDF parsing failed:", err);
-            setFileError("AI PDF extraction failed. Ensure your connection and API key are configured.");
+            setFileError(t('smartStudio.upload.aiPdfFailed', 'AI PDF extraction failed. Ensure your connection and API key are configured.'));
           } finally {
             setIsParsingFile(false);
           }
         };
         reader.onerror = () => {
-          setFileError("Failed to read PDF file.");
+          setFileError(t('smartStudio.upload.readPdfFailed', 'Failed to read PDF file.'));
           setIsParsingFile(false);
         };
         reader.readAsArrayBuffer(file);
       } else {
-        setFileError("Unsupported file format. Please upload a PDF, DOCX, or TXT file.");
+        setFileError(t('smartStudio.upload.unsupportedFormat', 'Unsupported file format. Please upload a PDF, DOCX, or TXT file.'));
         setIsParsingFile(false);
       }
     } catch (err) {
       console.error("File upload error:", err);
-      setFileError("An unexpected error occurred while parsing the file.");
+      setFileError(t('smartStudio.upload.unexpectedError', 'An unexpected error occurred while parsing the file.'));
       setIsParsingFile(false);
     }
   };
@@ -288,7 +313,14 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
       Promise.all([
         ...updatedJobs.map((j) => trackerRepo.upsert(user.id, j)),
         ...prev.filter((j) => !nextIds.has(j.id)).map((j) => trackerRepo.remove(user.id, j.id)),
-      ]).catch((e) => console.error('Tracker cloud sync failed', e));
+      ]).catch((e) => {
+        console.error('Tracker cloud sync failed', e);
+        toast({
+          variant: 'error',
+          title: t('smartStudio.toast.trackerSyncFailedTitle', 'Job tracker did not sync'),
+          description: t('smartStudio.toast.trackerSyncFailedDesc', 'Your change is kept on this device. It will sync with your next change.'),
+        });
+      });
     } else {
       localStorage.setItem(SMART_STUDIO_JOBS_KEY, JSON.stringify(updatedJobs));
     }
@@ -376,6 +408,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
       setMatchResult(reportToMatch(report));
     } catch (e) {
       console.error(e);
+      toast({ variant: 'error', title: t('smartStudio.toast.matchScanFailed', 'Match scan failed'), description: aiErrorCopy(e, t('smartStudio.feature.matchScan', 'Match scan'), t) });
     } finally {
       setIsMatching(false);
     }
@@ -394,6 +427,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
       setLinkedinResult(result);
     } catch (e) {
       console.error(e);
+      toast({ variant: 'error', title: t('smartStudio.toast.linkedinAuditFailed', 'LinkedIn audit failed'), description: aiErrorCopy(e, t('smartStudio.feature.linkedinAudit', 'LinkedIn audit'), t) });
     } finally {
       setIsOptimizingLinkedIn(false);
     }
@@ -409,6 +443,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
       setCoverResult(result);
     } catch (e) {
       console.error(e);
+      toast({ variant: 'error', title: t('smartStudio.toast.coverLetterFailed', 'Cover letter review failed'), description: aiErrorCopy(e, t('smartStudio.feature.coverLetterReview', 'Cover letter review'), t) });
     } finally {
       setIsAnalyzingCover(false);
     }
@@ -425,14 +460,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
       const result = await analyzeCareerTrajectory(payload);
       setTrajectoryResult(result);
     } catch (e) {
-      const code = (e as { code?: string })?.code;
-      setTrajectoryError(
-        code === 'feature_locked'
-          ? 'Career Trajectory is part of Smart Studio (Pro & Elite). Upgrade to unlock it.'
-          : code === 'limit_reached'
-            ? "You've used all your AI actions for this month. Upgrade for more."
-            : 'Trajectory analysis failed. Please try again.',
-      );
+      setTrajectoryError(aiErrorCopy(e, t('smartStudio.feature.careerTrajectory', 'Career Trajectory'), t));
       console.error(e);
     } finally {
       setIsAnalyzingTrajectory(false);
@@ -455,11 +483,11 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
       <header className="mb-8 border-b border-slate-200/70 pb-6 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-3xl text-blue-600 bg-blue-50 p-2 rounded-xl">workspace_premium</span>
+            <Award className="w-8 h-8 text-blue-600 bg-blue-50 p-2 rounded-xl" aria-hidden="true" />
             <div>
-              <h1 className="font-display text-4xl font-medium text-slate-900 tracking-[-0.045em] leading-none">Smart Studio.</h1>
+              <h1 className="font-display text-4xl font-medium text-slate-900 tracking-[-0.045em] leading-none">{t('smartStudio.title', 'Smart Studio.')}</h1>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="px-2 py-0.5 rounded-md bg-slate-900 text-[9px] text-white font-mono font-bold uppercase tracking-wider shadow-xs">Application intelligence</span>
+                <span className="px-2 py-0.5 rounded-md bg-slate-900 text-[9px] text-white font-mono font-bold uppercase tracking-wider shadow-xs">{t('smartStudio.badge', 'Application intelligence')}</span>
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
               </div>
             </div>
@@ -472,36 +500,36 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
             onClick={() => setActiveSubTab('match')}
             className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${activeSubTab === 'match' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
           >
-            <span className="material-symbols-outlined text-sm">track_changes</span>
-            ATS Match Scan
+            <Target className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
+            {t('smartStudio.tab.match', 'ATS Match Scan')}
           </button>
           <button 
             onClick={() => setActiveSubTab('linkedin')}
             className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${activeSubTab === 'linkedin' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
           >
-            <span className="material-symbols-outlined text-sm">person_pin</span>
-            LinkedIn Optimizer
+            <UserRoundSearch className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
+            {t('smartStudio.tab.linkedin', 'LinkedIn Optimizer')}
           </button>
           <button 
             onClick={() => setActiveSubTab('cover')}
             className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${activeSubTab === 'cover' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
           >
-            <span className="material-symbols-outlined text-sm">rate_review</span>
-            Cover Letter
+            <MessageSquareText className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
+            {t('smartStudio.tab.cover', 'Cover Letter')}
           </button>
           <button 
             onClick={() => setActiveSubTab('tracker')}
             className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${activeSubTab === 'tracker' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
           >
-            <span className="material-symbols-outlined text-sm">dashboard_customize</span>
-            Job Pipeline
+            <LayoutDashboard className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
+            {t('smartStudio.tab.tracker', 'Job Pipeline')}
           </button>
           <button 
             onClick={() => setActiveSubTab('trajectory')}
             className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${activeSubTab === 'trajectory' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
           >
-            <span className="material-symbols-outlined text-sm">trending_up</span>
-            Career Trajectory [AI]
+            <TrendingUp className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
+            {t('smartStudio.tab.trajectory', 'Career Trajectory [AI]')}
           </button>
         </div>
       </header>
@@ -520,16 +548,16 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                 onDrop={handleDrop}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="font-bold text-slate-900 border-l-4 border-blue-600 pl-3 text-sm uppercase font-mono tracking-widest text-[#1e293b]">Resume Blueprint</h3>
+                  <h3 className="font-bold text-slate-900 border-l-4 border-blue-600 pl-3 text-sm uppercase font-mono tracking-widest text-[#1e293b]">{t('smartStudio.match.resumeBlueprint', 'Resume Blueprint')}</h3>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {resumeData && (
                       <button 
                         onClick={() => setResumeText(getCompiledResumeText())}
                         className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2.5 py-1.5 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-1 cursor-pointer"
-                        title="Sync with existing App Resume Profile"
+                        title={t('smartStudio.match.syncProfileTitle', 'Sync with existing App Resume Profile')}
                       >
-                        <span className="material-symbols-outlined text-xs">sync</span>
-                        Sync Profile
+                        <RefreshCw className="w-3 h-3" aria-hidden="true" />
+                        {t('smartStudio.match.syncProfile', 'Sync Profile')}
                       </button>
                     )}
                     
@@ -538,8 +566,8 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                       className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors flex items-center gap-1 cursor-pointer"
                       disabled={isParsingFile}
                     >
-                      <span className="material-symbols-outlined text-xs">upload_file</span>
-                      Upload PDF/DOCX/TXT
+                      <FileUp className="w-3 h-3" aria-hidden="true" />
+                      {t('smartStudio.match.uploadBtn', 'Upload PDF/DOCX/TXT')}
                     </button>
                     
                     <input 
@@ -559,14 +587,14 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                 {isParsingFile && (
                   <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-2.5 text-xs text-blue-700 animate-pulse">
                     <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-blue-700"></div>
-                    <span>Extracting resume structure & content from document with AI...</span>
+                    <span>{t('smartStudio.match.extracting', 'Extracting resume structure & content from document with AI...')}</span>
                   </div>
                 )}
 
                 {fileError && (
                   <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-center justify-between gap-2 text-xs text-rose-700 animate-fade-in">
                     <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-sm">warning</span>
+                      <TriangleAlert className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
                       <span>{fileError}</span>
                     </div>
                     <button onClick={() => setFileError(null)} className="text-rose-500 hover:text-rose-700 font-bold px-1.5 rounded">✕</button>
@@ -574,7 +602,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                 )}
 
                 <p className="text-[11px] text-slate-500 leading-relaxed -mt-2">
-                  Paste the literal word representation of your career blueprint or modify details below:
+                  {t('smartStudio.match.pasteInstructions', 'Paste the literal word representation of your career blueprint or modify details below:')}
                 </p>
 
                 <div className="relative">
@@ -582,28 +610,28 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                     value={resumeText}
                     onChange={(e) => setResumeText(e.target.value)}
                     className="w-full h-44 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-mono focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none focus:border-blue-600 border-slate-300 resize-none"
-                    placeholder="Paste resume accomplishments, or drag & drop a PDF, DOCX, TXT file..."
+                    placeholder={t('smartStudio.match.resumeTextPlaceholder', 'Paste resume accomplishments, or drag & drop a PDF, DOCX, TXT file...')}
                   />
                   
                   {dragActive && (
                     <div className="absolute inset-0 bg-blue-600/10 backdrop-blur-[1px] border-2 border-dashed border-blue-500 rounded-xl flex flex-col items-center justify-center pointer-events-none animate-pulse">
-                      <span className="material-symbols-outlined text-3xl text-blue-600">cloud_upload</span>
-                      <span className="text-xs font-extrabold text-blue-700 mt-1">Drop to import document instantly</span>
+                      <CloudUpload className="w-8 h-8 text-blue-600" aria-hidden="true" />
+                      <span className="text-xs font-extrabold text-blue-700 mt-1">{t('smartStudio.match.dropToImport', 'Drop to import document instantly')}</span>
                     </div>
                   )}
                 </div>
               </div>
 
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                <h3 className="font-bold text-slate-900 border-l-4 border-blue-600 pl-3 text-sm uppercase font-mono tracking-widest text-[#1e293b]">Target Job Description</h3>
+                <h3 className="font-bold text-slate-900 border-l-4 border-blue-600 pl-3 text-sm uppercase font-mono tracking-widest text-[#1e293b]">{t('smartStudio.match.targetJobDesc', 'Target Job Description')}</h3>
                 <p className="text-[11px] text-slate-500 leading-relaxed -mt-1">
-                  Paste the corporate JD details issued by recruiters to compute precise keyword density audits:
+                  {t('smartStudio.match.jdInstructions', 'Paste the corporate JD details issued by recruiters to compute precise keyword density audits:')}
                 </p>
                 <textarea
                   value={targetJobDescription}
                   onChange={(e) => setTargetJobDescription(e.target.value)}
                   className="w-full h-44 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-sans focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none focus:border-blue-600 border-slate-300"
-                  placeholder="Paste target job requirements..."
+                  placeholder={t('smartStudio.match.jdPlaceholder', 'Paste target job requirements...')}
                 />
               </div>
 
@@ -615,12 +643,12 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                 {isMatching ? (
                   <>
                     <div className="animate-spin rounded-full h-4.5 w-4.5 border-b-2 border-white"></div>
-                    Executing Deep Keyword Matching Scans...
+                    {t('smartStudio.match.scanning', 'Executing Deep Keyword Matching Scans...')}
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined">analytics</span>
-                    CALCULATE JOB MATCH RATE & AUDIT ATS
+                    <ChartColumn className="w-[1em] h-[1em]" aria-hidden="true" />
+                    {t('smartStudio.match.calculateBtn', 'CALCULATE JOB MATCH RATE & AUDIT ATS')}
                   </>
                 )}
               </button>
@@ -652,25 +680,25 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-900">
                           <span className="text-2xl font-black">{matchResult.matchScore}%</span>
-                          <span className="text-[9px] font-mono font-bold tracking-wider text-slate-400">ALIGNMENT</span>
+                          <span className="text-[9px] font-mono font-bold tracking-wider text-slate-400">{t('smartStudio.gauge.alignment', 'ALIGNMENT')}</span>
                         </div>
                       </div>
 
                       {/* Score Summary Metrics */}
                       <div className="space-y-1">
-                        <h4 className="text-lg font-extrabold text-slate-900">ATS Audit Summary</h4>
+                        <h4 className="text-lg font-extrabold text-slate-900">{t('smartStudio.match.auditSummary', 'ATS Audit Summary')}</h4>
                         <p className="text-xs text-slate-500 leading-relaxed">
-                          We mapped your qualifications against {matchResult.matchingKeywords.length + matchResult.missingKeywords.length} target indicators. 
+                          {t('smartStudio.match.mappedQualifications', 'We mapped your qualifications against {n} target indicators.').replace('{n}', String(matchResult.matchingKeywords.length + matchResult.missingKeywords.length))}
                           {matchResult.matchScore >= 80 
-                            ? ' This represents an exceptional match rate ready for rapid executive submission!' 
-                            : ' We suggest modifying elements or injecting key missing credentials listed below.'}
+                            ? t('smartStudio.match.exceptionalMatch', ' This represents an exceptional match rate ready for rapid executive submission!')
+                            : t('smartStudio.match.suggestModify', ' We suggest modifying elements or injecting key missing credentials listed below.')}
                         </p>
                       </div>
                     </div>
 
                     {/* Role Compatibility Summary */}
                     <div className="space-y-2 py-4 border-b border-slate-100">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold">Executive Summary</span>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold">{t('smartStudio.match.executiveSummary', 'Executive Summary')}</span>
                       <p className="text-xs text-slate-600 leading-relaxed text-justify bg-slate-50/50 rounded-xl p-3 border border-slate-200/50">
                         {matchResult.roleCompatibility}
                       </p>
@@ -678,13 +706,13 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
 
                     {/* Keywords Map */}
                     <div className="py-4 border-b border-slate-100 space-y-3">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold block mb-1">Audit Keywords Density Map</span>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold block mb-1">{t('smartStudio.match.keywordsDensityMap', 'Audit Keywords Density Map')}</span>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {/* Matched */}
                         <div className="space-y-1.5">
                           <h5 className="text-[10px] uppercase font-bold text-green-600 flex items-center gap-1">
-                            <span className="material-symbols-outlined text-xs">check_circle</span>
-                            Matched keywords ({matchResult.matchingKeywords.length})
+                            <CircleCheck className="w-3 h-3" aria-hidden="true" />
+                            {t('smartStudio.match.matchedKeywords', 'Matched keywords ({n})').replace('{n}', String(matchResult.matchingKeywords.length))}
                           </h5>
                           {matchResult.matchingKeywords.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
@@ -695,15 +723,15 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                               ))}
                             </div>
                           ) : (
-                            <p className="text-[10px] text-slate-400 italic">None matched yet.</p>
+                            <p className="text-[10px] text-slate-400 italic">{t('smartStudio.match.noneMatched', 'None matched yet.')}</p>
                           )}
                         </div>
 
                         {/* Missing */}
                         <div className="space-y-1.5">
                           <h5 className="text-[10px] uppercase font-bold text-amber-600 flex items-center gap-1">
-                            <span className="material-symbols-outlined text-xs">warning</span>
-                            Missing keywords ({matchResult.missingKeywords.length})
+                            <TriangleAlert className="w-3 h-3" aria-hidden="true" />
+                            {t('smartStudio.match.missingKeywords', 'Missing keywords ({n})').replace('{n}', String(matchResult.missingKeywords.length))}
                           </h5>
                           {matchResult.missingKeywords.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
@@ -714,7 +742,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                               ))}
                             </div>
                           ) : (
-                            <p className="text-[10px] text-slate-400 italic">No missing requirements found!</p>
+                            <p className="text-[10px] text-slate-400 italic">{t('smartStudio.match.noMissing', 'No missing requirements found!')}</p>
                           )}
                         </div>
                       </div>
@@ -723,8 +751,8 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                     {/* Improved STAR Bullet proposals */}
                     <div className="py-4 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold">Suggested Achievements (inject keywords)</span>
-                        <span className="text-[9px] font-bold text-blue-600 uppercase bg-blue-50 px-2 py-0.5 rounded">STAR METHODOLOGY</span>
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold">{t('smartStudio.match.suggestedAchievements', 'Suggested Achievements (inject keywords)')}</span>
+                        <span className="text-[9px] font-bold text-blue-600 uppercase bg-blue-50 px-2 py-0.5 rounded">{t('smartStudio.match.starMethod', 'STAR METHODOLOGY')}</span>
                       </div>
                       <div className="space-y-2">
                         {matchResult.improvedBullets.map((bullet, idx) => (
@@ -735,11 +763,11 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                             <button 
                               onClick={() => handleCopyToClipboard(bullet, `b-${idx}`)}
                               className="absolute top-2.5 right-2 opacity-50 group-hover:opacity-100 text-slate-400 hover:text-blue-600 transition-opacity p-0.5"
-                              title="Copy bullet"
+                              title={t('smartStudio.match.copyBullet', 'Copy bullet')}
                             >
-                              <span className="material-symbols-outlined text-sm">
-                                {copyStatus === `b-${idx}` ? 'done' : 'content_copy'}
-                              </span>
+                              {copyStatus === `b-${idx}`
+                                ? <CheckIcon className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
+                                : <Copy className="w-[1em] h-[1em] text-sm" aria-hidden="true" />}
                             </button>
                           </div>
                         ))}
@@ -749,44 +777,44 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
 
                   {/* Formatting parameters checklist */}
                   <div className="bg-slate-900 text-white rounded-2xl p-4 space-y-3 mt-4 border border-white/5">
-                    <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold block">// FORTUNE 100 ATS PARSABILITY CHECK</span>
+                    <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold block">{t('smartStudio.match.formattingCheckHeader', '// FORTUNE 100 ATS PARSABILITY CHECK')}</span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs">
                       <div className="flex items-center justify-between border-b border-white/10 pb-1.5 sub-check">
-                        <span className="text-slate-300 font-medium text-[11px]">Contact Parsing</span>
+                        <span className="text-slate-300 font-medium text-[11px]">{t('smartStudio.match.contactParsing', 'Contact Parsing')}</span>
                         <span className={`text-[10px] font-bold ${matchResult.formattingAnalysis.contactInfo.pass ? 'text-green-400' : 'text-red-400'}`}>
-                          {matchResult.formattingAnalysis.contactInfo.pass ? '✓ PASS' : '✗ REVISE'}
+                          {matchResult.formattingAnalysis.contactInfo.pass ? t('smartStudio.match.pass', '✓ PASS') : t('smartStudio.match.revise', '✗ REVISE')}
                         </span>
                       </div>
                       <div className="flex items-center justify-between border-b border-white/10 pb-1.5 sub-check">
-                        <span className="text-slate-300 font-medium text-[11px]">Edu Standards</span>
+                        <span className="text-slate-300 font-medium text-[11px]">{t('smartStudio.match.eduStandards', 'Edu Standards')}</span>
                         <span className={`text-[10px] font-bold ${matchResult.formattingAnalysis.education.pass ? 'text-green-400' : 'text-red-400'}`}>
-                          {matchResult.formattingAnalysis.education.pass ? '✓ PASS' : '✗ REVISE'}
+                          {matchResult.formattingAnalysis.education.pass ? t('smartStudio.match.pass', '✓ PASS') : t('smartStudio.match.revise', '✗ REVISE')}
                         </span>
                       </div>
                       <div className="flex items-center justify-between border-b border-white/5 pb-1 sub-check">
-                        <span className="text-slate-300 font-medium text-[11px]">Section Headers</span>
+                        <span className="text-slate-300 font-medium text-[11px]">{t('smartStudio.match.sectionHeaders', 'Section Headers')}</span>
                         <span className={`text-[10px] font-bold ${matchResult.formattingAnalysis.sectionNameComplexity.pass ? 'text-green-400' : 'text-red-400'}`}>
-                          {matchResult.formattingAnalysis.sectionNameComplexity.pass ? '✓ PASS' : '✗ REVISE'}
+                          {matchResult.formattingAnalysis.sectionNameComplexity.pass ? t('smartStudio.match.pass', '✓ PASS') : t('smartStudio.match.revise', '✗ REVISE')}
                         </span>
                       </div>
                       <div className="flex items-center justify-between border-b border-white/5 pb-1 sub-check">
-                        <span className="text-slate-300 font-medium text-[11px]">Metrics Rate</span>
+                        <span className="text-slate-300 font-medium text-[11px]">{t('smartStudio.match.metricsRate', 'Metrics Rate')}</span>
                         <span className={`text-[10px] font-bold ${matchResult.formattingAnalysis.quantificationRate.pass ? 'text-green-400' : 'text-amber-400'}`}>
-                          {matchResult.formattingAnalysis.quantificationRate.pass ? '✓ PASS' : '⚠️ METRICS'}
+                          {matchResult.formattingAnalysis.quantificationRate.pass ? t('smartStudio.match.pass', '✓ PASS') : t('smartStudio.match.metricsWarn', '⚠️ METRICS')}
                         </span>
                       </div>
                     </div>
                     <p className="text-[10px] text-slate-400 italic leading-tight text-right pt-1">
-                      Note: Your current document is visually optimized for recruitment filters.
+                      {t('smartStudio.match.visuallyOptimizedNote', 'Note: Your current document is visually optimized for recruitment filters.')}
                     </p>
                   </div>
                 </div>
               ) : (
                 <div className="h-full bg-white/40 rounded-3xl border border-slate-200 border-dashed flex flex-col justify-center items-center text-center p-12 text-slate-400 min-h-[400px]">
-                  <span className="material-symbols-outlined text-5xl mb-3 text-slate-300">verified_user</span>
-                  <h4 className="font-bold text-slate-600 mb-1">ATS Optimization Diagnostics</h4>
+                  <ShieldCheck className="w-12 h-12 mb-3 text-slate-300" aria-hidden="true" />
+                  <h4 className="font-bold text-slate-600 mb-1">{t('smartStudio.match.emptyTitle', 'ATS Optimization Diagnostics')}</h4>
                   <p className="max-w-xs text-xs text-slate-400 leading-relaxed">
-                    Paste your target role requirements and click "Calculate Job Match" to run high-speed parses.
+                    {t('smartStudio.match.emptyDesc', 'Paste your target role requirements and click "Calculate Job Match" to run high-speed parses.')}
                   </p>
                 </div>
               )}
@@ -801,37 +829,37 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="space-y-4">
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 text-xs">
-                <h3 className="font-extrabold text-slate-900 border-l-4 border-blue-600 pl-3 text-sm uppercase font-mono tracking-widest text-[#1e293b]">Profile Parameters</h3>
+                <h3 className="font-extrabold text-slate-900 border-l-4 border-blue-600 pl-3 text-sm uppercase font-mono tracking-widest text-[#1e293b]">{t('smartStudio.linkedin.profileParams', 'Profile Parameters')}</h3>
                 
                 <div className="space-y-1 text-left">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Target Job Title / Career Objective</label>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">{t('smartStudio.linkedin.targetRoleLabel', 'Target Job Title / Career Objective')}</label>
                   <input
                     type="text"
                     value={linkedinTargetRole}
                     onChange={(e) => setLinkedinTargetRole(e.target.value)}
                     className="w-full px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-200 font-sans focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 font-medium"
-                    placeholder="e.g. Senior Principal Manager"
+                    placeholder={t('smartStudio.linkedin.targetRolePlaceholder', 'e.g. Senior Principal Manager')}
                   />
                 </div>
 
                 <div className="space-y-1 text-left">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Current Headline</label>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">{t('smartStudio.linkedin.currentHeadlineLabel', 'Current Headline')}</label>
                   <input
                     type="text"
                     value={linkedinHeadline}
                     onChange={(e) => setLinkedinHeadline(e.target.value)}
                     className="w-full px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-200 font-sans focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 text-stone-700"
-                    placeholder="e.g. Seeking job opportunities"
+                    placeholder={t('smartStudio.linkedin.currentHeadlinePlaceholder', 'e.g. Seeking job opportunities')}
                   />
                 </div>
 
                 <div className="space-y-1 text-left">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Current "About" Summary</label>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">{t('smartStudio.linkedin.currentAboutLabel', 'Current "About" Summary')}</label>
                   <textarea
                     value={linkedinAbout}
                     onChange={(e) => setLinkedinAbout(e.target.value)}
                     className="w-full h-36 p-3 bg-slate-50 rounded-xl border border-slate-200 font-sans focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 text-stone-700"
-                    placeholder="Tell recruiters about your background..."
+                    placeholder={t('smartStudio.linkedin.currentAboutPlaceholder', 'Tell recruiters about your background...')}
                   />
                 </div>
               </div>
@@ -844,12 +872,12 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                 {isOptimizingLinkedIn ? (
                   <>
                     <div className="animate-spin rounded-full h-4.5 w-4.5 border-b-2 border-white"></div>
-                    Auditing Professional Personal Brand...
+                    {t('smartStudio.linkedin.auditing', 'Auditing Professional Personal Brand...')}
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined">person_pin</span>
-                    AUDIT LINKEDIN OPTIMIZATION SCORE
+                    <UserRoundSearch className="w-[1em] h-[1em]" aria-hidden="true" />
+                    {t('smartStudio.linkedin.auditBtn', 'AUDIT LINKEDIN OPTIMIZATION SCORE')}
                   </>
                 )}
               </button>
@@ -880,24 +908,24 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-900">
                           <span className="text-xl font-black">{linkedinResult.linkedinScore}</span>
-                          <span className="text-[8px] font-mono font-bold tracking-widest text-slate-400">INDEX</span>
+                          <span className="text-[8px] font-mono font-bold tracking-widest text-slate-400">{t('smartStudio.gauge.index', 'INDEX')}</span>
                         </div>
                       </div>
 
                       <div className="space-y-1">
-                        <h4 className="text-base font-extrabold text-slate-900">LinkedIn Search Performance Audit</h4>
+                        <h4 className="text-base font-extrabold text-slate-900">{t('smartStudio.linkedin.searchPerformanceAudit', 'LinkedIn Search Performance Audit')}</h4>
                         <p className="text-xs text-slate-500 leading-relaxed">
-                          We mapped search indexing triggers for LinkedIn Recruiter queries. 
+                          {t('smartStudio.linkedin.mappedTriggers', 'We mapped search indexing triggers for LinkedIn Recruiter queries.')}
                           {linkedinResult.linkedinScore >= 80 
-                            ? ' Direct keyword placement and structural indexing are set for peak search velocity!' 
-                            : ' Recruiter outbound requests would increase exponentially by integrating the elements below.'}
+                            ? t('smartStudio.linkedin.peakVelocity', ' Direct keyword placement and structural indexing are set for peak search velocity!')
+                            : t('smartStudio.linkedin.increaseInbound', ' Recruiter outbound requests would increase exponentially by integrating the elements below.')}
                         </p>
                       </div>
                     </div>
 
                     {/* Headline Suggestions */}
                     <div className="py-4 border-b border-slate-100 space-y-3">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold block mb-1">Tailored Headline Proposals (Recruiter Inbounds)</span>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold block mb-1">{t('smartStudio.linkedin.headlineProposals', 'Tailored Headline Proposals (Recruiter Inbounds)')}</span>
                       <div className="space-y-2">
                         {linkedinResult.headlineSuggestions.map((headline, idx) => (
                           <div key={idx} className="group relative bg-slate-50 hover:bg-indigo-50/40 p-3 rounded-xl border border-slate-200 transition-all">
@@ -907,11 +935,11 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                             <button 
                               onClick={() => handleCopyToClipboard(headline, `h-${idx}`)}
                               className="absolute top-2.5 right-2 opacity-50 group-hover:opacity-100 text-slate-400 hover:text-blue-600 transition-opacity p-0.5"
-                              title="Copy headline"
+                              title={t('smartStudio.linkedin.copyHeadline', 'Copy headline')}
                             >
-                              <span className="material-symbols-outlined text-xs">
-                                {copyStatus === `h-${idx}` ? 'done' : 'content_copy'}
-                              </span>
+                              {copyStatus === `h-${idx}`
+                                ? <CheckIcon className="w-3 h-3" aria-hidden="true" />
+                                : <Copy className="w-3 h-3" aria-hidden="true" />}
                             </button>
                           </div>
                         ))}
@@ -921,15 +949,15 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                     {/* About summary proposal */}
                     <div className="py-4 border-b border-slate-100 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold">Optimized first-person "About" copy</span>
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold">{t('smartStudio.linkedin.optimizedAbout', 'Optimized first-person "About" copy')}</span>
                         <button 
                           onClick={() => handleCopyToClipboard(linkedinResult.aboutSuggestion, 'l-about')}
                           className="text-[9.5px] font-extrabold text-blue-600 hover:underline flex items-center gap-1"
                         >
-                          <span className="material-symbols-outlined text-xs">
-                            {copyStatus === 'l-about' ? 'done' : 'content_copy'}
-                          </span>
-                          {copyStatus === 'l-about' ? 'Copied' : 'Copy About summary'}
+                          {copyStatus === 'l-about'
+                            ? <CheckIcon className="w-3 h-3" aria-hidden="true" />
+                            : <Copy className="w-3 h-3" aria-hidden="true" />}
+                          {copyStatus === 'l-about' ? t('smartStudio.linkedin.copied', 'Copied') : t('smartStudio.linkedin.copyAbout', 'Copy About summary')}
                         </button>
                       </div>
                       <pre className="text-xs font-sans text-slate-600 whitespace-pre-line leading-relaxed bg-slate-50/50 p-3 rounded-xl border border-slate-200 text-justify">
@@ -939,7 +967,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
 
                     {/* Search Algorithm Insights */}
                     <div className="py-4 space-y-2">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold block">LinkedIn Recruiter Algorithm Insights</span>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold block">{t('smartStudio.linkedin.algorithmInsights', 'LinkedIn Recruiter Algorithm Insights')}</span>
                       <p className="text-xs text-amber-900 leading-relaxed bg-amber-50/40 text-justify border border-amber-200 p-3 rounded-xl">
                         💡 {linkedinResult.searchVisibilityFeedback}
                       </p>
@@ -948,7 +976,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
 
                   {/* LinkedIn layout recommendations */}
                   <div className="bg-slate-900 text-[#cbd5e1] rounded-2xl p-4 space-y-3 mt-4">
-                    <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold block">// PROFILE LAYOUT IMPROVEMENTS</span>
+                    <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold block">{t('smartStudio.linkedin.layoutImprovements', '// PROFILE LAYOUT IMPROVEMENTS')}</span>
                     <ul className="text-xs space-y-2 leading-relaxed">
                       {linkedinResult.experienceTips.map((tip, idx) => (
                         <li key={idx} className="flex items-start gap-2">
@@ -961,10 +989,10 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                 </div>
               ) : (
                 <div className="h-full bg-white/40 rounded-3xl border border-slate-200 border-dashed flex flex-col justify-center items-center text-center p-12 text-slate-400 min-h-[400px]">
-                  <span className="material-symbols-outlined text-5xl mb-3 text-slate-300">person_add_disabled</span>
-                  <h4 className="font-bold text-slate-600 mb-1">LinkedIn Personal Brand Audit</h4>
+                  <UserX className="w-12 h-12 mb-3 text-slate-300" aria-hidden="true" />
+                  <h4 className="font-bold text-slate-600 mb-1">{t('smartStudio.linkedin.emptyTitle', 'LinkedIn Personal Brand Audit')}</h4>
                   <p className="max-w-xs text-xs text-slate-400 leading-relaxed">
-                    Set your target role and profile credentials, then click "Audit LinkedIn" to discover optimization indices.
+                    {t('smartStudio.linkedin.emptyDesc', 'Set your target role and profile credentials, then click "Audit LinkedIn" to discover optimization indices.')}
                   </p>
                 </div>
               )}
@@ -979,23 +1007,23 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="space-y-4">
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 text-xs">
-                <h3 className="font-extrabold text-slate-900 border-l-4 border-blue-600 pl-3 text-sm uppercase font-mono tracking-widest text-[#1e293b]">Cover Letter Draft</h3>
+                <h3 className="font-extrabold text-slate-900 border-l-4 border-blue-600 pl-3 text-sm uppercase font-mono tracking-widest text-[#1e293b]">{t('smartStudio.cover.draftTitle', 'Cover Letter Draft')}</h3>
                 <p className="text-[11px] text-slate-500 leading-relaxed -mt-2">
-                  Paste your actual cover letter draft to test compliance against employer performance hooks:
+                  {t('smartStudio.cover.draftDesc', 'Paste your actual cover letter draft to test compliance against employer performance hooks:')}
                 </p>
                 <textarea
                   value={coverLetterInput}
                   onChange={(e) => setCoverLetterInput(e.target.value)}
                   className="w-full h-44 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-sans focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 text-slate-700 leading-relaxed"
-                  placeholder="Paste current Cover Letter..."
+                  placeholder={t('smartStudio.cover.placeholder', 'Paste current Cover Letter...')}
                 />
 
-                <h3 className="font-extrabold text-slate-900 border-l-4 border-blue-600 pl-3 text-sm uppercase font-mono tracking-widest text-[#1e293b] mt-6">Target Job Role</h3>
+                <h3 className="font-extrabold text-slate-900 border-l-4 border-blue-600 pl-3 text-sm uppercase font-mono tracking-widest text-[#1e293b] mt-6">{t('smartStudio.cover.targetRoleTitle', 'Target Job Role')}</h3>
                 <textarea
                   value={coverLetterJobDesc}
                   onChange={(e) => setCoverLetterJobDesc(e.target.value)}
                   className="w-full h-44 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-sans focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 text-slate-700"
-                  placeholder="Paste job description details..."
+                  placeholder={t('smartStudio.cover.jdPlaceholder', 'Paste job description details...')}
                 />
               </div>
 
@@ -1007,12 +1035,12 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                 {isAnalyzingCover ? (
                   <>
                     <div className="animate-spin rounded-full h-4.5 w-4.5 border-b-2 border-white"></div>
-                    Tailoring Narrative Framework...
+                    {t('smartStudio.cover.tailoring', 'Tailoring Narrative Framework...')}
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined">rate_review</span>
-                    OPTIMIZE COVER LETTER FOR RECRUITERS
+                    <MessageSquareText className="w-[1em] h-[1em]" aria-hidden="true" />
+                    {t('smartStudio.cover.optimizeBtn', 'OPTIMIZE COVER LETTER FOR RECRUITERS')}
                   </>
                 )}
               </button>
@@ -1043,28 +1071,28 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-900">
                           <span className="text-xl font-black">{coverResult.matchScore}</span>
-                          <span className="text-[8px] font-mono font-bold tracking-widest text-slate-400">RATING</span>
+                          <span className="text-[8px] font-mono font-bold tracking-widest text-slate-400">{t('smartStudio.gauge.rating', 'RATING')}</span>
                         </div>
                       </div>
 
                       <div className="space-y-1">
-                        <h4 className="text-base font-extrabold text-slate-900">Cover Letter Tailoring Score</h4>
+                        <h4 className="text-base font-extrabold text-slate-900">{t('smartStudio.cover.tailoringScore', 'Cover Letter Tailoring Score')}</h4>
                         <p className="text-xs text-slate-500 leading-relaxed">
-                          We mapped keyword density and narrative pacing for hiring team retention. 
+                          {t('smartStudio.cover.mappedNarrative', 'We mapped keyword density and narrative pacing for hiring team retention.')}
                           {coverResult.matchScore >= 80 
-                            ? ' Narrative hooks are aligned perfectly for immediate hiring partner scheduling.' 
-                            : ' The cover letter is too generic. Improve narrative focus to demonstrate firm culture alignment.'}
+                            ? t('smartStudio.cover.hooksAligned', ' Narrative hooks are aligned perfectly for immediate hiring partner scheduling.')
+                            : t('smartStudio.cover.tooGeneric', ' The cover letter is too generic. Improve narrative focus to demonstrate firm culture alignment.')}
                         </p>
                       </div>
                     </div>
 
                     {/* Critique Bullets */}
                     <div className="py-4 border-b border-slate-100 space-y-3">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold block mb-1">Key Critique Metrics</span>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold block mb-1">{t('smartStudio.cover.critiqueMetrics', 'Key Critique Metrics')}</span>
                       <ul className="text-xs space-y-1.5 font-medium leading-relaxed">
                         {coverResult.critique.map((crit, idx) => (
                           <li key={idx} className="flex items-start gap-2 p-1 bg-red-50/50 border border-slate-200/50 rounded-lg">
-                            <span className="material-symbols-outlined text-xs text-amber-500 mt-0.5">warning</span>
+                            <TriangleAlert className="w-3 h-3 text-amber-500 mt-0.5" aria-hidden="true" />
                             <span className="text-slate-600">{crit}</span>
                           </li>
                         ))}
@@ -1073,7 +1101,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
 
                     {/* Missing competence highlights */}
                     <div className="py-4 border-b border-slate-100 space-y-2">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold block">Important details to mention in cover letter</span>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold block">{t('smartStudio.cover.missingDetails', 'Important details to mention in cover letter')}</span>
                       <div className="flex flex-wrap gap-1">
                         {coverResult.missingCompetencies.map(comp => (
                           <span key={comp} className="text-[9.5px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200/60 shadow-sm">
@@ -1086,15 +1114,15 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                     {/* Tailored improved Cover Letter copy */}
                     <div className="py-4 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold">Optimized ready to send document copy</span>
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold">{t('smartStudio.cover.readyDoc', 'Optimized ready to send document copy')}</span>
                         <button 
                           onClick={() => handleCopyToClipboard(coverResult.improvedCoverLetter, 'c-docx')}
                           className="text-[9.5px] font-extrabold text-blue-600 hover:underline flex items-center gap-1"
                         >
-                          <span className="material-symbols-outlined text-xs">
-                            {copyStatus === 'c-docx' ? 'done' : 'content_copy'}
-                          </span>
-                          {copyStatus === 'c-docx' ? 'Copied' : 'Copy Cover Letter text'}
+                          {copyStatus === 'c-docx'
+                            ? <CheckIcon className="w-3 h-3" aria-hidden="true" />
+                            : <Copy className="w-3 h-3" aria-hidden="true" />}
+                          {copyStatus === 'c-docx' ? t('smartStudio.linkedin.copied', 'Copied') : t('smartStudio.cover.copyLetter', 'Copy Cover Letter text')}
                         </button>
                       </div>
                       <pre className="text-xs font-sans text-slate-600 whitespace-pre-line leading-relaxed bg-slate-50/50 p-4 border border-slate-200 rounded-2xl text-justify max-h-96 overflow-y-auto">
@@ -1105,10 +1133,10 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                 </div>
               ) : (
                 <div className="h-full bg-white/40 rounded-3xl border border-slate-200 border-dashed flex flex-col justify-center items-center text-center p-12 text-slate-400 min-h-[400px]">
-                  <span className="material-symbols-outlined text-5xl mb-3 text-slate-300">edit_note</span>
-                  <h4 className="font-bold text-slate-600 mb-1">Cover Letter Tailoring Studio</h4>
+                  <NotebookPen className="w-12 h-12 mb-3 text-slate-300" aria-hidden="true" />
+                  <h4 className="font-bold text-slate-600 mb-1">{t('smartStudio.cover.emptyTitle', 'Cover Letter Tailoring Studio')}</h4>
                   <p className="max-w-xs text-xs text-slate-400 leading-relaxed">
-                    Paste your current cover letter and target role to begin restructuring your professional narrative.
+                    {t('smartStudio.cover.emptyDesc', 'Paste your current cover letter and target role to begin restructuring your professional narrative.')}
                   </p>
                 </div>
               )}
@@ -1122,15 +1150,15 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
         <div className="space-y-6">
           <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
             <div>
-              <h3 className="font-bold text-slate-900 text-base">FORTUNE 50 JOB PIPELINE</h3>
-              <p className="text-slate-500 text-xs">Consolidate target applications and real-time match rates in custom pipelines.</p>
+              <h3 className="font-bold text-slate-900 text-base">{t('smartStudio.tracker.title', 'FORTUNE 50 JOB PIPELINE')}</h3>
+              <p className="text-slate-500 text-xs">{t('smartStudio.tracker.subtitle', 'Consolidate target applications and real-time match rates in custom pipelines.')}</p>
             </div>
             <button
               onClick={() => setShowAddJobModal(true)}
               className="px-4 py-2 bg-slate-950 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-all flex items-center gap-1.5 shadow-md shadow-slate-950/20"
             >
-              <span className="material-symbols-outlined text-sm">add</span>
-              Add Application Card
+              <Plus className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
+              {t('smartStudio.tracker.addCard', 'Add Application Card')}
             </button>
           </div>
 
@@ -1139,11 +1167,11 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
             {/* Columns definitions */}
             {(['wishlist', 'applied', 'interview', 'offer', 'rejected'] as JobStatus[]).map(statusColumn => {
               const statusTitles: Record<JobStatus, { name: string; bg: string; text: string; dot: string }> = {
-                wishlist: { name: 'Target Roles', bg: 'bg-slate-50', text: 'text-slate-600', dot: 'bg-slate-400' },
-                applied: { name: 'Applied', bg: 'bg-indigo-50/40', text: 'text-blue-700', dot: 'bg-blue-500' },
-                interview: { name: 'Interviewing', bg: 'bg-amber-50/40', text: 'text-amber-700', dot: 'bg-amber-500' },
-                offer: { name: 'Offer Approved', bg: 'bg-green-50/45', text: 'text-green-700', dot: 'bg-green-500' },
-                rejected: { name: 'Archived / Rejected', bg: 'bg-rose-50/30', text: 'text-rose-700', dot: 'bg-rose-400' }
+                wishlist: { name: t('smartStudio.tracker.col.wishlist', 'Target Roles'), bg: 'bg-slate-50', text: 'text-slate-600', dot: 'bg-slate-400' },
+                applied: { name: t('smartStudio.tracker.col.applied', 'Applied'), bg: 'bg-indigo-50/40', text: 'text-blue-700', dot: 'bg-blue-500' },
+                interview: { name: t('smartStudio.tracker.col.interview', 'Interviewing'), bg: 'bg-amber-50/40', text: 'text-amber-700', dot: 'bg-amber-500' },
+                offer: { name: t('smartStudio.tracker.col.offer', 'Offer Approved'), bg: 'bg-green-50/45', text: 'text-green-700', dot: 'bg-green-500' },
+                rejected: { name: t('smartStudio.tracker.col.rejected', 'Archived / Rejected'), bg: 'bg-rose-50/30', text: 'text-rose-700', dot: 'bg-rose-400' }
               };
 
               const columnJobs = jobs.filter(j => j.status === statusColumn);
@@ -1179,7 +1207,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                             </div>
                             {/* Match Score Indicator tag */}
                             <span className="text-[9px] font-bold font-mono px-1.5 py-0.5 rounded bg-[#f1f5f9] text-[#475569] border border-slate-200 shrink-0">
-                              {job.matchScore || '60'}% Match
+                              {job.matchScore || '60'}{t('smartStudio.tracker.matchSuffix', '% Match')}
                             </span>
                           </div>
 
@@ -1191,7 +1219,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
 
                           {/* Quick Actions (Move columns) */}
                           <div className="flex items-center justify-between border-t border-slate-100 pt-3 mt-3">
-                            <span className="text-[8px] font-bold font-mono text-slate-400">SHIFT:</span>
+                            <span className="text-[8px] font-bold font-mono text-slate-400">{t('smartStudio.tracker.shift', 'SHIFT:')}</span>
                             <div className="flex items-center gap-1">
                               {statusColumn !== 'wishlist' && (
                                 <button
@@ -1200,7 +1228,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                                     const prevIdx = statuses.indexOf(statusColumn) - 1;
                                     handleUpdateJobStatus(job.id, statuses[prevIdx]);
                                   }}
-                                  aria-label="Move to previous stage"
+                                  aria-label={t('smartStudio.tracker.movePrev', 'Move to previous stage')}
                                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-950 active:scale-95"
                                 >
                                   <ArrowLeft size={14} strokeWidth={2.5} />
@@ -1209,7 +1237,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
 
                               <button
                                 onClick={() => handleDeleteJob(job.id)}
-                                aria-label="Delete job"
+                                aria-label={t('smartStudio.tracker.deleteJob', 'Delete job')}
                                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500 active:scale-95"
                               >
                                 <Trash2 size={14} strokeWidth={2} />
@@ -1222,7 +1250,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                                     const nextIdx = statuses.indexOf(statusColumn) + 1;
                                     handleUpdateJobStatus(job.id, statuses[nextIdx]);
                                   }}
-                                  aria-label="Move to next stage"
+                                  aria-label={t('smartStudio.tracker.moveNext', 'Move to next stage')}
                                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-950 active:scale-95"
                                 >
                                   <ArrowRight size={14} strokeWidth={2.5} />
@@ -1234,7 +1262,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                       ))
                     ) : (
                       <div className="h-28 border border-dashed border-slate-200 rounded-xl flex items-center justify-center text-[10px] text-slate-400">
-                        No positions here.
+                        {t('smartStudio.tracker.noPositions', 'No positions here.')}
                       </div>
                     )}
                   </div>
@@ -1252,11 +1280,11 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg font-extrabold text-slate-950 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-blue-600 bg-blue-50 p-2 rounded-xl">explore</span>
-                  AI Career Pathway Navigator
+                  <Compass className="w-6 h-6 text-blue-600 bg-blue-50 p-2 rounded-xl" aria-hidden="true" />
+                  {t('smartStudio.trajectory.navigatorTitle', 'AI Career Pathway Navigator')}
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  Analyze your career trajectory, skill set progression, and potential high-leverage job titles or industry shifts.
+                  {t('smartStudio.trajectory.navigatorDesc', 'Analyze your career trajectory, skill set progression, and potential high-leverage job titles or industry shifts.')}
                 </p>
               </div>
               <button
@@ -1267,12 +1295,12 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                 {isAnalyzingTrajectory ? (
                   <>
                     <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                    Synthesizing Trajectory...
+                    {t('smartStudio.trajectory.synthesizing', 'Synthesizing Trajectory...')}
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined text-sm font-bold">explore_nearby</span>
-                    Begin Trajectory Analysis
+                    <Navigation className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
+                    {t('smartStudio.trajectory.beginBtn', 'Begin Trajectory Analysis')}
                   </>
                 )}
               </button>
@@ -1280,17 +1308,17 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
 
             {trajectoryError && (
               <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-800">
-                <span className="material-symbols-outlined text-base">info</span>
+                <Info className="w-4 h-4" aria-hidden="true" />
                 <span>{trajectoryError}</span>
               </div>
             )}
 
             {!trajectoryResult && !isAnalyzingTrajectory && !trajectoryError && (
               <div className="mt-8 border-2 border-dashed border-slate-200 rounded-2xl p-10 text-center">
-                <span className="material-symbols-outlined text-4xl text-slate-300 animate-bounce">rocket_launch</span>
-                <h4 className="text-sm font-bold text-slate-700 mt-2">Unlock Your Career Map</h4>
+                <Rocket className="w-10 h-10 text-slate-300 animate-bounce" aria-hidden="true" />
+                <h4 className="text-sm font-bold text-slate-700 mt-2">{t('smartStudio.trajectory.unlockTitle', 'Unlock Your Career Map')}</h4>
                 <p className="text-xs text-slate-400 max-w-md mx-auto mt-1 leading-relaxed">
-                  Our system evaluates titles, companies, credentials, and skills in your CV to generate optimal targets. Press the button to start.
+                  {t('smartStudio.trajectory.unlockDesc', 'Our system evaluates titles, companies, credentials, and skills in your CV to generate optimal targets. Press the button to start.')}
                 </p>
               </div>
             )}
@@ -1301,14 +1329,14 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
               {/* Top Banner Row: Seniority Level */}
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm animate-fade-in">
                 <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-3xl text-blue-600 bg-white p-2.5 rounded-xl shadow-sm">military_tech</span>
+                  <Medal className="w-8 h-8 text-blue-600 bg-white p-2.5 rounded-xl shadow-sm" aria-hidden="true" />
                   <div>
-                    <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400 block animate-pulse">Identified Cadre</span>
+                    <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400 block animate-pulse">{t('smartStudio.trajectory.identifiedCadre', 'Identified Cadre')}</span>
                     <h4 className="text-base font-extrabold text-slate-900 capitalize">{trajectoryResult.currentLevel}</h4>
                   </div>
                 </div>
                 <div className="bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-bold tracking-wider font-mono">
-                  ATS INDEXED
+                  {t('smartStudio.trajectory.atsIndexed', 'ATS INDEXED')}
                 </div>
               </div>
 
@@ -1316,7 +1344,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                 {/* 1. Best-Match Target Roles */}
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                   <h4 className="text-xs font-bold uppercase tracking-widest text-[#1e293b] border-l-4 border-blue-600 pl-3">
-                    Suggested Job Title Alignments
+                    {t('smartStudio.trajectory.suggestedTitles', 'Suggested Job Title Alignments')}
                   </h4>
                   <div className="space-y-4">
                     {trajectoryResult.suggestedTitles.map((item, idx) => (
@@ -1335,7 +1363,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                               ? 'bg-green-50 text-green-700 border-green-200' 
                               : 'bg-indigo-50 text-indigo-700 border-indigo-200'
                           }`}>
-                            {item.matchScore}% Score
+                            {item.matchScore}{t('smartStudio.trajectory.matchScoreSuffix', '% Score')}
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-500 leading-relaxed text-left mt-1">
@@ -1349,7 +1377,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                 {/* 2. Target Industries & Sectors */}
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                   <h4 className="text-xs font-bold uppercase tracking-widest text-[#1e293b] border-l-4 border-indigo-600 pl-3">
-                    Target Industries & Growth Vectors
+                    {t('smartStudio.trajectory.targetIndustries', 'Target Industries & Growth Vectors')}
                   </h4>
                   <div className="space-y-4">
                     {trajectoryResult.suggestedIndustries.map((industry, index) => (
@@ -1378,14 +1406,14 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
               {/* 3. Skill Mastery Compass: Leverage vs Acquire */}
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-[#1e293b] border-l-4 border-violet-600 pl-3">
-                  Skill Strategy Matrix (Leverage & Acquire)
+                  {t('smartStudio.trajectory.skillMatrix', 'Skill Strategy Matrix (Leverage & Acquire)')}
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Leverage Block */}
                   <div className="space-y-2">
                     <h5 className="text-[10px] uppercase font-bold text-green-600 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-xs font-bold">verified</span>
-                      High-Leverage Existing Strengths
+                      <BadgeCheck className="w-3 h-3" aria-hidden="true" />
+                      {t('smartStudio.trajectory.leverageHeading', 'High-Leverage Existing Strengths')}
                     </h5>
                     <div className="space-y-2.5">
                       {trajectoryResult.skillGapsAndLeverages.filter(s => s.type === 'leverage').map((skill, si) => (
@@ -1400,7 +1428,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                         </div>
                       ))}
                       {trajectoryResult.skillGapsAndLeverages.filter(s => s.type === 'leverage').length === 0 && (
-                        <p className="text-[10px] text-slate-400 italic">No leverage areas specified.</p>
+                        <p className="text-[10px] text-slate-400 italic">{t('smartStudio.trajectory.noLeverage', 'No leverage areas specified.')}</p>
                       )}
                     </div>
                   </div>
@@ -1408,8 +1436,8 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                   {/* Acquire Block */}
                   <div className="space-y-2">
                     <h5 className="text-[10px] uppercase font-bold text-amber-600 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-xs font-bold">add_circle</span>
-                      Target Gaps to Acquire / Develop
+                      <CirclePlus className="w-3 h-3" aria-hidden="true" />
+                      {t('smartStudio.trajectory.acquireHeading', 'Target Gaps to Acquire / Develop')}
                     </h5>
                     <div className="space-y-2.5">
                       {trajectoryResult.skillGapsAndLeverages.filter(s => s.type === 'acquire').map((skill, si) => (
@@ -1424,7 +1452,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                         </div>
                       ))}
                       {trajectoryResult.skillGapsAndLeverages.filter(s => s.type === 'acquire').length === 0 && (
-                        <p className="text-[10px] text-slate-400 italic">No training needs compiled.</p>
+                        <p className="text-[10px] text-slate-400 italic">{t('smartStudio.trajectory.noAcquire', 'No training needs compiled.')}</p>
                       )}
                     </div>
                   </div>
@@ -1434,7 +1462,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
               {/* 4. Strategic Transition Steps */}
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-[#1e293b] border-l-4 border-indigo-600 pl-3">
-                  Strategic Career Transition Plan
+                  {t('smartStudio.trajectory.transitionPlan', 'Strategic Career Transition Plan')}
                 </h4>
                 <div className="relative border-l-2 border-indigo-100 pl-6 ml-3 space-y-6">
                   {trajectoryResult.strategicTrajectoryPlan.map((step, sIdx) => (
@@ -1445,7 +1473,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                       </span>
                       <div className="space-y-1">
                         <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-[#475569]">
-                          STAGE {sIdx + 1} DIRECTIVE
+                          {t('smartStudio.trajectory.stageDirective', 'STAGE {n} DIRECTIVE').replace('{n}', String(sIdx + 1))}
                         </span>
                         <p className="text-slate-600 leading-relaxed text-left pr-2">
                           {step}
@@ -1467,47 +1495,47 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
         const addJobForm = (
           <form onSubmit={handleCreateJob} className="space-y-4 text-xs">
               <div className="space-y-1 text-left">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Job Title *</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">{t('smartStudio.tracker.jobTitleLabel', 'Job Title *')}</label>
                 <input
                   type="text"
                   required
                   value={newJobTitle}
                   onChange={(e) => setNewJobTitle(e.target.value)}
                   className="tap-target w-full px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-200 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 font-semibold"
-                  placeholder="e.g. Director, Corporate Systems Integration"
+                  placeholder={t('smartStudio.tracker.jobTitlePlaceholder', 'e.g. Director, Corporate Systems Integration')}
                 />
               </div>
 
               <div className="space-y-1 text-left">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Company Name *</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">{t('smartStudio.tracker.companyLabel', 'Company Name *')}</label>
                 <input
                   type="text"
                   required
                   value={newJobCompany}
                   onChange={(e) => setNewJobCompany(e.target.value)}
                   className="tap-target w-full px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-200 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 font-semibold"
-                  placeholder="e.g. JPMorgan Chase"
+                  placeholder={t('smartStudio.tracker.companyPlaceholder', 'e.g. JPMorgan Chase')}
                 />
               </div>
 
               <div className="space-y-1 text-left">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Link / URL</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">{t('smartStudio.tracker.linkLabel', 'Link / URL')}</label>
                 <input
                   type="url"
                   value={newJobUrl}
                   onChange={(e) => setNewJobUrl(e.target.value)}
                   className="tap-target w-full px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-200 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 font-semibold"
-                  placeholder="e.g. https://careers.company.com/..."
+                  placeholder={t('smartStudio.tracker.linkPlaceholder', 'e.g. https://careers.company.com/...')}
                 />
               </div>
 
               <div className="space-y-1 text-left">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Tracker Activity Logs / Notes</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">{t('smartStudio.tracker.notesLabel', 'Tracker Activity Logs / Notes')}</label>
                 <textarea
                   value={newJobNotes}
                   onChange={(e) => setNewJobNotes(e.target.value)}
                   className="w-full h-24 p-3 bg-slate-50 rounded-xl border border-slate-200 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 leading-relaxed font-semibold"
-                  placeholder="Include status check summaries, contact logs, or date schedules..."
+                  placeholder={t('smartStudio.tracker.notesPlaceholder', 'Include status check summaries, contact logs, or date schedules...')}
                 />
               </div>
 
@@ -1516,14 +1544,14 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
                 className="tap-target w-full py-3 bg-slate-900 rounded-xl text-white font-mono font-bold tracking-widest text-xs uppercase cursor-pointer hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5 mt-2 active:scale-[0.98]"
               >
                 <CheckIcon size={14} strokeWidth={2.5} />
-                Deploy to Target list
+                {t('smartStudio.tracker.deployBtn', 'Deploy to Target list')}
               </button>
             </form>
         );
 
         if (isMobileShell) {
           return (
-            <BottomSheet isOpen={showAddJobModal} onClose={() => setShowAddJobModal(false)} title="New Application Card">
+            <BottomSheet isOpen={showAddJobModal} onClose={() => setShowAddJobModal(false)} title={t('smartStudio.tracker.newCardTitle', 'New Application Card')}>
               <div className="px-5 pb-2">{addJobForm}</div>
             </BottomSheet>
           );
@@ -1538,7 +1566,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
               <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-4">
                 <h3 className="font-extrabold text-slate-900 uppercase font-mono tracking-widest text-xs flex items-center gap-1.5 p-0.5">
                   <ListPlus size={16} strokeWidth={2} className="text-blue-600" />
-                  New Application Card
+                  {t('smartStudio.tracker.newCardTitle', 'New Application Card')}
                 </h3>
                 <button onClick={() => setShowAddJobModal(false)} className="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
               </div>

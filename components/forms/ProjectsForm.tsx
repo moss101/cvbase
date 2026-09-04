@@ -5,6 +5,7 @@ import ContentHeader from '../common/ContentHeader';
 import TipsCard from '../common/TipsCard';
 import FormActions from '../common/FormActions';
 import ProjectCard from './ProjectCard';
+import { useTranslation } from '../../services/translationService';
 
 interface ProjectsFormProps {
     data: Project[];
@@ -16,11 +17,12 @@ interface ProjectsFormProps {
 }
 
 const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, onChange, onAdd, onRemove, onClear, onNext }) => {
+    const { t } = useTranslation();
     return (
         <>
             <ContentHeader
-                title="Projects"
-                description="Showcase your personal or professional projects to demonstrate your skills."
+                title={t('projects.title', 'Projects')}
+                description={t('projects.desc', 'Showcase your personal or professional projects to demonstrate your skills.')}
             />
             {data.map((item) => (
                 <ProjectCard
@@ -35,7 +37,7 @@ const ProjectsForm: React.FC<ProjectsFormProps> = ({ data, onChange, onAdd, onRe
                 className="w-full p-5 bg-white border-2 border-dashed border-border rounded-lg cursor-pointer text-gray-500 font-semibold transition-all text-base hover:border-primary hover:text-primary hover:bg-primary-light"
                 onClick={onAdd}
             >
-                + Add Project
+                {t('projects.addBtn', '+ Add Project')}
             </button>
             <TipsCard activeSection="projects" />
             <FormActions onClear={onClear} onNext={onNext} />

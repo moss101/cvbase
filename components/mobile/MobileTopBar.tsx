@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronLeft } from 'lucide-react';
+import { useTranslation } from '../../services/translationService';
 
 interface MobileTopBarProps {
     onBack?: () => void;
@@ -12,6 +13,7 @@ interface MobileTopBarProps {
 /** Compact top bar for the mobile shell: back arrow, a title/subtitle slot
  *  (optionally tappable), and a trailing action slot. Status-bar-safe. */
 const MobileTopBar: React.FC<MobileTopBarProps> = ({ onBack, center, onCenterClick, trailing }) => {
+    const { t } = useTranslation();
     const centerContent = (
         <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-1 text-center">
             {center}
@@ -26,7 +28,7 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onBack, center, onCenterCli
                         <button
                             type="button"
                             onClick={onBack}
-                            aria-label="Back"
+                            aria-label={t('btn.back', 'Back')}
                             className="tap-target flex items-center justify-center rounded-full text-dark transition active:scale-95"
                         >
                             <ChevronLeft size={22} strokeWidth={2} />

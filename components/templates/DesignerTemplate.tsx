@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { sanitizeHtml } from '../../lib/sanitizeHtml';
-import type { ResumePreviewProps } from '../../types';
+import type { ResumePreviewProps, SectionId } from '../../types';
+import { orderedSections } from '../../lib/templates/sectionOrder';
 import { countries } from '../../data/locationData';
 
 const DesignerTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, visibleSections, settings }) => {
@@ -21,6 +22,160 @@ const DesignerTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
     const mainBg = '#FFFFFF';
     
     const fontSizeClass = settings?.fontSize === 'small' ? 'text-[9px]' : settings?.fontSize === 'large' ? 'text-[11px]' : 'text-[10px]';
+
+    const renderSection = (id: SectionId): React.ReactNode => {
+        switch (id) {
+            case 'summary':
+                return summary.professionalSummary ? (
+                    <section key="summary" data-section="summary" className="mb-10 ml-6 mr-8">
+                        <div className="mb-3 break-after-avoid">
+                             <h2 className="text-[13px] font-bold designer-tracking-header uppercase text-right mb-2">PROFILE</h2>
+                             <div className="w-[100px] h-[1px] bg-[#5C6168] ml-auto"></div>
+                        </div>
+                        <div className="text-[10px] leading-[12px] text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
+                    </section>
+                ) : null;
+            case 'experience':
+                return experience.length > 0 ? (
+                    <section key="experience" data-section="experience" className="ml-6 mr-8">
+                        <div className="mb-6 break-after-avoid">
+                             <h2 className="text-[13px] font-bold designer-tracking-header uppercase mb-2">EXPERIENCE</h2>
+                             <div className="w-[100px] h-[1px] bg-[#5C6168]"></div>
+                        </div>
+
+                        <div className="space-y-8">
+                            {experience.map(exp => (
+                                <div className="break-inside-avoid" key={exp.id}>
+                                    {/* Header Row */}
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h3 className="text-[10px] font-semibold leading-[12px] uppercase w-2/3">{exp.jobTitle}</h3>
+                                        <span className="text-[10px] leading-[12px] text-right w-1/3">{exp.startDate} - {exp.endDate}</span>
+                                    </div>
+                                    {/* Company */}
+                                    <p className="text-[10px] leading-[12px] italic mb-2" style={{ color: accentColor }}>{exp.company}, {exp.location}</p>
+                                    {/* Description */}
+                                    <div className="text-[10px] leading-[12px]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'education':
+                return education.length > 0 ? (
+                    <section key="education" data-section="education" className="ml-3 mt-6">
+                         <div className="mb-4 break-after-avoid">
+                              <h2 className="text-[13px] font-bold designer-tracking-header uppercase mb-2">EDUCATION</h2>
+                              <div className="w-[26px] h-[1px]" style={{ backgroundColor: textColor }}></div>
+                         </div>
+                         <div className="space-y-4">
+                             {education.map(edu => (
+                                 <div key={edu.id} className="flex flex-col gap-1 break-inside-avoid">
+                                     <h3 className="text-[10px] font-semibold leading-[12px]">{edu.degree}</h3>
+                                     <p className="text-[10px] leading-[12px]">{edu.school}</p>
+                                     <p className="text-[10px] leading-[12px]">{edu.startDate} - {edu.endDate}</p>
+                                 </div>
+                             ))}
+                         </div>
+                    </section>
+                ) : null;
+            case 'skills':
+                return skills.length > 0 ? (
+                    <section key="skills" data-section="skills" className="ml-3">
+                         <div className="mb-4 break-after-avoid">
+                             <h2 className="text-[13px] font-bold designer-tracking-header uppercase mb-2">SKILLS</h2>
+                             <div className="w-[26px] h-[1px]" style={{ backgroundColor: textColor }}></div>
+                        </div>
+                        <ul className="space-y-2">
+                            {skills.map((skill, i) => (
+                                <li key={i} className="flex items-center gap-2 break-inside-avoid">
+                                    <div className="w-[4px] h-[4px] rounded-full bg-[#5C6168]"></div>
+                                    <span className="text-[10px] leading-[12px]">{skill}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                ) : null;
+            case 'projects':
+                return projects.length > 0 ? (
+                    <section key="projects" data-section="projects" className="ml-6 mr-8 mt-10">
+                        <div className="mb-6 break-after-avoid">
+                             <h2 className="text-[13px] font-bold designer-tracking-header uppercase mb-2">PROJECTS</h2>
+                             <div className="w-[100px] h-[1px] bg-[#5C6168]"></div>
+                        </div>
+                         <div className="space-y-6">
+                            {projects.map(item => (
+                                <div className="break-inside-avoid" key={item.id}>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h3 className="text-[10px] font-semibold leading-[12px] uppercase w-2/3">{item.name}</h3>
+                                        <span className="text-[10px] leading-[12px] text-right w-1/3">{item.startDate} - {item.endDate}</span>
+                                    </div>
+                                    <p className="text-[10px] leading-[12px] italic mb-2" style={{ color: accentColor }}>{item.technologies}</p>
+                                    <div className="text-[10px] leading-[12px]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'certifications':
+                return certifications.length > 0 ? (
+                    <section key="certifications" data-section="certifications" className="ml-3">
+                        <div className="mb-4 break-after-avoid">
+                             <h2 className="text-[13px] font-bold designer-tracking-header uppercase mb-2">CERTIFICATIONS</h2>
+                             <div className="w-[26px] h-[1px]" style={{ backgroundColor: textColor }}></div>
+                        </div>
+                        <div className="space-y-2">
+                            {certifications.map((cert, i) => (
+                                <div key={i} className="flex flex-col gap-1 break-inside-avoid">
+                                    <span className="text-[10px] font-semibold leading-[12px]">{cert.name}</span>
+                                    <span className="text-[10px] leading-[12px]">{cert.expiryDate}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'languages':
+                return languages.length > 0 ? (
+                    <section key="languages" data-section="languages" className="ml-3">
+                        <div className="mb-4 break-after-avoid">
+                             <h2 className="text-[13px] font-bold designer-tracking-header uppercase mb-2">LANGUAGES</h2>
+                             <div className="w-[26px] h-[1px]" style={{ backgroundColor: textColor }}></div>
+                        </div>
+                        <ul className="space-y-2">
+                            {languages.map((lang, i) => (
+                                <li key={i} className="flex flex-col break-inside-avoid">
+                                    <span className="text-[10px] leading-[12px]">{lang.language}</span>
+                                    <span className="text-[9px] opacity-80">{lang.proficiency}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                ) : null;
+            case 'awards':
+                return awards.length > 0 ? (
+                    <section key="awards" data-section="awards" className="ml-6 mr-8 mt-10">
+                       <div className="mb-6 break-after-avoid">
+                            <h2 className="text-[13px] font-bold designer-tracking-header uppercase mb-2">AWARDS</h2>
+                            <div className="w-[100px] h-[1px] bg-[#5C6168]"></div>
+                       </div>
+                       <div className="space-y-4">
+                           {awards.map(item => (
+                               <div key={item.id} className="flex justify-between items-start break-inside-avoid">
+                                   <div>
+                                       <h3 className="text-[10px] font-semibold leading-[12px]">{item.title}</h3>
+                                       <p className="text-[10px] leading-[12px] italic">{item.issuer}</p>
+                                   </div>
+                                   <span className="text-[10px] leading-[12px] text-right">{item.date}</span>
+                               </div>
+                           ))}
+                       </div>
+                    </section>
+                ) : null;
+            default:
+                return null;
+        }
+    };
+    const renderRun = (ids: readonly SectionId[]): React.ReactNode[] =>
+        orderedSections(formData, visibleSections, ids).map(renderSection);
 
     return (
         <div id={isCardPreview ? undefined : "resume-preview-designer"} className={`w-[794px] min-h-[1123px] h-auto flex ${fontSizeClass}`} style={{ fontFamily: settings?.fontFamily || "'Inter', sans-serif", backgroundColor: mainBg, color: textColor }}>
@@ -55,76 +210,7 @@ const DesignerTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                 </div>
 
                 {/* Education */}
-                {education.length > 0 && (
-                   <section className="ml-3 mt-6">
-                        <div className="mb-4">
-                             <h2 className="text-[13px] font-bold designer-tracking-header uppercase mb-2">EDUCATION</h2>
-                             <div className="w-[26px] h-[1px]" style={{ backgroundColor: textColor }}></div>
-                        </div>
-                        <div className="space-y-4">
-                            {education.map(edu => (
-                                <div key={edu.id} className="flex flex-col gap-1">
-                                    <h3 className="text-[10px] font-semibold leading-[12px]">{edu.degree}</h3>
-                                    <p className="text-[10px] leading-[12px]">{edu.school}</p>
-                                    <p className="text-[10px] leading-[12px]">{edu.startDate} - {edu.endDate}</p>
-                                </div>
-                            ))}
-                        </div>
-                   </section>
-                )}
-
-                {skills.length > 0 && (
-                    <section className="ml-3">
-                         <div className="mb-4">
-                             <h2 className="text-[13px] font-bold designer-tracking-header uppercase mb-2">SKILLS</h2>
-                             <div className="w-[26px] h-[1px]" style={{ backgroundColor: textColor }}></div>
-                        </div>
-                        <ul className="space-y-2">
-                            {skills.map((skill, i) => (
-                                <li key={i} className="flex items-center gap-2">
-                                    <div className="w-[4px] h-[4px] rounded-full bg-[#5C6168]"></div>
-                                    <span className="text-[10px] leading-[12px]">{skill}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </section>
-                )}
-
-                {/* Certifications (Fits sidebar style) */}
-                {visibleSections.includes('certifications') && certifications.length > 0 && (
-                     <section className="ml-3">
-                        <div className="mb-4">
-                             <h2 className="text-[13px] font-bold designer-tracking-header uppercase mb-2">CERTIFICATIONS</h2>
-                             <div className="w-[26px] h-[1px]" style={{ backgroundColor: textColor }}></div>
-                        </div>
-                        <div className="space-y-2">
-                            {certifications.map((cert, i) => (
-                                <div key={i} className="flex flex-col gap-1">
-                                    <span className="text-[10px] font-semibold leading-[12px]">{cert.name}</span>
-                                    <span className="text-[10px] leading-[12px]">{cert.expiryDate}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
-                {/* Languages (Fits sidebar style) */}
-                {visibleSections.includes('languages') && languages.length > 0 && (
-                     <section className="ml-3">
-                        <div className="mb-4">
-                             <h2 className="text-[13px] font-bold designer-tracking-header uppercase mb-2">LANGUAGES</h2>
-                             <div className="w-[26px] h-[1px]" style={{ backgroundColor: textColor }}></div>
-                        </div>
-                        <ul className="space-y-2">
-                            {languages.map((lang, i) => (
-                                <li key={i} className="flex flex-col">
-                                    <span className="text-[10px] leading-[12px]">{lang.language}</span>
-                                    <span className="text-[9px] opacity-80">{lang.proficiency}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </section>
-                )}
+                {renderRun(['education', 'skills', 'certifications', 'languages'])}
             </aside>
 
             {/* Main Content - Calculated width ~589px (794-205) */}
@@ -198,88 +284,11 @@ const DesignerTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevie
                 </div>
 
                 {/* Profile Summary */}
-                {summary.professionalSummary && (
-                    <section className="mb-10 ml-6 mr-8">
-                        <div className="mb-3">
-                             <h2 className="text-[13px] font-bold designer-tracking-header uppercase text-right mb-2">PROFILE</h2>
-                             <div className="w-[100px] h-[1px] bg-[#5C6168] ml-auto"></div>
-                        </div>
-                        <div className="text-[10px] leading-[12px] text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
-                    </section>
-                )}
-
-                {/* Experience */}
-                {experience.length > 0 && (
-                     <section className="ml-6 mr-8">
-                        <div className="mb-6">
-                             <h2 className="text-[13px] font-bold designer-tracking-header uppercase mb-2">EXPERIENCE</h2>
-                             <div className="w-[100px] h-[1px] bg-[#5C6168]"></div>
-                        </div>
-                        
-                        <div className="space-y-8">
-                            {experience.map(exp => (
-                                <div key={exp.id}>
-                                    {/* Header Row */}
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h3 className="text-[10px] font-semibold leading-[12px] uppercase w-2/3">{exp.jobTitle}</h3>
-                                        <span className="text-[10px] leading-[12px] text-right w-1/3">{exp.startDate} - {exp.endDate}</span>
-                                    </div>
-                                    {/* Company */}
-                                    <p className="text-[10px] leading-[12px] italic mb-2" style={{ color: accentColor }}>{exp.company}, {exp.location}</p>
-                                    {/* Description */}
-                                    <div className="text-[10px] leading-[12px]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-                
-                {/* Projects (if present) */}
-                {visibleSections.includes('projects') && projects.length > 0 && (
-                    <section className="ml-6 mr-8 mt-10">
-                        <div className="mb-6">
-                             <h2 className="text-[13px] font-bold designer-tracking-header uppercase mb-2">PROJECTS</h2>
-                             <div className="w-[100px] h-[1px] bg-[#5C6168]"></div>
-                        </div>
-                         <div className="space-y-6">
-                            {projects.map(item => (
-                                <div key={item.id}>
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h3 className="text-[10px] font-semibold leading-[12px] uppercase w-2/3">{item.name}</h3>
-                                        <span className="text-[10px] leading-[12px] text-right w-1/3">{item.startDate} - {item.endDate}</span>
-                                    </div>
-                                    <p className="text-[10px] leading-[12px] italic mb-2" style={{ color: accentColor }}>{item.technologies}</p>
-                                    <div className="text-[10px] leading-[12px]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
-                 {/* Other Sections displayed similarly */}
-                 {visibleSections.includes('awards') && awards.length > 0 && (
-                     <section className="ml-6 mr-8 mt-10">
-                        <div className="mb-6">
-                             <h2 className="text-[13px] font-bold designer-tracking-header uppercase mb-2">AWARDS</h2>
-                             <div className="w-[100px] h-[1px] bg-[#5C6168]"></div>
-                        </div>
-                        <div className="space-y-4">
-                            {awards.map(item => (
-                                <div key={item.id} className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="text-[10px] font-semibold leading-[12px]">{item.title}</h3>
-                                        <p className="text-[10px] leading-[12px] italic">{item.issuer}</p>
-                                    </div>
-                                    <span className="text-[10px] leading-[12px] text-right">{item.date}</span>
-                                </div>
-                            ))}
-                        </div>
-                     </section>
-                 )}
+                {renderRun(['summary', 'experience', 'projects', 'awards'])}
 
             </main>
         </div>
     );
 };
 
-export default DesignerTemplate;
+export default React.memo(DesignerTemplate);

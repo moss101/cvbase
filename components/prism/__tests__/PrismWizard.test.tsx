@@ -30,6 +30,13 @@ vi.mock('../../../services/repos/prismRepo', () => ({
 vi.mock('../../../services/api', () => ({
   callFn: vi.fn(),
 }));
+vi.mock('../../../services/translationService', () => ({
+  useTranslation: () => ({
+    t: (_key: string, fallback?: string) => fallback ?? _key,
+    language: 'en',
+    setLanguage: () => {},
+  }),
+}));
 
 import { analyzeGaps, finalizeRun, generateResume } from '../../../services/prismService';
 import * as resumeRepo from '../../../services/repos/resumeRepo';

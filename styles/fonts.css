@@ -36,8 +36,6 @@
 @import '@fontsource/open-sans/600.css';
 @import '@fontsource/open-sans/700.css';
 
-/* Icon font — 440 `material-symbols-outlined` usages across the app. */
-@import 'material-symbols/outlined.css';
 
 /* --------------------------------------------------------------------------
    Plain-name aliases for the variable families.

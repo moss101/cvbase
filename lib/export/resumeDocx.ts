@@ -11,6 +11,7 @@ import {
 } from 'docx';
 import type { ResumeData, ResumeSettings, SectionId } from '../../types';
 import { parseRichText, type RichBlock } from './richText.ts';
+import { saveFile } from './saveFile';
 
 export interface DocxExportOptions {
     settings?: Partial<ResumeSettings>;
@@ -218,15 +219,18 @@ export function docxFileName(data: ResumeData): string {
     return base ? `${base}_Resume.docx` : 'Resume.docx';
 }
 
-/** Browser entry point: build the doc and trigger a download. */
+/**
+ * Entry point used by the builder UI: build the doc and hand it to the user.
+ * Anchor `<a download>` clicks are a no-op (or a dead-end blob: navigation)
+ * inside a Capacitor WebView, so this now routes through the cross-platform
+ * `saveFile` helper — an anchor download on the web, the native share sheet
+ * (with a Documents-directory fallback) inside the packaged apps.
+ */
 export async function downloadResumeDocx(data: ResumeData, opts: DocxExportOptions = {}): Promise<void> {
     const blob = await Packer.toBlob(buildResumeDoc(data, opts));
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = docxFileName(data);
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    await saveFile({
+        blob,
+        filename: docxFileName(data),
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    });
 }

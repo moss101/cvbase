@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { generateFieldTip } from '../../services/geminiService';
+import { Sparkles, Sparkle, RefreshCw, X, TriangleAlert } from 'lucide-react';
+import { useTranslation } from '../../services/translationService';
 
 // Module-level cache to prevent redundant API calls for identical section fields
 const tipsCache: Record<string, string> = {};
@@ -11,6 +13,7 @@ interface AITipHelperProps {
 }
 
 export const AITipHelper: React.FC<AITipHelperProps> = ({ section, fieldName, currentValue = '' }) => {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [tip, setTip] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +42,7 @@ export const AITipHelper: React.FC<AITipHelperProps> = ({ section, fieldName, cu
             setTip(generated);
         } catch (err) {
             console.error('Failed to generate tip', err);
-            setError('Could not reach AI counselor.');
+            setError(t('aiTip.error', 'Could not reach AI counselor.'));
         } finally {
             setIsLoading(false);
         }
@@ -105,16 +108,14 @@ export const AITipHelper: React.FC<AITipHelperProps> = ({ section, fieldName, cu
             <button
                 type="button"
                 onClick={toggleOpen}
-                aria-label={`Show tip for ${fieldName}`}
+                aria-label={t('aiTip.showTipFor', 'Show tip for {field}').replace('{field}', fieldName)}
                 className={`flex items-center justify-center p-0.5 rounded-full transition-all duration-200 outline-none ${
                     isOpen 
                         ? 'bg-secondary-light text-secondary shadow-glow scale-110' 
                         : 'text-gray-400 hover:text-secondary-dark hover:bg-gray-100 hover:scale-105'
                 }`}
             >
-                <span className="material-symbols-outlined text-[16px] md:text-[18px] select-none block font-semibold leading-none">
-                    auto_awesome
-                </span>
+                <Sparkles className="w-[16px] h-[16px] md:w-[18px] md:h-[18px] select-none block" aria-hidden="true" />
             </button>
 
             {/* Tooltip Overlay */}
@@ -129,11 +130,9 @@ export const AITipHelper: React.FC<AITipHelperProps> = ({ section, fieldName, cu
                     {/* Header */}
                     <div className="flex items-center justify-between border-b border-gray-100 pb-2 mb-2 shrink-0">
                         <div className="flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-secondary font-bold text-base select-none">
-                                spark
-                            </span>
+                            <Sparkle className="w-[1em] h-[1em] text-secondary text-base select-none" aria-hidden="true" />
                             <span className="text-xs font-extrabold text-secondary tracking-wider uppercase">
-                                AI Section Counselor
+                                {t('aiTip.counselorTitle', 'AI Section Counselor')}
                             </span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -143,21 +142,19 @@ export const AITipHelper: React.FC<AITipHelperProps> = ({ section, fieldName, cu
                                 onClick={handleRegenerate}
                                 disabled={isLoading}
                                 className="p-1 rounded-md text-gray-400 hover:text-primary hover:bg-gray-50 transition-colors disabled:opacity-40"
-                                title="Get a different writing tip"
+                                title={t('aiTip.getDifferentTip', 'Get a different writing tip')}
+                                aria-label={t('aiTip.getDifferentTip', 'Get a different writing tip')}
                             >
-                                <span className={`material-symbols-outlined text-sm select-none block ${isLoading ? 'animate-spin' : ''}`}>
-                                    sync
-                                </span>
+                                <RefreshCw className={`w-[1em] h-[1em] text-sm select-none block ${isLoading ? 'animate-spin' : ''}`} aria-hidden="true" />
                             </button>
                             {/* Close Button */}
                             <button
                                 type="button"
                                 onClick={() => setIsOpen(false)}
+                                aria-label={t('aiTip.closeTip', 'Close tip')}
                                 className="p-1 rounded-md text-gray-400 hover:text-slate-800 hover:bg-gray-50 transition-colors"
                             >
-                                <span className="material-symbols-outlined text-sm select-none block">
-                                    close
-                                </span>
+                                <X className="w-[1em] h-[1em] text-sm select-none block" aria-hidden="true" />
                             </button>
                         </div>
                     </div>
@@ -172,7 +169,7 @@ export const AITipHelper: React.FC<AITipHelperProps> = ({ section, fieldName, cu
                             </div>
                         ) : error ? (
                             <p className="text-xs text-danger flex items-center gap-1">
-                                <span className="material-symbols-outlined text-sm">warning</span>
+                                <TriangleAlert className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
                                 {error}
                             </p>
                         ) : (

@@ -2,6 +2,7 @@
 import React from 'react';
 import { useMobileShell } from '../../lib/useMobileShell';
 import StickyActionBar from '../mobile/StickyActionBar';
+import { useTranslation } from '../../services/translationService';
 
 interface FormActionsProps {
     onClear: () => void;
@@ -9,6 +10,7 @@ interface FormActionsProps {
 }
 
 const FormActions: React.FC<FormActionsProps> = ({ onClear, onNext }) => {
+    const { t } = useTranslation();
     const isMobileShell = useMobileShell();
 
     // Mobile: a single flex-1 primary ("Save & Next") plus a small demoted
@@ -21,14 +23,14 @@ const FormActions: React.FC<FormActionsProps> = ({ onClear, onNext }) => {
                     onClick={onClear}
                     className="tap-target shrink-0 rounded-xl px-3 text-sm font-semibold text-gray-500 transition active:scale-95"
                 >
-                    Clear
+                    {t('formActions.clear', 'Clear')}
                 </button>
                 <button
                     type="button"
                     onClick={onNext}
                     className="tap-target flex flex-1 items-center justify-center rounded-xl bg-primary text-[15px] font-bold text-white shadow-sm transition active:scale-[0.98]"
                 >
-                    Save &amp; Next
+                    {t('formActions.saveAndNext', 'Save & Next')}
                 </button>
             </StickyActionBar>
         );
@@ -41,14 +43,14 @@ const FormActions: React.FC<FormActionsProps> = ({ onClear, onNext }) => {
                 className="px-10 py-4 rounded-xl font-bold cursor-pointer text-base transition-all bg-white border border-border text-dark hover:border-dark hover:-translate-y-0.5 hover:shadow-md"
                 onClick={onClear}
             >
-                Clear Section
+                {t('btn.clearSection', 'Clear Section')}
             </button>
             <button
                 type="button"
                 className="px-10 py-4 rounded-xl font-bold cursor-pointer text-base transition-all bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary-dark hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/30"
                 onClick={onNext}
             >
-                Save & Next
+                {t('formActions.saveAndNext', 'Save & Next')}
             </button>
         </div>
     );

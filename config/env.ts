@@ -2,7 +2,8 @@
 /**
  * Client-safe environment access.
  *
- * Only three values are ever exposed to the browser bundle. All real secrets
+ * Only four values are ever exposed to the browser bundle (the Sentry DSN is
+ * a public write-only key by design). All real secrets
  * (service role key, Stripe secret, Gemini key) live exclusively in Supabase
  * Edge Function secrets and are NEVER read here. Vite statically replaces the
  * `import.meta.env.VITE_*` member expressions below at build time (see the
@@ -14,6 +15,8 @@ export interface ClientEnv {
   supabaseAnonKey: string;
   /** Optional until W4 (billing). */
   stripePublishableKey: string;
+  /** Optional. Error monitoring stays off when blank (see lib/monitoring.ts). */
+  sentryDsn: string;
 }
 
 /**
@@ -41,6 +44,7 @@ export function getClientEnv(): ClientEnv {
     import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY,
     'VITE_STRIPE_PUBLISHABLE_KEY',
   );
+  const sentryDsn = coalesce(import.meta.env.VITE_SENTRY_DSN, 'VITE_SENTRY_DSN');
 
   const missing: string[] = [];
   if (!supabaseUrl) missing.push('VITE_SUPABASE_URL');
@@ -52,7 +56,7 @@ export function getClientEnv(): ClientEnv {
     );
   }
 
-  cached = { supabaseUrl, supabaseAnonKey, stripePublishableKey };
+  cached = { supabaseUrl, supabaseAnonKey, stripePublishableKey, sentryDsn };
   return cached;
 }
 

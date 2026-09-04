@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { SparklesIcon } from './common/icons';
+import { Menu, Globe, ChevronDown, DatabaseBackup } from 'lucide-react';
 import { useTranslation, LANGUAGE_OPTIONS } from '../services/translationService';
 
 interface HeaderActionsProps {
@@ -46,12 +47,12 @@ const HeaderActions: React.FC<HeaderActionsProps> = ({
                     <button 
                         onClick={onMenuClick}
                         className="lg:hidden flex items-center justify-center p-2 rounded-xl border-2 border-border text-dark hover:border-primary hover:text-primary active:scale-95 transition bg-white mr-1 cursor-pointer"
-                        title="Open Navigation"
+                        title={t('label.openNavigation', 'Open Navigation')}
                     >
-                        <span className="material-symbols-outlined text-lg leading-none">menu</span>
+                        <Menu className="w-[1em] h-[1em] text-lg leading-none" aria-hidden="true" />
                     </button>
                 )}
-                <span className="material-symbols-outlined text-gray-400 text-lg">language</span>
+                <Globe className="w-[1em] h-[1em] text-gray-400 text-lg" aria-hidden="true" />
                 <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mr-1 hidden sm:inline">
                     {t('label.selectLanguage', 'Language')}
                 </span>
@@ -68,7 +69,7 @@ const HeaderActions: React.FC<HeaderActionsProps> = ({
                         ))}
                     </select>
                     <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 font-bold flex items-center">
-                        <span className="material-symbols-outlined text-lg leading-none">expand_more</span>
+                        <ChevronDown className="w-[1em] h-[1em] text-lg leading-none" aria-hidden="true" />
                     </div>
                 </div>
             </div>
@@ -97,7 +98,7 @@ const HeaderActions: React.FC<HeaderActionsProps> = ({
                 <button 
                     onClick={onOpenJsonBackup}
                     className="flex items-center gap-2 px-5 py-3 bg-white border-2 border-border rounded-xl cursor-pointer font-bold text-xs uppercase tracking-wider transition-all text-dark shadow-sm hover:border-primary hover:text-primary hover:-translate-y-0.5 hover:shadow-md">
-                    <span className="material-symbols-outlined text-[16px] leading-none">backup</span>
+                    <DatabaseBackup className="w-4 h-4 leading-none" aria-hidden="true" />
                     {t('btn.backup', 'JSON Backup')}
                 </button>
 

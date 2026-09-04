@@ -18,6 +18,16 @@ domain, cvbase.ai.
 
 Capacitor 8 uses Swift Package Manager on iOS, so **CocoaPods is not required**.
 
+## Service worker is web-only
+
+`public/sw.js` (offline app shell + cached `/assets/*`) is registered by
+`public/register-sw.js`, which bails out inside the Capacitor shell (it checks
+`window.Capacitor` and the `capacitor:`/`ionic:` schemes) and on the Vite dev
+server (port 3000). The native apps ship their bundle inside the binary, so they
+need no worker; `npx cap sync` copies the files along with the rest of `dist/`
+but they stay inert. The PWA manifest and `/icons/*.png` are likewise for the
+web install prompt only — the store icons live under `android/` and `ios/`.
+
 ## Everyday loop
 
 ```bash
@@ -204,3 +214,27 @@ icons but several resume templates set `FILL`, `wght` and `opsz` axes, so the
 variable font is genuinely required for visual fidelity. Subsetting it would
 mean switching the 440 ligature call sites to codepoints — worth doing if app
 size becomes a constraint, but it is not a shipping blocker.
+
+### Resume export: no anchor downloads inside the WebView
+
+`<a download>` is a silent no-op (or a dead-end `blob:` in-app navigation) in a
+Capacitor WebView — there is no download manager to catch the click. Every
+export in the resume builder (`components/ResumeBuilder.tsx`) now goes through
+`lib/export/saveFile.ts`, which branches on `Capacitor.isNativePlatform()`: an
+anchor download on the web, and on native a write into `Directory.Cache` via
+`@capacitor/filesystem` followed by the system share sheet via
+`@capacitor/share` (already-installed dependencies — no new native plugin was
+added, so this change did not require an `npx cap sync`). If the share sheet
+itself can't be reached, it falls back to `Directory.Documents` plus a toast
+telling the user where the file landed.
+
+PDF export (`lib/export/exportPdf.ts`) has two paths. The primary one, used on
+web, opens a same-origin hidden iframe, clones the app's compiled stylesheets
+and the rendered resume markup into it, and calls the browser's own
+print-to-PDF (`iframe.contentWindow.print()`) — a real text layer, not a
+screenshot. That pipeline doesn't exist inside a WebView (there's no "Save as
+PDF" target for `print()` to write to), so native always uses the rasterised
+html2pdf.js path (`renderImagePdfBlob`) and hands the resulting blob to
+`saveFile`. The same rasterised path is also offered on web as a secondary
+"Image PDF (exact look)" option in the finalize screen, for anyone who wants a
+pixel-exact copy of a template over a searchable/selectable file.

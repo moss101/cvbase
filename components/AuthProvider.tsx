@@ -9,6 +9,7 @@ import {
   verifyEmailCode as verifyCode,
 } from '../services/authFlow';
 import { isProfileComplete, MISSING_PROFILE_FIELDS } from '../services/profileCompleteness';
+import { useTranslation } from '../services/translationService';
 
 export type { UserProfile };
 
@@ -44,6 +45,7 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const supabase = getSupabase();
+  const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -83,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await sendEmailAuth(email);
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Could not send the sign-in email.';
+      const message = e instanceof Error ? e.message : t('auth.error.sendFailed', 'Could not send the sign-in email.');
       setError(message);
       throw e;
     }
@@ -95,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await verifyCode(email, token);
       // onAuthStateChange populates user + profile.
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'That code did not work.';
+      const message = e instanceof Error ? e.message : t('auth.error.codeFailed', 'That code did not work.');
       setError(message);
       throw e;
     } finally { setLoading(false); }
@@ -107,7 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await startGoogleSignIn();
       // Web redirects away; native returns through the deep-link listener.
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Google sign-in failed.';
+      const message = e instanceof Error ? e.message : t('auth.error.googleFailed', 'Google sign-in failed.');
       setError(message);
       throw e;
     }

@@ -56,6 +56,92 @@ export interface AdminStats {
     providers: number;
 }
 
+export interface AdminUserUsage {
+    user: AdminUser;
+    subscription: {
+        plan_id: string;
+        status: string;
+        cycle: string | null;
+        current_period_end: string | null;
+        cancel_at_period_end: boolean | null;
+    } | null;
+    /** Most recent month first. */
+    usage: { month: string; ats_scans: number; ai_actions: number }[];
+    resumes: number;
+    prism: { total: number; completed: number; failed: number; tokens: number; last_at: string | null };
+    ai_calls_30d: { function: string; calls: number; errors: number }[];
+}
+
+export interface OpsAlert {
+    id: string;
+    kind: string;
+    observed: number;
+    threshold: number;
+    detail: string;
+    created_at: string;
+}
+
+export interface LlmProviderStats {
+    provider: string;
+    calls: number;
+    ok: number;
+    errors: number;
+    error_rate_pct: number;
+    fallback: number;
+    tokens: number;
+    avg_latency_ms: number;
+    p95_latency_ms: number;
+    max_latency_ms: number;
+    models: string[];
+}
+
+export interface LlmCallRow {
+    id: string;
+    provider: string;
+    model: string | null;
+    status: string;
+    latency_ms: number | null;
+    tokens: number | null;
+    used_fallback: boolean | null;
+    fallback_reason: string | null;
+    key_slot: number | null;
+    created_at: string;
+}
+
+export interface OpsLlmCalls {
+    window_hours: number;
+    since: string;
+    sampled: number;
+    /** True when the window held more rows than were read; stats are a sample. */
+    truncated: boolean;
+    providers: LlmProviderStats[];
+    recent: LlmCallRow[];
+}
+
+export interface PrismRunRow {
+    id: string;
+    user_id: string;
+    status: string;
+    template_id: string | null;
+    tokens_used: number | null;
+    error_code: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface OpsPrismRuns {
+    runs: PrismRunRow[];
+    last_24h: { total: number; failed: number };
+}
+
+export interface HealthReport {
+    ok: boolean;
+    version: string;
+    db: 'ok' | 'fail';
+    llm: number;
+    ts: string;
+}
+
 async function adminFetch<T>(
     route: string,
     init: { method?: 'GET' | 'POST'; body?: unknown } = {},
@@ -109,10 +195,44 @@ export const adminApi = {
             method: 'POST',
             body: { provider_id: providerId },
         }),
-    listUsers: (limit = 50, offset = 0) =>
-        adminFetch<{ users: AdminUser[]; total: number }>(`users?limit=${limit}&offset=${offset}`),
+    /** `q` is a UUID (exact id) or an email prefix; blank lists everyone. */
+    listUsers: (q = '', limit = 50, offset = 0) =>
+        adminFetch<{ users: AdminUser[]; total: number }>(
+            `users?q=${encodeURIComponent(q)}&limit=${limit}&offset=${offset}`,
+        ),
+    userUsage: (userId: string) => adminFetch<AdminUserUsage>(`users/${userId}/usage`),
     listAudit: (limit = 100) => adminFetch<AdminAuditEntry[]>(`audit?limit=${limit}`),
+    opsAlerts: (limit = 50) => adminFetch<OpsAlert[]>(`ops/alerts?limit=${limit}`),
+    opsLlmCalls: () => adminFetch<OpsLlmCalls>('ops/llm-calls'),
+    opsPrismRuns: (limit = 50) => adminFetch<OpsPrismRuns>(`ops/prism-runs?limit=${limit}`),
 };
+
+/**
+ * The unauthenticated health probe. Not part of `adminApi` because it needs
+ * no session: it is the same URL an uptime monitor would poll. A 503 still
+ * carries a body, so the report is returned either way; only a network
+ * failure resolves to `null`.
+ */
+export async function fetchHealth(): Promise<HealthReport | null> {
+    const { supabaseUrl, supabaseAnonKey } = getClientEnv();
+    try {
+        const res = await fetch(`${supabaseUrl}/functions/v1/health`, {
+            headers: { apikey: supabaseAnonKey },
+            cache: 'no-store',
+        });
+        const json = (await res.json()) as Partial<HealthReport>;
+        if (typeof json.ok !== 'boolean') return null;
+        return {
+            ok: json.ok,
+            version: String(json.version ?? 'unversioned'),
+            db: json.db === 'ok' ? 'ok' : 'fail',
+            llm: Number(json.llm) || 0,
+            ts: String(json.ts ?? ''),
+        };
+    } catch {
+        return null;
+    }
+}
 
 /**
  * Whether the signed-in user is an admin.

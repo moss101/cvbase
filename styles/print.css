@@ -1,0 +1,70 @@
+/**
+ * Print styles for the vector PDF export pipeline (lib/export/exportPdf.ts).
+ *
+ * Unlike the legacy `#print-resume-container` rules in styles/index.css (which
+ * print the *whole app document* with everything but the capture area hidden),
+ * this file styles a dedicated, same-origin hidden iframe that contains
+ * nothing but a clone of `#capture-root` and the app's own compiled
+ * stylesheets. Its body has no sidebar, no buttons, no chrome to hide — so
+ * this file only needs to describe the page box and pagination hints for the
+ * resume content itself.
+ *
+ * Imported once from components/ResumeBuilder.tsx.
+ */
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+/* Belt-and-suspenders alongside the @page rule above: some browsers still
+   consult the flow root's own box for sizing before the paginator kicks in. */
+html,
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #ffffff !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+
+#capture-root {
+  background: #ffffff !important;
+  width: 210mm;
+}
+
+/*
+ * Pagination hints for the resume body.
+ *
+ * `break-inside: avoid` is a *hint*, not a hard constraint — when a section
+ * or entry is taller than a full page, the browser falls back to a normal
+ * break inside it rather than clipping or overflowing content. That makes it
+ * safe to apply broadly here, including to whole sections: a short section
+ * (skills, languages, a two-line summary) never gets orphaned by splitting
+ * across a page boundary, while a long one (a ten-job experience history)
+ * still paginates normally once it no longer fits.
+ */
+[data-section] {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Individual entries (one job, one degree, one project, ...) one level below
+   a section's content wrapper. Most templates already tag these with
+   Tailwind's `break-inside-avoid` utility class; this is a defensive net for
+   any that don't, so a single entry never splits across a page while there
+   is room to keep it whole. */
+[data-section] > div > * {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Section headings should never end up alone at the bottom of a page with
+   their content pushed to the next one. */
+[data-section] > h2,
+[data-section] > h3,
+[data-section] > h4 {
+  break-after: avoid;
+  page-break-after: avoid;
+}

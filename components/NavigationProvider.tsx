@@ -50,6 +50,137 @@ export interface Route {
 /** Returns true if the handler consumed the back action. */
 export type BackHandler = () => boolean;
 
+/* ----------------------------------------------------------------------------
+ * URL <-> Route
+ *
+ *   landing    /
+ *   auth       /sign-in?next=<path>
+ *   dashboard  /app, /app/<tab>
+ *   builder    /builder, /builder/<resumeId>
+ *   resources  /resources
+ *   pricing    /pricing
+ *   legal      /legal/<tab>
+ *
+ * Unknown paths resolve to the landing page. Query strings other than `next`
+ * are left alone (App.tsx reads `?mode=preview&template=` itself).
+ * ------------------------------------------------------------------------- */
+
+// A Record rather than an array so the compiler flags a tab added to
+// DashboardTab that is missing here.
+const DASHBOARD_TABS: Record<DashboardTab, true> = {
+    dashboard: true,
+    resumes: true,
+    templates: true,
+    profile: true,
+    'smart-studio': true,
+    ats: true,
+    billing: true,
+    prism: true,
+    settings: true,
+    admin: true,
+};
+
+const LEGAL_TABS: Record<LegalTab, true> = { privacy: true, terms: true };
+
+const isDashboardTab = (value: string): value is DashboardTab =>
+    Object.prototype.hasOwnProperty.call(DASHBOARD_TABS, value);
+const isLegalTab = (value: string): value is LegalTab =>
+    Object.prototype.hasOwnProperty.call(LEGAL_TABS, value);
+
+/** Serialises a route to the path (and query) that should appear in the URL. */
+export function routeToPath(route: Route): string {
+    switch (route.view) {
+        case 'landing':
+            return '/';
+        case 'auth': {
+            const next = route.next && route.next.view !== 'auth' ? routeToPath(route.next) : null;
+            return next && next !== '/' ? `/sign-in?next=${encodeURIComponent(next)}` : '/sign-in';
+        }
+        case 'dashboard': {
+            const tab = route.dashboardTab ?? 'dashboard';
+            return tab === 'dashboard' ? '/app' : `/app/${tab}`;
+        }
+        case 'builder':
+            return route.resumeId ? `/builder/${encodeURIComponent(route.resumeId)}` : '/builder';
+        case 'resources':
+            return '/resources';
+        case 'pricing':
+            return '/pricing';
+        case 'legal':
+            return `/legal/${route.legalTab ?? 'privacy'}`;
+        default:
+            return '/';
+    }
+}
+
+const safeDecode = (segment: string): string => {
+    try {
+        return decodeURIComponent(segment);
+    } catch {
+        return segment;
+    }
+};
+
+/**
+ * Parses a location into a route. `search` is only consulted for `?next=` on
+ * the sign-in path. Anything unrecognised lands on the landing page.
+ */
+export function pathToRoute(pathname: string, search = ''): Route {
+    const segments = pathname.split('/').filter(Boolean).map(safeDecode);
+    const [head, second, ...rest] = segments;
+
+    if (!head) return { view: 'landing' };
+    if (rest.length > 0) return { view: 'landing' };
+
+    switch (head) {
+        case 'sign-in': {
+            if (second) return { view: 'landing' };
+            const nextParam = new URLSearchParams(search).get('next');
+            if (!nextParam || !nextParam.startsWith('/')) return { view: 'auth' };
+            const [nextPath, nextSearch = ''] = nextParam.split('?', 2);
+            const next = pathToRoute(nextPath, nextSearch ? `?${nextSearch}` : '');
+            return next.view === 'auth' || next.view === 'landing' ? { view: 'auth' } : { view: 'auth', next };
+        }
+        case 'app':
+            if (!second) return { view: 'dashboard', dashboardTab: 'dashboard' };
+            return isDashboardTab(second) ? { view: 'dashboard', dashboardTab: second } : { view: 'landing' };
+        case 'builder':
+            return { view: 'builder', resumeId: second ?? null };
+        case 'resources':
+            return second ? { view: 'landing' } : { view: 'resources' };
+        case 'pricing':
+            return second ? { view: 'landing' } : { view: 'pricing' };
+        case 'legal':
+            if (!second) return { view: 'legal', legalTab: 'privacy' };
+            return isLegalTab(second) ? { view: 'legal', legalTab: second } : { view: 'landing' };
+        default:
+            return { view: 'landing' };
+    }
+}
+
+const readDepth = (state: unknown): number | null => {
+    const depth = (state as { cvbaseDepth?: unknown } | null)?.cvbaseDepth;
+    return typeof depth === 'number' && Number.isFinite(depth) ? depth : null;
+};
+
+/**
+ * Writes an entry to window.history with the route's URL. If the platform
+ * refuses a path (file:// origins, some embedded WebViews) it retries with no
+ * URL so the in-memory stack and the platform back stack still stay in step.
+ */
+function writeHistory(method: 'pushState' | 'replaceState', depth: number, route: Route): void {
+    const state = { cvbaseDepth: depth };
+    try {
+        window.history[method](state, '', routeToPath(route));
+    } catch {
+        try {
+            window.history[method](state, '');
+        } catch {
+            /* history unavailable — in-memory stack still works */
+        }
+    }
+}
+
 interface NavigationContextValue {
     route: Route;
     /** 'forward' on push, 'backward' on pop — drives the page transition. */
@@ -79,13 +210,33 @@ const NavigationContext = createContext<NavigationContextValue | undefined>(unde
  */
 const ROOT: Route = { view: 'landing' };
 
+/** The route the page was opened on. Deep links work; junk lands on ROOT. */
+const initialRoute = (): Route => {
+    try {
+        return pathToRoute(window.location.pathname, window.location.search);
+    } catch {
+        return ROOT;
+    }
+};
+
 export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [stack, setStack] = useState<Route[]>(() => [ROOT]);
+    const [stack, setStack] = useState<Route[]>(() => [initialRoute()]);
     const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
 
     // Read by listeners that are registered once and must not capture stale state.
     const stackRef = useRef(stack);
     stackRef.current = stack;
+
+    // Stamp the entry the page opened on so popstate can tell it apart from
+    // entries we pushed. The URL is left exactly as opened (query included —
+    // App.tsx reads ?mode=preview from it).
+    useEffect(() => {
+        try {
+            window.history.replaceState({ cvbaseDepth: 1 }, '');
+        } catch {
+            /* history unavailable */
+        }
+    }, []);
 
     const backHandlersRef = useRef<BackHandler[]>([]);
 
@@ -104,28 +255,29 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const navigate = useCallback((route: Route) => {
         setDirection('forward');
-        setStack((current) => {
-            try {
-                window.history.pushState({ cvbaseDepth: current.length + 1 }, '');
-            } catch {
-                /* history unavailable — in-memory stack still works */
-            }
-            return [...current, route];
-        });
+        const next = [...stackRef.current, route];
+        stackRef.current = next;
+        writeHistory('pushState', next.length, route);
+        setStack(next);
         window.scrollTo(0, 0);
     }, []);
 
     const replace = useCallback((route: Route) => {
         setDirection('forward');
-        setStack((current) => [...current.slice(0, -1), route]);
+        const next = [...stackRef.current.slice(0, -1), route];
+        stackRef.current = next;
+        writeHistory('replaceState', next.length, route);
+        setStack(next);
         window.scrollTo(0, 0);
     }, []);
 
     /** Pops the in-memory stack. Kept separate so popstate does not re-enter history. */
     const popStack = useCallback((): boolean => {
         if (stackRef.current.length <= 1) return false;
+        const next = stackRef.current.slice(0, -1);
+        stackRef.current = next;
         setDirection('backward');
-        setStack((current) => (current.length > 1 ? current.slice(0, -1) : current));
+        setStack(next);
         window.scrollTo(0, 0);
         return true;
     }, []);
@@ -145,23 +297,43 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const reset = useCallback((route: Route) => {
         setDirection('backward');
+        stackRef.current = [route];
+        writeHistory('replaceState', 1, route);
         setStack([route]);
         window.scrollTo(0, 0);
     }, []);
 
-    // Browser / gesture back.
+    // Browser / gesture back (and forward). Each entry we push carries its
+    // depth, so a popstate can be classified: a lower depth unwinds the stack
+    // to that point, anything else (forward button, an entry we did not
+    // write) is read from the URL.
     useEffect(() => {
-        const onPopState = () => {
+        const onPopState = (event: PopStateEvent) => {
             if (runBackHandlers()) {
                 // A modal consumed it — restore the entry the browser just removed.
-                try {
-                    window.history.pushState({ cvbaseDepth: stackRef.current.length }, '');
-                } catch {
-                    /* ignore */
-                }
+                writeHistory('pushState', stackRef.current.length, stackRef.current[stackRef.current.length - 1]);
                 return;
             }
-            popStack();
+            const current = stackRef.current;
+            const depth = readDepth(event.state);
+            if (depth !== null && depth < current.length) {
+                if (depth === current.length - 1) {
+                    popStack();
+                    return;
+                }
+                const next = current.slice(0, Math.max(1, depth));
+                stackRef.current = next;
+                setDirection('backward');
+                setStack(next);
+                window.scrollTo(0, 0);
+                return;
+            }
+            const route = pathToRoute(window.location.pathname, window.location.search);
+            const next = depth !== null && depth > current.length ? [...current, route] : [...current.slice(0, -1), route];
+            stackRef.current = next;
+            setDirection('forward');
+            setStack(next);
+            window.scrollTo(0, 0);
         };
         window.addEventListener('popstate', onPopState);
         return () => window.removeEventListener('popstate', onPopState);

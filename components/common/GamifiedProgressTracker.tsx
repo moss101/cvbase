@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Award, ChevronDown, Lightbulb, CircleCheck, Circle } from 'lucide-react';
+import { useTranslation } from '../../services/translationService';
 import type { ResumeData, SectionId } from '../../types';
 
 interface GamifiedProgressTrackerProps {
@@ -24,17 +26,18 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
     activeSection,
     onSectionClick,
 }) => {
+    const { t } = useTranslation();
     const [isExpanded, setIsExpanded] = useState(false);
     const [showMilestoneAlert, setShowMilestoneAlert] = useState<string | null>(null);
     const [prevProgress, setPrevProgress] = useState(progress);
 
     // Dynamic Level Name / Badge Based on Progress
     const getBadgeInfo = (pct: number) => {
-        if (pct === 100) return { title: '👑 Ultimate Resume Master', color: 'from-amber-500 to-yellow-400 bg-amber-50 text-amber-800 border-amber-200' };
-        if (pct >= 85) return { title: '🚀 ATS Champion', color: 'from-secondary to-primary bg-emerald-50 text-emerald-800 border-emerald-200' };
-        if (pct >= 60) return { title: '🎨 Professional Artisan', color: 'from-primary to-indigo-500 bg-blue-50 text-blue-800 border-blue-200' };
-        if (pct >= 35) return { title: '⚡ Career Climber', color: 'from-indigo-400 to-violet-500 bg-violet-50 text-violet-800 border-violet-200' };
-        return { title: '🌱 CV Novice', color: 'from-gray-400 to-slate-500 bg-slate-50 text-slate-700 border-slate-200' };
+        if (pct === 100) return { title: t('gamified.badge.master', '👑 Ultimate Resume Master'), color: 'from-amber-500 to-yellow-400 bg-amber-50 text-amber-800 border-amber-200' };
+        if (pct >= 85) return { title: t('gamified.badge.champion', '🚀 ATS Champion'), color: 'from-secondary to-primary bg-emerald-50 text-emerald-800 border-emerald-200' };
+        if (pct >= 60) return { title: t('gamified.badge.artisan', '🎨 Professional Artisan'), color: 'from-primary to-indigo-500 bg-blue-50 text-blue-800 border-blue-200' };
+        if (pct >= 35) return { title: t('gamified.badge.climber', '⚡ Career Climber'), color: 'from-indigo-400 to-violet-500 bg-violet-50 text-violet-800 border-violet-200' };
+        return { title: t('gamified.badge.novice', '🌱 CV Novice'), color: 'from-gray-400 to-slate-500 bg-slate-50 text-slate-700 border-slate-200' };
     };
 
     const badge = getBadgeInfo(progress);
@@ -42,10 +45,10 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
     // Check progress level changes to trigger celebratory milestones!
     useEffect(() => {
         const milestones = [
-            { thresh: 35, name: '⚡ Career Climber unlocked!' },
-            { thresh: 60, name: '🎨 Professional Artisan unlocked!' },
-            { thresh: 85, name: '🚀 ATS Champion unlocked!' },
-            { thresh: 100, name: '👑 Ultimate Resume Master unlocked! You are 100% Ready!' }
+            { thresh: 35, name: t('gamified.milestone.climber', '⚡ Career Climber unlocked!') },
+            { thresh: 60, name: t('gamified.milestone.artisan', '🎨 Professional Artisan unlocked!') },
+            { thresh: 85, name: t('gamified.milestone.champion', '🚀 ATS Champion unlocked!') },
+            { thresh: 100, name: t('gamified.milestone.master', '👑 Ultimate Resume Master unlocked! You are 100% Ready!') }
         ];
 
         const unlockedMilestone = milestones.find(m => prevProgress < m.thresh && progress >= m.thresh);
@@ -63,31 +66,31 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
             // Always required Contact Fields
             {
                 id: 'contact-firstName',
-                label: 'First Name',
+                label: t('gamified.field.firstName.label', 'First Name'),
                 section: 'contact',
                 isFilled: !!formData.contact.firstName.trim(),
-                helpText: 'Add your first name'
+                helpText: t('gamified.field.firstName.help', 'Add your first name')
             },
             {
                 id: 'contact-lastName',
-                label: 'Last Name',
+                label: t('gamified.field.lastName.label', 'Last Name'),
                 section: 'contact',
                 isFilled: !!formData.contact.lastName.trim(),
-                helpText: 'Add your family name'
+                helpText: t('gamified.field.lastName.help', 'Add your family name')
             },
             {
                 id: 'contact-email',
-                label: 'Email Address',
+                label: t('gamified.field.email.label', 'Email Address'),
                 section: 'contact',
                 isFilled: !!formData.contact.email.trim() && formData.contact.email.includes('@'),
-                helpText: 'Provide a valid contact email'
+                helpText: t('gamified.field.email.help', 'Provide a valid contact email')
             },
             {
                 id: 'contact-phone',
-                label: 'Phone Number',
+                label: t('gamified.field.phone.label', 'Phone Number'),
                 section: 'contact',
                 isFilled: !!formData.contact.phone.trim(),
-                helpText: 'Provide a reachability number'
+                helpText: t('gamified.field.phone.help', 'Provide a reachability number')
             },
         ];
 
@@ -95,70 +98,70 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
         if (!visibleSections.includes('summary' as any) || true) { // Always track if present
             list.push({
                 id: 'summary-desc',
-                label: 'Professional Summary',
+                label: t('gamified.field.summary.label', 'Professional Summary'),
                 section: 'summary',
                 isFilled: !!formData.summary.professionalSummary?.replace(/<[^>]*>/g, '').trim(),
-                helpText: 'Write a quick summary of your profile'
+                helpText: t('gamified.field.summary.help', 'Write a quick summary of your profile')
             });
         }
 
         // Skills list is essential
         list.push({
             id: 'skills-list',
-            label: 'Key Competencies/Skills',
+            label: t('gamified.field.skills.label', 'Key Competencies/Skills'),
             section: 'skills',
             isFilled: formData.skills.length >= 2,
-            helpText: 'Add at least 2 professional skills'
+            helpText: t('gamified.field.skills.help', 'Add at least 2 professional skills')
         });
 
         // Track optional items IF they are turned on in user\'s visible list
         if (visibleSections.includes('experience')) {
             list.push({
                 id: 'exp-list',
-                label: 'Job Title & Company',
+                label: t('gamified.field.experience.label', 'Job Title & Company'),
                 section: 'experience',
                 isFilled: formData.experience.length > 0 && !!formData.experience[0].jobTitle.trim() && !!formData.experience[0].company.trim(),
-                helpText: 'List at least one work position with description'
+                helpText: t('gamified.field.experience.help', 'List at least one work position with description')
             });
         }
 
         if (visibleSections.includes('education')) {
             list.push({
                 id: 'edu-list',
-                label: 'School & Degree',
+                label: t('gamified.field.education.label', 'School & Degree'),
                 section: 'education',
                 isFilled: formData.education.length > 0 && !!formData.education[0].school.trim() && !!formData.education[0].degree.trim(),
-                helpText: 'List your educational background'
+                helpText: t('gamified.field.education.help', 'List your educational background')
             });
         }
 
         if (visibleSections.includes('projects')) {
             list.push({
                 id: 'proj-list',
-                label: 'Project Name & Details',
+                label: t('gamified.field.projects.label', 'Project Name & Details'),
                 section: 'projects',
                 isFilled: formData.projects.length > 0 && !!formData.projects[0].name.trim(),
-                helpText: 'Detail at least one engineering/business project'
+                helpText: t('gamified.field.projects.help', 'Detail at least one engineering/business project')
             });
         }
 
         if (visibleSections.includes('certifications')) {
             list.push({
                 id: 'cert-list',
-                label: 'Certification Details',
+                label: t('gamified.field.certifications.label', 'Certification Details'),
                 section: 'certifications',
                 isFilled: formData.certifications.length > 0 && !!formData.certifications[0].name.trim(),
-                helpText: 'Mention a credential or professional license'
+                helpText: t('gamified.field.certifications.help', 'Mention a credential or professional license')
             });
         }
 
         if (visibleSections.includes('languages')) {
             list.push({
                 id: 'lang-list',
-                label: 'Language Proficiency',
+                label: t('gamified.field.languages.label', 'Language Proficiency'),
                 section: 'languages',
                 isFilled: formData.languages.length > 0 && !!formData.languages[0].language.trim(),
-                helpText: 'Mention a language other than your primary'
+                helpText: t('gamified.field.languages.help', 'Mention a language other than your primary')
             });
         }
 
@@ -177,9 +180,9 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
             {/* Gamified Milestone Level Unlock Celebration Toast */}
             {showMilestoneAlert && (
                 <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white rounded-2xl px-6 py-4 shadow-2xl flex items-center gap-3 border border-yellow-400 animate-bounce cursor-pointer max-w-sm text-center">
-                    <span className="material-symbols-outlined text-yellow-400 font-extrabold text-2xl">workspace_premium</span>
+                    <Award className="w-6 h-6 text-yellow-400" aria-hidden="true" />
                     <div>
-                        <p className="text-xs tracking-wider uppercase opacity-80 text-yellow-300 font-extrabold">Milestone Achieved!</p>
+                        <p className="text-xs tracking-wider uppercase opacity-80 text-yellow-300 font-extrabold">{t('gamified.milestoneAchieved', 'Milestone Achieved!')}</p>
                         <p className="text-sm font-bold leading-tight">{showMilestoneAlert}</p>
                     </div>
                 </div>
@@ -190,16 +193,16 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
                 {/* Upper line: Rank and compact progress percent */}
                 <div className="flex flex-wrap items-center justify-between gap-3 shrink-0">
                     <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-secondary text-[24px]">workspace_premium</span>
+                        <Award className="w-6 h-6 text-secondary" aria-hidden="true" />
                         <div className="text-left">
-                            <p className="text-[10px] font-extrabold tracking-wider uppercase text-slate-400 leading-none">CV Level</p>
+                            <p className="text-[10px] font-extrabold tracking-wider uppercase text-slate-400 leading-none">{t('gamified.cvLevel', 'CV Level')}</p>
                             <span className="text-sm font-black text-slate-800">{badge.title}</span>
                         </div>
                     </div>
                     
                     <div className="flex items-center gap-2.5">
                         <span className="text-xs font-extrabold text-slate-500">
-                            {filledCount}/{totalCount} Requirements
+                            {filledCount}/{totalCount} {t('gamified.requirementsSuffix', 'Requirements')}
                         </span>
                         <span className={`text-sm font-black px-2.5 py-1 rounded-xl bg-gradient-to-r text-white ${badge.color}`}>
                             {progress}%
@@ -210,10 +213,8 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
                             onClick={() => setIsExpanded(!isExpanded)}
                             className="p-1 px-2.5 border border-slate-200 bg-white/70 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-bold transition-all flex items-center gap-1 active:scale-95"
                         >
-                            <span>{isExpanded ? 'Collapse' : 'Details'}</span>
-                            <span className={`material-symbols-outlined text-sm transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-                                keyboard_arrow_down
-                            </span>
+                            <span>{isExpanded ? t('gamified.collapse', 'Collapse') : t('gamified.details', 'Details')}</span>
+                            <ChevronDown className={`w-[1em] h-[1em] text-sm transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
                         </button>
                     </div>
                 </div>
@@ -241,12 +242,10 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
                         className="mt-3.5 flex items-center gap-2 bg-primary/4 border border-primary/10 rounded-xl p-3 text-slate-700 cursor-pointer hover:bg-primary/8 transition-colors"
                         onClick={() => onSectionClick(nextAction.section)}
                     >
-                        <span className="material-symbols-outlined text-primary text-base inline-block shrink-0 animate-pulse">
-                            tips_and_updates
-                        </span>
+                        <Lightbulb className="w-4 h-4 text-primary inline-block shrink-0 animate-pulse" aria-hidden="true" />
                         <p className="text-xs font-medium text-slate-600 leading-normal">
-                            <span className="font-extrabold text-primary uppercase text-[10px] tracking-wider block">Next Level Task</span>
-                            {nextAction.helpText} in the <strong className="text-slate-800 capitalize">{nextAction.section}</strong> section.
+                            <span className="font-extrabold text-primary uppercase text-[10px] tracking-wider block">{t('gamified.nextLevelTask', 'Next Level Task')}</span>
+                            {nextAction.helpText} {t('gamified.inThe', 'in the')} <strong className="text-slate-800 capitalize">{nextAction.section}</strong> {t('gamified.sectionSuffix', 'section.')}
                         </p>
                     </div>
                 )}
@@ -264,17 +263,15 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
                                         : 'bg-white border-slate-150 text-slate-400'
                                 }`}
                             >
-                                <span className={`material-symbols-outlined font-extrabold text-base select-none ${
-                                    item.isFilled ? 'text-emerald-500' : 'text-slate-300'
-                                }`}>
-                                    {item.isFilled ? 'check_circle' : 'radio_button_unchecked'}
-                                </span>
+                                {item.isFilled
+                                    ? <CircleCheck className="w-4 h-4 select-none text-emerald-500" aria-hidden="true" />
+                                    : <Circle className="w-4 h-4 select-none text-slate-300" aria-hidden="true" />}
                                 <div className="text-left">
                                     <p className={`text-xs font-semibold ${item.isFilled ? 'text-slate-700' : 'text-slate-500'}`}>
                                         {item.label}
                                     </p>
                                     <p className="text-[10px] text-slate-400 font-medium capitalize">
-                                        Section: {item.section}
+                                        {t('gamified.sectionLabel', 'Section:')} {item.section}
                                     </p>
                                 </div>
                             </div>

@@ -8,8 +8,9 @@ import { AVAILABLE_TEMPLATES } from '../../constants';
 import { exampleData } from '../../exampleData';
 import { useMobileShell } from '../../lib/useMobileShell';
 import StickyActionBar from '../mobile/StickyActionBar';
-import { Download, Check, ClipboardCheck, ScanLine, Palette, Type, Ruler } from 'lucide-react';
+import { Download, Check, ClipboardCheck, ScanLine, Palette, Type, Ruler, CircleCheck, FileText, History } from 'lucide-react';
 import ResumePreview from '../ResumePreview';
+import { useTranslation } from '../../services/translationService';
 import GsbExecutiveTemplate from '../templates/GsbExecutiveTemplate';
 import IvyEliteTemplate from '../templates/IvyEliteTemplate';
 import VanguardClassicTemplate from '../templates/VanguardClassicTemplate';
@@ -87,7 +88,14 @@ import CasablancaTemplate from '../templates/CasablancaTemplate';
 
 
 interface FinalizeFormProps {
+    /** Primary export: a real text-layer PDF via the browser's print
+     *  pipeline on web, or the best available native equivalent inside the
+     *  packaged apps. No quality choice — see `onDownloadImagePdf` below. */
     onDownloadPDF: () => void;
+    /** Secondary "exact look" export: the previous rasterised (html2canvas +
+     *  jsPDF) pipeline, offered as a fallback for anyone who wants a pixel
+     *  copy of a template over a real text layer. Opens the quality picker. */
+    onDownloadImagePdf: () => void;
     onDownloadDOCX: () => void;
     onOpenVersions: () => void;
     versionsEnabled: boolean;
@@ -204,7 +212,7 @@ const TemplateCard: React.FC<{id: TemplateId, name: string, category: string, is
         <div className="cursor-pointer group relative" onClick={() => onClick(id)}>
             <div className={`absolute -top-2 -right-2 z-10 transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0'}`}>
                  <div className="bg-primary text-white rounded-full p-1 shadow-md">
-                     <span className="material-symbols-outlined text-lg">check</span>
+                     <Check className="w-[1em] h-[1em] text-lg" aria-hidden="true" />
                  </div>
             </div>
             <div className={`p-3 rounded-xl border-2 transition-all h-full flex flex-col ${isSelected ? 'border-primary shadow-lg ring-2 ring-primary/20 bg-primary/5' : 'border-gray-200 bg-white hover:border-primary/50 hover:shadow-md'}`}>
@@ -252,24 +260,25 @@ const atsFonts = [
 ];
 
 
-const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDOCX, onOpenVersions, versionsEnabled, selectedTemplate, onTemplateChange, formData, onOpenAtsModal, visibleSections, settings, onSettingsChange }) => {
+const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadImagePdf, onDownloadDOCX, onOpenVersions, versionsEnabled, selectedTemplate, onTemplateChange, formData, onOpenAtsModal, visibleSections, settings, onSettingsChange }) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<Tab>('templates');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const isMobileShell = useMobileShell();
 
     const colors = [
-        { hex: '#ff6b4a', name: 'Coral' },
-        { hex: '#4a9eff', name: 'Blue' },
-        { hex: '#4db8a8', name: 'Teal' },
-        { hex: '#ffc34a', name: 'Gold' },
-        { hex: '#2c3e50', name: 'Slate' },
-        { hex: '#e066aa', name: 'Pink' },
-        { hex: '#000000', name: 'Black' },
-        { hex: '#1a365d', name: 'Navy' },
-        { hex: '#7c3aed', name: 'Purple' },
-        { hex: '#059669', name: 'Emerald' },
-        { hex: '#8B0000', name: 'Crimson' },
-        { hex: '#5D4037', name: 'Brown' },
+        { hex: '#ff6b4a', name: t('finalizeForm.color.coral', 'Coral') },
+        { hex: '#4a9eff', name: t('finalizeForm.color.blue', 'Blue') },
+        { hex: '#4db8a8', name: t('finalizeForm.color.teal', 'Teal') },
+        { hex: '#ffc34a', name: t('finalizeForm.color.gold', 'Gold') },
+        { hex: '#2c3e50', name: t('finalizeForm.color.slate', 'Slate') },
+        { hex: '#e066aa', name: t('finalizeForm.color.pink', 'Pink') },
+        { hex: '#000000', name: t('finalizeForm.color.black', 'Black') },
+        { hex: '#1a365d', name: t('finalizeForm.color.navy', 'Navy') },
+        { hex: '#7c3aed', name: t('finalizeForm.color.purple', 'Purple') },
+        { hex: '#059669', name: t('finalizeForm.color.emerald', 'Emerald') },
+        { hex: '#8B0000', name: t('finalizeForm.color.crimson', 'Crimson') },
+        { hex: '#5D4037', name: t('finalizeForm.color.brown', 'Brown') },
     ];
 
     const categories = ['All', ...Array.from(new Set(AVAILABLE_TEMPLATES.map(t => t.category)))];
@@ -280,56 +289,67 @@ const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDO
     return (
         <>
             <ContentHeader
-                title="Finalize & Download"
-                description="Polish your resume with the perfect look, ensure it passes ATS scans, and download your PDF."
+                title={t('finalize.title', 'Finalize & Download')}
+                description={t('finalizeForm.headerDesc', 'Polish your resume with the perfect look, ensure it passes ATS scans, and download your PDF.')}
             />
-            
+
             {/* Tab Navigation */}
             <div className="flex gap-3 mb-8 overflow-x-auto pb-2 no-scrollbar border-b border-gray-200 py-4">
-                <TabButton active={activeTab === 'templates'} onClick={() => setActiveTab('templates')}>Templates</TabButton>
-                <TabButton active={activeTab === 'formatting'} onClick={() => setActiveTab('formatting')}>Formatting</TabButton>
-                <TabButton active={activeTab === 'ats'} onClick={() => setActiveTab('ats')}>ATS Check</TabButton>
-                <TabButton active={activeTab === 'download'} onClick={() => setActiveTab('download')}>Download</TabButton>
+                <TabButton active={activeTab === 'templates'} onClick={() => setActiveTab('templates')}>{t('finalizeForm.tabTemplates', 'Templates')}</TabButton>
+                <TabButton active={activeTab === 'formatting'} onClick={() => setActiveTab('formatting')}>{t('finalizeForm.tabFormatting', 'Formatting')}</TabButton>
+                <TabButton active={activeTab === 'ats'} onClick={() => setActiveTab('ats')}>{t('finalizeForm.tabAtsCheck', 'ATS Check')}</TabButton>
+                <TabButton active={activeTab === 'download'} onClick={() => setActiveTab('download')}>{t('finalizeForm.tabDownload', 'Download')}</TabButton>
             </div>
 
             <div className="min-h-[400px]">
                 {activeTab === 'download' && (
                     <div className="animate-fade-in text-center max-w-lg mx-auto py-10">
                         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
-                             <span className="material-symbols-outlined text-4xl">check_circle</span>
+                             <CircleCheck className="w-[1em] h-[1em] text-4xl" aria-hidden="true" />
                         </div>
-                        <h3 className="text-2xl font-bold text-dark mb-3">Ready to Launch!</h3>
+                        <h3 className="text-2xl font-bold text-dark mb-3">{t('finalizeForm.readyToLaunch', 'Ready to Launch!')}</h3>
                         <p className="text-gray-600 mb-8 leading-relaxed">
-                            Your resume is looking great. Click below to download your high-quality PDF.
-                            Remember to save it as <strong>{formData.contact.firstName}_{formData.contact.lastName}_Resume.pdf</strong>.
+                            {t('finalizeForm.readyDesc', 'Your resume is looking great. Click below to download your high-quality PDF. Remember to save it as')}{' '}
+                            <strong>{formData.contact.firstName}_{formData.contact.lastName}_Resume.pdf</strong>.
                         </p>
                         <button
                             type="button"
                             className="w-full py-4 px-8 text-lg rounded-xl font-bold cursor-pointer transition-all bg-primary text-white shadow-xl shadow-primary/30 hover:bg-primary-dark hover:-translate-y-1 flex items-center justify-center gap-3"
                             onClick={onDownloadPDF}
                         >
-                            <span className="material-symbols-outlined">download</span>
-                            Download PDF
+                            <Download className="w-[1.1em] h-[1.1em]" aria-hidden="true" />
+                            {t('btn.downloadPDF', 'Download PDF')}
                         </button>
                         <button
                             type="button"
                             className="w-full mt-3 py-3 px-8 rounded-xl font-bold cursor-pointer transition-all bg-white text-dark border-2 border-gray-200 hover:border-primary hover:text-primary hover:-translate-y-0.5 flex items-center justify-center gap-3"
                             onClick={onDownloadDOCX}
                         >
-                            <span className="material-symbols-outlined">description</span>
-                            Download Word (.docx)
+                            <FileText className="w-[1.1em] h-[1.1em]" aria-hidden="true" />
+                            {t('finalizeForm.downloadWord', 'Download Word (.docx)')}
                         </button>
                         <p className="mt-3 text-xs text-gray-400">
-                            The Word file is a clean, single-column, ATS-friendly version you can edit further.
+                            {t('finalizeForm.wordFileDesc', 'The Word file is a clean, single-column, ATS-friendly version you can edit further.')}
                         </p>
+                        {/* Secondary, quiet path to the old rasterised export — most
+                            people want the real text-layer PDF above; this is for the
+                            rare case where an exact pixel copy of the template matters
+                            more than a selectable/searchable file. */}
+                        <button
+                            type="button"
+                            className="mt-4 text-xs font-semibold text-gray-400 underline decoration-dotted underline-offset-2 transition-colors hover:text-gray-600"
+                            onClick={onDownloadImagePdf}
+                        >
+                            {t('finalizeForm.imagePdf', 'Image PDF (exact look)')}
+                        </button>
                         {versionsEnabled && (
                             <button
                                 type="button"
                                 className="w-full mt-3 py-3 px-8 rounded-xl font-bold cursor-pointer transition-all bg-white text-dark border-2 border-gray-200 hover:border-primary hover:text-primary hover:-translate-y-0.5 flex items-center justify-center gap-3"
                                 onClick={onOpenVersions}
                             >
-                                <span className="material-symbols-outlined">history</span>
-                                Version history
+                                <History className="w-[1.1em] h-[1.1em]" aria-hidden="true" />
+                                {t('finalizeForm.versionHistory', 'Version history')}
                             </button>
                         )}
                         <div className="mt-8 text-left">
@@ -347,7 +367,7 @@ const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDO
                                     onClick={() => setSelectedCategory(cat)}
                                     className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${selectedCategory === cat ? 'bg-dark text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                                 >
-                                    {cat}
+                                    {cat === 'All' ? t('dash.allCategory', 'All') : cat}
                                 </button>
                             ))}
                         </div>
@@ -374,10 +394,9 @@ const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDO
                             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary-light text-primary-dark">
                                 <ClipboardCheck size={26} strokeWidth={1.75} />
                             </div>
-                            <h3 className="mb-3 text-xl font-bold text-dark sm:text-2xl">ATS Compliance Check</h3>
+                            <h3 className="mb-3 text-xl font-bold text-dark sm:text-2xl">{t('finalizeForm.atsComplianceCheck', 'ATS Compliance Check')}</h3>
                             <p className="mb-6 leading-relaxed text-gray-600">
-                                Many companies use Applicant Tracking Systems (ATS) to filter resumes before a human sees them.
-                                Our AI-powered checker analyzes your resume for readability, keyword optimization, and formatting issues.
+                                {t('finalizeForm.atsCheckDesc', 'Many companies use Applicant Tracking Systems (ATS) to filter resumes before a human sees them. Our AI-powered checker analyzes your resume for readability, keyword optimization, and formatting issues.')}
                             </p>
                             <button
                                 type="button"
@@ -385,20 +404,20 @@ const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDO
                                 className="tap-target mx-auto flex items-center justify-center gap-2 rounded-xl bg-primary px-8 text-[15px] font-bold text-white transition active:scale-[0.98]"
                             >
                                 <ScanLine size={18} strokeWidth={2} />
-                                Run Free Scan
+                                {t('finalizeForm.runFreeScan', 'Run Free Scan')}
                             </button>
                         </div>
                     </div>
                 )}
                 {activeTab === 'formatting' && (
                     <div className="animate-fade-in grid grid-cols-1 gap-6">
-                        <p className="text-gray-500 text-sm italic">These settings apply to all templates automatically.</p>
+                        <p className="text-gray-500 text-sm italic">{t('finalizeForm.settingsApplyAuto', 'These settings apply to all templates automatically.')}</p>
 
                         {/* Colors */}
                         <div className="rounded-2xl border border-border bg-white p-5 sm:p-6">
                             <h4 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-800">
                                 <Palette size={17} strokeWidth={1.75} className="text-primary" />
-                                Accent Color
+                                {t('finalizeForm.accentColor', 'Accent Color')}
                             </h4>
                              <div className="flex flex-wrap gap-3">
                                 {colors.map((color) => (
@@ -416,7 +435,7 @@ const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDO
                                 ))}
                              </div>
                              <p className="mt-3 text-xs font-semibold text-gray-500">
-                                {colors.find(c => c.hex === settings.themeColor)?.name ?? 'Custom'}
+                                {colors.find(c => c.hex === settings.themeColor)?.name ?? t('finalizeForm.customColor', 'Custom')}
                              </p>
                         </div>
 
@@ -426,7 +445,7 @@ const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDO
                             <div className="rounded-2xl border border-border bg-white p-5 sm:p-6">
                                 <h4 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-800">
                                     <Type size={17} strokeWidth={1.75} className="text-primary" />
-                                    Typography
+                                    {t('finalizeForm.typography', 'Typography')}
                                 </h4>
                                  <div className="custom-scrollbar grid max-h-[240px] grid-cols-2 gap-2 overflow-y-auto pr-2">
                                      {atsFonts.map((font) => (
@@ -446,7 +465,7 @@ const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDO
                             <div className="rounded-2xl border border-border bg-white p-5 sm:p-6">
                                 <h4 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-800">
                                     <Ruler size={17} strokeWidth={1.75} className="text-primary" />
-                                    Text Size
+                                    {t('finalizeForm.textSize', 'Text Size')}
                                 </h4>
                                  <div className="flex flex-col gap-2.5">
                                      {['small', 'medium', 'large'].map((size) => (
@@ -455,12 +474,12 @@ const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDO
                                             onClick={() => onSettingsChange(prev => ({ ...prev, fontSize: size as 'small' | 'medium' | 'large' }))}
                                             className={`tap-target flex items-center justify-between rounded-xl border px-4 transition-all ${settings.fontSize === size ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-gray-200 active:bg-gray-50'}`}
                                         >
-                                            <span className="font-semibold capitalize text-gray-700">{size}</span>
+                                            <span className="font-semibold capitalize text-gray-700">{t(`finalizeForm.size.${size}`, size)}</span>
                                             <span className={`font-serif text-gray-400 ${size === 'small' ? 'text-xs' : size === 'medium' ? 'text-sm' : 'text-base'}`}>Aa</span>
                                         </button>
                                      ))}
                                  </div>
-                                 <p className="mt-4 text-center text-xs text-gray-400">Adjusts global text density to fit more or less content.</p>
+                                 <p className="mt-4 text-center text-xs text-gray-400">{t('finalizeForm.textDensityDesc', 'Adjusts global text density to fit more or less content.')}</p>
                             </div>
                         </div>
                     </div>
@@ -480,7 +499,7 @@ const FinalizeForm: React.FC<FinalizeFormProps> = ({ onDownloadPDF, onDownloadDO
                         className="tap-target flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-[15px] font-bold text-white shadow-sm transition active:scale-[0.98]"
                     >
                         <Download size={16} strokeWidth={2} />
-                        Download PDF
+                        {t('btn.downloadPDF', 'Download PDF')}
                     </button>
                 </StickyActionBar>
             )}

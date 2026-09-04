@@ -1,8 +1,12 @@
 import React from 'react';
 import { sanitizeHtml } from '../../lib/sanitizeHtml';
-import type { ResumePreviewProps } from '../../types';
+import type { ResumePreviewProps, SectionId } from '../../types';
+import { orderedSections, sectionLayout } from '../../lib/templates/sectionOrder';
 import { countries } from '../../data/locationData';
 import { OptionalSectionsRenderer } from './OptionalSectionsRenderer';
+
+/** Sections handed to the shared OptionalSectionsRenderer, in its default order. */
+const OPTIONAL_IDS: readonly SectionId[] = ['publications', 'custom'];
 
 const MetropolitanTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, visibleSections, settings }) => {
     const { contact, summary, experience, projects, education, skills, certifications, languages, awards, trainings, publications, volunteer, custom } = formData;
@@ -26,6 +30,193 @@ const MetropolitanTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPr
             </h2>
         </div>
     );
+
+    const renderSection = (id: SectionId): React.ReactNode => {
+        switch (id) {
+            case 'summary':
+                return summary.professionalSummary ? (
+                    <section key="summary" data-section="summary" className="mt-8 text-center px-6">
+                        <p className="text-[10px] font-sans tracking-[0.25em] text-stone-400 font-bold uppercase mb-3">Professional Executive Summary</p>
+                        <div className="leading-relaxed text-justify text-stone-700 font-serif italic text-sm text-[11.5px] px-4 border-l-2 border-r-2 border-stone-150" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
+                    </section>
+                ) : null;
+            case 'experience':
+                return experience.length > 0 ? (
+                    <section key="experience" data-section="experience">
+                        <div className="break-after-avoid">{renderSectionHeader('Professional Experience')}</div>
+                        <div className="space-y-8">
+                            {experience.map(exp => (
+                                <div key={exp.id} className="group break-inside-avoid">
+                                    <div className="flex justify-between items-baseline border-b border-stone-200/70 pb-1 mb-2">
+                                        <h3 className="font-bold text-xs uppercase tracking-wider font-serif text-stone-900">
+                                            {exp.jobTitle} <span className="text-stone-400 font-light italic font-sans text-[10px]">at</span> {exp.company}
+                                        </h3>
+                                        <span className="text-[10px] tracking-widest uppercase font-sans text-stone-400 font-bold">
+                                            {exp.startDate} – {exp.endDate}
+                                        </span>
+                                    </div>
+                                    <p className="text-[10px] font-sans uppercase font-bold tracking-widest text-[#B59A57] mb-3">📍 {exp.location}</p>
+                                    <div className="text-stone-600 text-xs text-justify pr-2 font-serif leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'education':
+                return education.length > 0 ? (
+                    <section key="education" data-section="education">
+                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 border-b-2 break-after-avoid" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
+                            Education
+                        </h3>
+                        <div className="space-y-4">
+                            {education.map(edu => (
+                                <div key={edu.id} className="text-[11px] font-serif break-inside-avoid">
+                                    <p className="font-bold text-stone-900 leading-tight uppercase font-sans tracking-wide text-[10px]">{edu.school}</p>
+                                    <p className="text-stone-500 italic mt-0.5">{edu.degree}</p>
+                                    <p className="text-[9px] text-stone-400 font-sans tracking-widest uppercase mt-1">
+                                        {edu.startDate} – {edu.endDate} • {edu.location}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'skills':
+                return skills.length > 0 ? (
+                    <section key="skills" data-section="skills">
+                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 border-b-2 break-after-avoid" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
+                            Core Alignments
+                        </h3>
+                        <p className="font-serif leading-relaxed text-stone-700 italic text-[12px]">{skills.join('  ◆  ')}</p>
+                    </section>
+                ) : null;
+            case 'projects':
+                return projects.length > 0 ? (
+                    <section key="projects" data-section="projects">
+                        <div className="break-after-avoid">{renderSectionHeader('Strategic Initiatives & Projects')}</div>
+                        <div className="space-y-6">
+                            {projects.map(proj => (
+                                <div className="break-inside-avoid" key={proj.id}>
+                                    <div className="flex justify-between items-baseline border-b border-stone-100 pb-1 mb-2">
+                                        <h3 className="font-bold text-xs uppercase tracking-wider font-serif text-stone-900">{proj.name}</h3>
+                                        <span className="text-[9px] font-sans text-stone-400 uppercase tracking-widest">{proj.startDate} – {proj.endDate}</span>
+                                    </div>
+                                    {proj.technologies && (
+                                        <p className="text-[9px] uppercase tracking-widest font-sans text-stone-400 font-bold mb-3">
+                                            Infrastructure: <span style={{ color: luxuryGold }}>{proj.technologies}</span>
+                                        </p>
+                                    )}
+                                    <div className="text-stone-600 text-xs text-justify font-serif" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'certifications':
+                return certifications.length > 0 ? (
+                    <section key="certifications" data-section="certifications">
+                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 border-b-2 break-after-avoid" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
+                            Certifications
+                        </h3>
+                        <ul className="space-y-2 text-[11px] font-serif text-stone-700">
+                            {certifications.map(cert => (
+                                <li key={cert.id} className="flex flex-col break-inside-avoid">
+                                    <span className="font-bold uppercase tracking-wide text-[10px] font-sans text-stone-800">{cert.name}</span>
+                                    <span className="text-stone-400 text-[9px] font-sans tracking-wider uppercase">{cert.expiryDate}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                ) : null;
+            case 'languages':
+                return languages.length > 0 ? (
+                    <section key="languages" data-section="languages">
+                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 border-b-2 break-after-avoid" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
+                            Languages
+                        </h3>
+                        <div className="space-y-2">
+                            {languages.map(lang => (
+                                <div key={lang.id} className="flex justify-between text-[11px] font-serif text-stone-700 break-inside-avoid">
+                                    <span className="font-bold text-stone-800">{lang.language}</span>
+                                    <span className="text-stone-400 italic text-[10px]">{lang.proficiency}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'awards':
+                return awards.length > 0 ? (
+                    <section key="awards" data-section="awards">
+                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 border-b-2 break-after-avoid" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
+                            Awards & Honors
+                        </h3>
+                        <ul className="space-y-2 text-[11px] font-serif text-stone-700">
+                            {awards.map(aw => (
+                                <li key={aw.id} className="flex flex-col break-inside-avoid">
+                                    <span className="font-bold text-[10px] font-sans uppercase tracking-wide text-stone-800">{aw.title}</span>
+                                    <span className="text-stone-400 text-[9px]">{aw.issuer}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                ) : null;
+            case 'trainings':
+                return trainings.length > 0 ? (
+                    <section key="trainings" data-section="trainings">
+                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 border-b-2 break-after-avoid" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
+                            Eductive Programs
+                        </h3>
+                        <ul className="space-y-2 text-[11px] font-serif text-stone-750">
+                            {trainings.map(t => (
+                                <li key={t.id} className="flex flex-col break-inside-avoid">
+                                    <span className="font-bold text-[10px] font-sans uppercase text-stone-800 tracking-wide">{t.course}</span>
+                                    <span className="text-stone-500 text-[10px]">{t.institution}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                ) : null;
+            case 'volunteer':
+                return volunteer.length > 0 ? (
+                    <section key="volunteer" data-section="volunteer">
+                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 border-b-2 break-after-avoid" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
+                            Philanthropy
+                        </h3>
+                        <ul className="space-y-2 text-[11px] font-serif text-stone-750">
+                            {volunteer.map(v => (
+                                <li key={v.id} className="flex flex-col break-inside-avoid">
+                                    <span className="font-bold text-[10px] font-sans uppercase text-stone-800 tracking-wide">{v.role}</span>
+                                    <span className="text-stone-500 text-[10px] italic">{v.organization}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                ) : null;
+            default:
+                return null;
+        }
+    };
+    const renderRun = (ids: readonly SectionId[]): React.ReactNode[] =>
+        sectionLayout(orderedSections(formData, visibleSections, ids), { runs: { optional: OPTIONAL_IDS } }).map((run) =>
+            run.kind === 'section' ? renderSection(run.id) : (
+                <OptionalSectionsRenderer
+                        key={`optional-${run.ids[0]}`}
+                        sections={run.ids}
+                        formData={formData}
+                        visibleSections={visibleSections}
+                        fontClass="font-serif"
+                        textClass="text-stone-750 text-xs font-serif leading-relaxed text-justify"
+                        titleClass="font-sans font-bold text-[10px] uppercase tracking-wide text-stone-800"
+                        subtextClass="text-[9.5px] font-sans text-stone-400"
+                        accentColor={luxuryGold}
+                        renderHeader={(title) => (
+                                    <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 mt-6 border-b-2" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
+                                        {title}
+                                    </h3>
+                                )}
+                />
+            ),
+        );
 
     return (
         <div 
@@ -67,201 +258,31 @@ const MetropolitanTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPr
                     </header>
 
                     {/* Statement / Bio */}
-                    {summary.professionalSummary && (
-                        <section className="mt-8 text-center px-6">
-                            <p className="text-[10px] font-sans tracking-[0.25em] text-stone-400 font-bold uppercase mb-3">Professional Executive Summary</p>
-                            <div className="leading-relaxed text-justify text-stone-700 font-serif italic text-sm text-[11.5px] px-4 border-l-2 border-r-2 border-stone-150" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
-                        </section>
-                    )}
+                    {renderRun(['summary'])}
 
                     {/* Section Grid System */}
                     <div className="space-y-6">
                         
                         {/* Professional Experience */}
-                        {experience.length > 0 && (
-                            <section>
-                                {renderSectionHeader('Professional Experience')}
-                                <div className="space-y-8">
-                                    {experience.map(exp => (
-                                        <div key={exp.id} className="group">
-                                            <div className="flex justify-between items-baseline border-b border-stone-200/70 pb-1 mb-2">
-                                                <h3 className="font-bold text-xs uppercase tracking-wider font-serif text-stone-900">
-                                                    {exp.jobTitle} <span className="text-stone-400 font-light italic font-sans text-[10px]">at</span> {exp.company}
-                                                </h3>
-                                                <span className="text-[10px] tracking-widest uppercase font-sans text-stone-400 font-bold">
-                                                    {exp.startDate} – {exp.endDate}
-                                                </span>
-                                            </div>
-                                            <p className="text-[10px] font-sans uppercase font-bold tracking-widest text-[#B59A57] mb-3">📍 {exp.location}</p>
-                                            <div className="text-stone-600 text-xs text-justify pr-2 font-serif leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {/* Projects section */}
-                        {visibleSections.includes('projects') && projects.length > 0 && (
-                            <section>
-                                {renderSectionHeader('Strategic Initiatives & Projects')}
-                                <div className="space-y-6">
-                                    {projects.map(proj => (
-                                        <div key={proj.id}>
-                                            <div className="flex justify-between items-baseline border-b border-stone-100 pb-1 mb-2">
-                                                <h3 className="font-bold text-xs uppercase tracking-wider font-serif text-stone-900">{proj.name}</h3>
-                                                <span className="text-[9px] font-sans text-stone-400 uppercase tracking-widest">{proj.startDate} – {proj.endDate}</span>
-                                            </div>
-                                            {proj.technologies && (
-                                                <p className="text-[9px] uppercase tracking-widest font-sans text-stone-400 font-bold mb-3">
-                                                    Infrastructure: <span style={{ color: luxuryGold }}>{proj.technologies}</span>
-                                                </p>
-                                            )}
-                                            <div className="text-stone-600 text-xs text-justify font-serif" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
+                        {renderRun(['experience', 'projects'])}
 
                         {/* Hybrid Two-Column Grid for Secondary details */}
                         <div className="grid grid-cols-2 gap-8 pt-4">
                             {/* Left Box details: Education and Certifications */}
                             <div className="space-y-6">
                                 {/* Education */}
-                                {education.length > 0 && (
-                                    <section>
-                                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 border-b-2" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
-                                            Education
-                                        </h3>
-                                        <div className="space-y-4">
-                                            {education.map(edu => (
-                                                <div key={edu.id} className="text-[11px] font-serif">
-                                                    <p className="font-bold text-stone-900 leading-tight uppercase font-sans tracking-wide text-[10px]">{edu.school}</p>
-                                                    <p className="text-stone-500 italic mt-0.5">{edu.degree}</p>
-                                                    <p className="text-[9px] text-stone-400 font-sans tracking-widest uppercase mt-1">
-                                                        {edu.startDate} – {edu.endDate} • {edu.location}
-                                                    </p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </section>
-                                )}
-
-                                {/* Skills */}
-                                {skills.length > 0 && (
-                                    <section>
-                                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 border-b-2" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
-                                            Core Alignments
-                                        </h3>
-                                        <p className="font-serif leading-relaxed text-stone-700 italic text-[12px]">{skills.join('  ◆  ')}</p>
-                                    </section>
-                                )}
-
-                                {/* Certifications */}
-                                {visibleSections.includes('certifications') && certifications.length > 0 && (
-                                    <section>
-                                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 border-b-2" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
-                                            Certifications
-                                        </h3>
-                                        <ul className="space-y-2 text-[11px] font-serif text-stone-700">
-                                            {certifications.map(cert => (
-                                                <li key={cert.id} className="flex flex-col">
-                                                    <span className="font-bold uppercase tracking-wide text-[10px] font-sans text-stone-800">{cert.name}</span>
-                                                    <span className="text-stone-400 text-[9px] font-sans tracking-wider uppercase">{cert.expiryDate}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </section>
-                                )}
+                                {renderRun(['education', 'skills', 'certifications'])}
                             </div>
 
                             {/* Right Box details: Languages, Awards, Volunteering */}
                             <div className="space-y-6">
                                 {/* Languages */}
-                                {visibleSections.includes('languages') && languages.length > 0 && (
-                                    <section>
-                                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 border-b-2" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
-                                            Languages
-                                        </h3>
-                                        <div className="space-y-2">
-                                            {languages.map(lang => (
-                                                <div key={lang.id} className="flex justify-between text-[11px] font-serif text-stone-700">
-                                                    <span className="font-bold text-stone-800">{lang.language}</span>
-                                                    <span className="text-stone-400 italic text-[10px]">{lang.proficiency}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </section>
-                                )}
-
-                                {/* Awards */}
-                                {visibleSections.includes('awards') && awards.length > 0 && (
-                                    <section>
-                                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 border-b-2" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
-                                            Awards & Honors
-                                        </h3>
-                                        <ul className="space-y-2 text-[11px] font-serif text-stone-700">
-                                            {awards.map(aw => (
-                                                <li key={aw.id} className="flex flex-col">
-                                                    <span className="font-bold text-[10px] font-sans uppercase tracking-wide text-stone-800">{aw.title}</span>
-                                                    <span className="text-stone-400 text-[9px]">{aw.issuer}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </section>
-                                )}
-
-                                {/* Volunteering */}
-                                {visibleSections.includes('volunteer') && volunteer.length > 0 && (
-                                    <section>
-                                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 border-b-2" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
-                                            Philanthropy
-                                        </h3>
-                                        <ul className="space-y-2 text-[11px] font-serif text-stone-750">
-                                            {volunteer.map(v => (
-                                                <li key={v.id} className="flex flex-col">
-                                                    <span className="font-bold text-[10px] font-sans uppercase text-stone-800 tracking-wide">{v.role}</span>
-                                                    <span className="text-stone-500 text-[10px] italic">{v.organization}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </section>
-                                )}
-
-                                {visibleSections.includes('trainings') && trainings.length > 0 && (
-                                    <section>
-                                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 border-b-2" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
-                                            Eductive Programs
-                                        </h3>
-                                        <ul className="space-y-2 text-[11px] font-serif text-stone-750">
-                                            {trainings.map(t => (
-                                                <li key={t.id} className="flex flex-col">
-                                                    <span className="font-bold text-[10px] font-sans uppercase text-stone-800 tracking-wide">{t.course}</span>
-                                                    <span className="text-stone-500 text-[10px]">{t.institution}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </section>
-                                )}
+                                {renderRun(['languages', 'awards', 'volunteer', 'trainings'])}
                             </div>
                         </div>
 
                         <div className="mt-8 border-t pt-2" style={{ borderColor: 'rgba(181, 154, 87, 0.15)' }}>
-                            <OptionalSectionsRenderer
-                                formData={formData}
-                                visibleSections={visibleSections}
-                                excludeSections={['projects', 'languages', 'awards', 'volunteer', 'trainings']}
-                                fontClass="font-serif"
-                                textClass="text-stone-750 text-xs font-serif leading-relaxed text-justify"
-                                titleClass="font-sans font-bold text-[10px] uppercase tracking-wide text-stone-800"
-                                subtextClass="text-[9.5px] font-sans text-stone-400"
-                                accentColor={luxuryGold}
-                                renderHeader={(title) => (
-                                    <h3 className="text-xs font-bold uppercase tracking-[0.2em] font-sans pb-2 mb-3 mt-6 border-b-2" style={{ color: luxuryGold, borderColor: 'rgba(181, 154, 87, 0.25)' }}>
-                                        {title}
-                                    </h3>
-                                )}
-                            />
+                            {renderRun(['publications', 'custom'])}
                         </div>
 
                     </div>
@@ -271,4 +292,4 @@ const MetropolitanTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPr
     );
 };
 
-export default MetropolitanTemplate;
+export default React.memo(MetropolitanTemplate);

@@ -1,14 +1,9 @@
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { LoaderCircle } from 'lucide-react';
 import LandingPage from './components/LandingPage';
-import ResumeBuilder from './components/ResumeBuilder';
-import Dashboard from './components/Dashboard';
-import HeadlessPreview from './components/HeadlessPreview';
-import ResourcesPage from './components/ResourcesPage';
-import PricingPage from './components/billing/PricingPage';
-import LegalPage, { type LegalTab } from './components/LegalPage';
+import type { LegalTab } from './components/LegalPage';
 import { exampleData } from './exampleData';
 import type { TemplateId } from './types';
 import { TranslationProvider } from './services/translationService';
@@ -16,9 +11,31 @@ import { AuthProvider, useAuth } from './components/AuthProvider';
 import { SubscriptionProvider, useSubscription } from './components/SubscriptionProvider';
 import { ThemeProvider } from './components/ThemeProvider';
 import { NavigationProvider, useNavigation, type Route } from './components/NavigationProvider';
+import { ToastProvider } from './components/common/Toast';
+import { ErrorBoundary, ScreenErrorFallback } from './components/common/ErrorBoundary';
+import { setUser as setMonitoringUser } from './lib/monitoring';
 import { initNativeShell } from './lib/nativeShell';
-import AuthGate from './components/AuthGate';
 import type { DashboardTab } from './components/Dashboard';
+
+// Only the landing page ships in the entry chunk. Every other screen — and the
+// editor, PDF and DOCX libraries behind them — loads when first navigated to.
+const ResumeBuilder = lazy(() => import('./components/ResumeBuilder'));
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const ResourcesPage = lazy(() => import('./components/ResourcesPage'));
+const PricingPage = lazy(() => import('./components/billing/PricingPage'));
+const LegalPage = lazy(() => import('./components/LegalPage'));
+const AuthGate = lazy(() => import('./components/AuthGate'));
+// The headless preview (?mode=preview) pulls in every template; the landing
+// page must not pay for that.
+const HeadlessPreview = lazy(() => import('./components/HeadlessPreview'));
+
+/** Suspense fallback for a whole screen: a quiet spinner, nothing else moves. */
+const RouteLoader: React.FC = () => (
+    <div role="status" aria-live="polite" className="grid min-h-[60vh] place-items-center">
+        <LoaderCircle size={22} strokeWidth={1.75} className="animate-spin text-ink-faint" aria-hidden="true" />
+        <span className="sr-only">Loading</span>
+    </div>
+);
 
 function AppContent() {
     const { route, direction, navigate, replace, reset, back } = useNavigation();
@@ -26,6 +43,13 @@ function AppContent() {
     const { startCheckout } = useSubscription();
     const { user } = useAuth();
     const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
+
+    // Error reports carry the account id (never email) so one person's crash
+    // can be followed across screens, and are anonymous again after sign-out.
+    const userId = user?.id ?? null;
+    useEffect(() => {
+        setMonitoringUser(userId);
+    }, [userId]);
 
     /**
      * In the packaged apps every call to action routes through sign-in first;
@@ -91,7 +115,11 @@ function AppContent() {
 
     // Render headless preview for screenshot generation
     if (previewMode) {
-        return <HeadlessPreview templateId={previewMode.template} data={exampleData} />;
+        return (
+            <Suspense fallback={null}>
+                <HeadlessPreview templateId={previewMode.template} data={exampleData} />
+            </Suspense>
+        );
     }
 
     const content = (() => {
@@ -158,9 +186,15 @@ function AppContent() {
     })();
 
     // Keying on the route restarts the enter animation on each navigation, and
-    // the direction class makes going back read as going back.
-    const transitionKey =
-        `${route.view}:${route.dashboardTab ?? ''}:${route.resumeId ?? ''}:${route.legalTab ?? ''}`;
+    // the direction class makes going back read as going back. The dashboard
+    // tab is deliberately not part of the key: switching tabs updates the URL
+    // in place and must not remount the dashboard.
+    const transitionKey = `${route.view}:${route.resumeId ?? ''}:${route.legalTab ?? ''}`;
+
+    // Where a broken screen can escape to. The builder returns to the
+    // dashboard; everything else returns home.
+    const escapeRoute: Route =
+        route.view === 'builder' ? { view: 'dashboard', dashboardTab: 'dashboard' } : { view: 'landing' };
 
     return (
         <div className="min-h-screen bg-light font-sans text-dark">
@@ -168,7 +202,21 @@ function AppContent() {
                 key={transitionKey}
                 className={direction === 'backward' ? 'view-enter-backward' : 'view-enter-forward'}
             >
-                {content}
+                <ErrorBoundary
+                    scope={`route:${route.view}`}
+                    fallback={(props) => (
+                        <ScreenErrorFallback
+                            {...props}
+                            hint="Try again, or head back and open it afresh."
+                            secondaryAction={{
+                                label: route.view === 'builder' ? 'Back to dashboard' : 'Back to home',
+                                onClick: () => reset(escapeRoute),
+                            }}
+                        />
+                    )}
+                >
+                    <Suspense fallback={<RouteLoader />}>{content}</Suspense>
+                </ErrorBoundary>
             </div>
         </div>
     );
@@ -177,15 +225,17 @@ function AppContent() {
 function App() {
     return (
         <ThemeProvider>
-            <AuthProvider>
-                <SubscriptionProvider>
-                    <TranslationProvider>
-                        <NavigationProvider>
-                            <AppContent />
-                        </NavigationProvider>
-                    </TranslationProvider>
-                </SubscriptionProvider>
-            </AuthProvider>
+            <ToastProvider>
+                <TranslationProvider>
+                    <AuthProvider>
+                        <SubscriptionProvider>
+                            <NavigationProvider>
+                                <AppContent />
+                            </NavigationProvider>
+                        </SubscriptionProvider>
+                    </AuthProvider>
+                </TranslationProvider>
+            </ToastProvider>
         </ThemeProvider>
     );
 }

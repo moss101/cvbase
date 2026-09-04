@@ -1,4 +1,5 @@
 import React from 'react';
+import { CircleAlert } from 'lucide-react';
 
 /**
  * Inline validation message for a form field.
@@ -15,9 +16,7 @@ const FieldError: React.FC<{ id: string; message: string | null }> = ({ id, mess
             role="alert"
             className="mt-1.5 flex items-start gap-1 text-xs font-medium text-danger"
         >
-            <span className="material-symbols-outlined text-[14px] leading-4" aria-hidden="true">
-                error
-            </span>
+            <CircleAlert className="w-[14px] h-[14px] leading-4 shrink-0 mt-0.5" aria-hidden="true" />
             {message}
         </p>
     );

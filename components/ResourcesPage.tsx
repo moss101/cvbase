@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
+import {
+    ArrowLeft, BookOpenText, Wifi, Type, BookOpen, SpellCheck, ListChecks, Wrench,
+    Target, Star, FileText, PenTool, CircleCheck, Search, Check, CircleQuestionMark,
+    Copy, ShieldCheck,
+} from 'lucide-react';
 
 interface ResourcesPageProps {
     onBack: () => void;
@@ -176,11 +181,11 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                         className="flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer"
                         title="Back to Suite"
                     >
-                        <span className="material-symbols-outlined text-base">arrow_back</span>
+                        <ArrowLeft className="w-4 h-4" aria-hidden="true" />
                     </button>
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-gradient-to-tr from-primary to-secondary rounded-lg flex items-center justify-center shadow-md shadow-primary/20">
-                            <span className="material-symbols-outlined text-white text-sm">auto_stories</span>
+                            <BookOpenText className="w-[1em] h-[1em] text-white text-sm" aria-hidden="true" />
                         </div>
                         <span className="font-extrabold text-xl tracking-tight text-slate-950">CVBase Resources</span>
                     </div>
@@ -228,14 +233,14 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                 onClick={() => setActiveTab('ats_analyzer')}
                                 className="px-5 py-3 rounded-xl bg-white text-slate-950 font-bold text-xs uppercase tracking-wider shadow-md hover:bg-slate-100 transition duration-150 flex items-center gap-2 cursor-pointer"
                             >
-                                <span className="material-symbols-outlined text-sm text-indigo-600">online_prediction</span>
+                                <Wifi className="w-[1em] h-[1em] text-sm text-indigo-600" aria-hidden="true" />
                                 Test ATS Compliance
                             </button>
                             <button
                                 onClick={() => setActiveTab('verbs')}
                                 className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-xs uppercase tracking-wider transition duration-150 flex items-center gap-2 cursor-pointer"
                             >
-                                <span className="material-symbols-outlined text-sm">font_download</span>
+                                <Type className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
                                 Action Verbs Dict
                             </button>
                         </div>
@@ -281,21 +286,21 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                         onClick={() => setActiveTab('guides')}
                         className={`py-3.5 px-2.5 font-bold text-xs uppercase tracking-wider flex items-center gap-2 whitespace-nowrap border-b-2 transition-all cursor-pointer ${activeTab === 'guides' ? 'border-primary text-slate-950 font-black' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
                     >
-                        <span className="material-symbols-outlined text-sm">menu_book</span>
+                        <BookOpen className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
                         Career Strategy Guides
                     </button>
                     <button
                         onClick={() => setActiveTab('verbs')}
                         className={`py-3.5 px-2.5 font-bold text-xs uppercase tracking-wider flex items-center gap-2 whitespace-nowrap border-b-2 transition-all cursor-pointer ${activeTab === 'verbs' ? 'border-primary text-slate-950 font-black' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
                     >
-                        <span className="material-symbols-outlined text-sm">spellcheck</span>
+                        <SpellCheck className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
                         Power Action Verbs
                     </button>
                     <button
                         onClick={() => setActiveTab('checklist')}
                         className={`py-3.5 px-2.5 font-bold text-xs uppercase tracking-wider flex items-center gap-2 whitespace-nowrap border-b-2 transition-all cursor-pointer ${activeTab === 'checklist' ? 'border-primary text-slate-950 font-black' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
                     >
-                        <span className="material-symbols-outlined text-sm">checklist</span>
+                        <ListChecks className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
                         Interactive Checklist
                         {completionRate > 0 && (
                             <span className="bg-primary/10 text-primary text-[10px] px-1.5 py-0.5 rounded-full font-extrabold">{completionRate}%</span>
@@ -305,7 +310,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                         onClick={() => setActiveTab('ats_analyzer')}
                         className={`py-3.5 px-2.5 font-bold text-xs uppercase tracking-wider flex items-center gap-2 whitespace-nowrap border-b-2 transition-all cursor-pointer ${activeTab === 'ats_analyzer' ? 'border-primary text-slate-950 font-black' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
                     >
-                        <span className="material-symbols-outlined text-sm">troubleshoot</span>
+                        <Wrench className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
                         ATS Compliance Sandbox
                     </button>
                 </div>
@@ -319,7 +324,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                             <div className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-slate-350 hover:shadow-md transition duration-200 flex flex-col justify-between">
                                 <div className="space-y-4 text-left">
                                     <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
-                                        <span className="material-symbols-outlined">track_changes</span>
+                                        <Target className="w-[1em] h-[1em]" aria-hidden="true" />
                                     </div>
                                     <h4 className="font-extrabold text-slate-900 text-base leading-snug">The Ultimate ATS Algorithm Hack</h4>
                                     <p className="text-xs text-slate-500 leading-relaxed text-justify">
@@ -336,7 +341,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                             <div className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-slate-350 hover:shadow-md transition duration-200 flex flex-col justify-between">
                                 <div className="space-y-4 text-left">
                                     <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-                                        <span className="material-symbols-outlined">star_rate</span>
+                                        <Star className="w-[1em] h-[1em]" aria-hidden="true" />
                                     </div>
                                     <h4 className="font-extrabold text-slate-900 text-base leading-snug">Writing Impactful STAR Bullet Points</h4>
                                     <p className="text-xs text-slate-500 leading-relaxed text-justify">
@@ -353,7 +358,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                             <div className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-slate-350 hover:shadow-md transition duration-200 flex flex-col justify-between">
                                 <div className="space-y-4 text-left">
                                     <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
-                                        <span className="material-symbols-outlined">description</span>
+                                        <FileText className="w-[1em] h-[1em]" aria-hidden="true" />
                                     </div>
                                     <h4 className="font-extrabold text-slate-900 text-base leading-snug">Single vs. Two-Page CV Structures</h4>
                                     <p className="text-xs text-slate-500 leading-relaxed text-justify">
@@ -377,13 +382,13 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                 </p>
                                 <div className="flex flex-wrap gap-x-6 gap-y-2 pt-1 font-mono text-[10px] text-slate-400 font-bold uppercase">
                                     <span className="flex items-center gap-1 text-slate-600">
-                                        <span className="material-symbols-outlined text-xs text-green-500">check_circle</span> No flat graphics
+                                        <CircleCheck className="w-3 h-3 text-green-500" aria-hidden="true" /> No flat graphics
                                     </span>
                                     <span className="flex items-center gap-1 text-slate-600">
-                                        <span className="material-symbols-outlined text-xs text-green-500">check_circle</span> Selectable character layers
+                                        <CircleCheck className="w-3 h-3 text-green-500" aria-hidden="true" /> Selectable character layers
                                     </span>
                                     <span className="flex items-center gap-1 text-slate-600">
-                                        <span className="material-symbols-outlined text-xs text-green-500">check_circle</span> True-to-life standard layout margins
+                                        <CircleCheck className="w-3 h-3 text-green-500" aria-hidden="true" /> True-to-life standard layout margins
                                     </span>
                                 </div>
                             </div>
@@ -392,7 +397,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                             <div className="lg:w-1/3 w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 flex gap-4 items-center">
                                 {/* Small graphic */}
                                 <div className="w-14 h-14 bg-[#4f46e5]/10 rounded-xl flex items-center justify-center shrink-0">
-                                    <span className="material-symbols-outlined text-2xl text-indigo-650">architecture</span>
+                                    <PenTool className="w-6 h-6 text-indigo-650" aria-hidden="true" />
                                 </div>
                                 <div className="space-y-1">
                                     <h5 className="font-extrabold text-slate-900 text-xs uppercase font-mono tracking-wider">A4 Grid Mechanics</h5>
@@ -424,7 +429,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                             {/* Search and Filters */}
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <div className="relative flex-1">
-                                    <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-sm">search</span>
+                                    <Search className="w-[1em] h-[1em] absolute left-3 top-2.5 text-slate-400 text-sm" aria-hidden="true" />
                                     <input
                                         type="text"
                                         placeholder="Search power verbs or definitions..."
@@ -472,16 +477,16 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                             className="absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition duration-150 text-slate-350 hover:text-indigo-600 p-1"
                                             title="Click to copy verb"
                                         >
-                                            <span className="material-symbols-outlined text-xs">
-                                                {copiedVerb === item.verb ? 'done' : 'content_copy'}
-                                            </span>
+                                            {copiedVerb === item.verb
+                                                ? <Check className="w-3 h-3" aria-hidden="true" />
+                                                : <Copy className="w-3 h-3" aria-hidden="true" />}
                                         </button>
                                     </div>
                                 ))}
 
                                 {filteredVerbs.length === 0 && (
                                     <div className="col-span-2 text-center py-10 text-slate-400">
-                                        <span className="material-symbols-outlined text-3xl mb-1">help_outline</span>
+                                        <CircleQuestionMark className="w-8 h-8 mb-1" aria-hidden="true" />
                                         <p className="text-xs">No verbs match your current search constraints.</p>
                                     </div>
                                 )}
@@ -521,7 +526,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                     >
                                         <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition ${checkedItems[item.id] ? 'bg-green-600 border-green-600 text-white' : 'border-slate-350 bg-white'}`}>
                                             {checkedItems[item.id] && (
-                                                <span className="material-symbols-outlined text-xs font-bold leading-none">check</span>
+                                                <Check className="w-3 h-3 leading-none" aria-hidden="true" />
                                             )}
                                         </div>
                                         <div className="space-y-0.5 text-left">
@@ -620,7 +625,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                             </>
                                         ) : (
                                             <>
-                                                <span className="material-symbols-outlined text-sm">troubleshoot</span>
+                                                <Wrench className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
                                                 COMPUTE ATS PARSABILITY INDEX
                                             </>
                                         )}
@@ -704,7 +709,7 @@ export default function ResourcesPage({ onBack, onStartBuilding }: ResourcesPage
                                     </div>
                                 ) : (
                                     <div className="border-2 border-dashed border-slate-200 rounded-3xl p-10 text-center text-slate-400/85 h-full flex flex-col justify-center items-center min-h-[300px]">
-                                        <span className="material-symbols-outlined text-4xl mb-2 text-slate-300">verified_user</span>
+                                        <ShieldCheck className="w-10 h-10 mb-2 text-slate-300" aria-hidden="true" />
                                         <h5 className="font-bold text-slate-600 text-sm mb-0.5">Scoring Engine Awaiting Data</h5>
                                         <p className="max-w-xs text-[11px] text-slate-400 leading-normal mx-auto">
                                             Insert your accomplishments draft and job details in the left form fields to render dynamic performance diagnostics.

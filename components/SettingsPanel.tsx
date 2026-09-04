@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useTheme, TEXT_SCALE_LABELS, type ThemeMode, type TextScale } from './ThemeProvider';
-import { useTranslation, LANGUAGE_OPTIONS, type LanguageCode } from '../services/translationService';
+import { useTranslation, LANGUAGE_OPTIONS, type LanguageCode, type Translate } from '../services/translationService';
 import { useAuth } from './AuthProvider';
+import { useToast } from './common/Toast';
+import { deleteAccount, exportAccount } from '../services/repos/accountRepo';
 import type { LegalTab } from './LegalPage';
+import { Icon } from './common/icons';
+import { ChevronRight, LogOut, Save, Download } from 'lucide-react';
 
 /**
  * Settings and personalization.
@@ -21,10 +25,10 @@ interface SettingsPanelProps {
     onOpenBackup?: () => void;
 }
 
-const THEME_OPTIONS: { value: ThemeMode; label: string; icon: string; hint: string }[] = [
-    { value: 'light', label: 'Light', icon: 'light_mode', hint: 'Always the light theme' },
-    { value: 'dark', label: 'Dark', icon: 'dark_mode', hint: 'Always the dark theme' },
-    { value: 'system', label: 'System', icon: 'contrast', hint: 'Follow your device setting' },
+const buildThemeOptions = (t: Translate): { value: ThemeMode; label: string; icon: string; hint: string }[] => [
+    { value: 'light', label: t('settings.theme.light', 'Light'), icon: 'light_mode', hint: t('settings.theme.lightHint', 'Always the light theme') },
+    { value: 'dark', label: t('settings.theme.dark', 'Dark'), icon: 'dark_mode', hint: t('settings.theme.darkHint', 'Always the dark theme') },
+    { value: 'system', label: t('settings.theme.system', 'System'), icon: 'contrast', hint: t('settings.theme.systemHint', 'Follow your device setting') },
 ];
 
 const TEXT_SCALES: TextScale[] = ['small', 'default', 'large', 'xlarge'];
@@ -37,12 +41,11 @@ const Section: React.FC<{
 }> = ({ title, description, icon, children }) => (
     <section className="dashboard-card p-6 md:p-7">
         <header className="mb-5 flex items-start gap-3">
-            <span
-                className="material-symbols-outlined mt-0.5 text-[20px] text-ember-deep"
+            <Icon
+                name={icon}
+                className="w-5 h-5 mt-0.5 text-ember-deep"
                 aria-hidden="true"
-            >
-                {icon}
-            </span>
+            />
             <div className="min-w-0">
                 <h3 className="text-base font-bold tracking-tight text-ink">{title}</h3>
                 <p className="mt-0.5 text-sm text-ink-soft">{description}</p>
@@ -82,9 +85,7 @@ const SegmentedControl = <T extends string>({
                     }`}
                 >
                     {option.icon && (
-                        <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-                            {option.icon}
-                        </span>
+                        <Icon name={option.icon} className="w-5 h-5" aria-hidden="true" />
                     )}
                     {option.label}
                 </button>
@@ -144,10 +145,78 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         setTextScale,
         isNative,
     } = useTheme();
-    const { language, setLanguage } = useTranslation();
+    const { language, setLanguage, t } = useTranslation();
+    const THEME_OPTIONS = buildThemeOptions(t);
     const { user, logout } = useAuth();
+    const { toast } = useToast();
     const [signingOut, setSigningOut] = useState(false);
     const [signOutError, setSignOutError] = useState<string | null>(null);
+    const [exporting, setExporting] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [confirmEmail, setConfirmEmail] = useState('');
+    const [deleting, setDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+
+    const accountEmail = user?.email ?? '';
+    const confirmMatches =
+        accountEmail.length > 0 && confirmEmail.trim().toLowerCase() === accountEmail.toLowerCase();
+
+    const handleExport = async () => {
+        setExporting(true);
+        try {
+            const filename = await exportAccount();
+            toast({
+                title: t('settings.exportReady', 'Export ready'),
+                description: t('settings.exportReadyDesc', 'Saved as {filename}. Photo links inside it expire after one hour.').replace('{filename}', filename),
+                variant: 'success',
+            });
+        } catch (error) {
+            toast({
+                title: t('settings.exportFailed', 'Export failed'),
+                description:
+                    error instanceof Error && error.message !== 'internal_error'
+                        ? error.message
+                        : t('settings.tryAgainMoment', 'Please try again in a moment.'),
+                variant: 'error',
+            });
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const closeDelete = () => {
+        setDeleteOpen(false);
+        setConfirmEmail('');
+        setDeleteError(null);
+    };
+
+    const handleDelete = async (event: React.FormEvent) => {
+        event.preventDefault();
+        if (!confirmMatches || deleting) return;
+        setDeleting(true);
+        setDeleteError(null);
+        try {
+            await deleteAccount(confirmEmail);
+            toast({ title: t('settings.accountDeleted', 'Account deleted'), description: t('settings.dataRemoved', 'Your data has been removed.') });
+            // The session's user no longer exists; sign-out only clears local
+            // state now, and a server-side refusal is expected and harmless.
+            try {
+                await logout();
+            } catch {
+                /* already gone */
+            }
+        } catch (error) {
+            const code = (error as { code?: string }).code;
+            setDeleteError(
+                code === 'confirm_mismatch'
+                    ? t('settings.emailMismatch', 'That email does not match this account.')
+                    : code === 'stripe_cancel_failed'
+                      ? t('settings.stripeCancelFailed', 'We could not cancel your subscription, so nothing was deleted. Please try again or contact support.')
+                      : t('settings.deleteAccountFailed', 'Could not delete your account. Nothing was changed — please try again.'),
+            );
+            setDeleting(false);
+        }
+    };
 
     const handleSignOut = async () => {
         setSigningOut(true);
@@ -156,7 +225,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             await logout();
         } catch (error) {
             setSignOutError(
-                error instanceof Error ? error.message : 'Could not sign out. Please try again.',
+                error instanceof Error ? error.message : t('settings.signOutFailed', 'Could not sign out. Please try again.'),
             );
         } finally {
             setSigningOut(false);
@@ -166,27 +235,26 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     return (
         <div className="dashboard-module">
             <header>
-                <p className="dashboard-eyebrow">Preferences</p>
-                <h1 className="dashboard-display">Settings.</h1>
+                <p className="dashboard-eyebrow">{t('settings.eyebrow', 'Preferences')}</p>
+                <h1 className="dashboard-display">{t('settings.heading', 'Settings.')}</h1>
                 <p className="mt-4 max-w-2xl text-ink-soft">
-                    Appearance, language, account and data — everything that changes how CVBase
-                    looks and behaves on this device.
+                    {t('settings.headerDesc', 'Appearance, language, account and data — everything that changes how CVBase looks and behaves on this device.')}
                 </p>
             </header>
 
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
                 <Section
                     icon="palette"
-                    title="Appearance"
-                    description={`Currently showing the ${resolvedTheme} theme.`}
+                    title={t('settings.appearance', 'Appearance')}
+                    description={t('settings.currentlyShowingTheme', 'Currently showing the {theme} theme.').replace('{theme}', resolvedTheme)}
                 >
                     <div className="space-y-6">
                         <div>
                             <p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink-faint">
-                                Theme
+                                {t('settings.theme', 'Theme')}
                             </p>
                             <SegmentedControl
-                                label="Theme"
+                                label={t('settings.theme', 'Theme')}
                                 value={mode}
                                 options={THEME_OPTIONS}
                                 onChange={setMode}
@@ -195,9 +263,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
                         <div>
                             <p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink-faint">
-                                Text size
+                                {t('settings.textSize', 'Text size')}
                             </p>
-                            <div role="radiogroup" aria-label="Text size" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                            <div role="radiogroup" aria-label={t('settings.textSize', 'Text size')} className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                                 {TEXT_SCALES.map((scale) => {
                                     const active = scale === textScale;
                                     return (
@@ -219,15 +287,14 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                 })}
                             </div>
                             <p className="mt-2 text-xs text-ink-faint">
-                                Scales the whole interface. Your CV keeps its exact print
-                                dimensions.
+                                {t('settings.textSizeDesc', 'Scales the whole interface. Your CV keeps its exact print dimensions.')}
                             </p>
                         </div>
 
                         <Toggle
                             id="setting-reduce-motion"
-                            label="Reduce motion"
-                            description="Turns off page transitions and decorative animation."
+                            label={t('settings.reduceMotion', 'Reduce motion')}
+                            description={t('settings.reduceMotionDesc', 'Turns off page transitions and decorative animation.')}
                             checked={reduceMotion}
                             onChange={setReduceMotion}
                         />
@@ -236,10 +303,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
                 <Section
                     icon="language"
-                    title="Language"
-                    description="Used for the builder's section labels and guidance."
+                    title={t('label.selectLanguage', 'Language')}
+                    description={t('settings.languageDesc', "Used for the builder's section labels and guidance.")}
                 >
-                    <div role="radiogroup" aria-label="Language" className="grid grid-cols-2 gap-2">
+                    <div role="radiogroup" aria-label={t('label.selectLanguage', 'Language')} className="grid grid-cols-2 gap-2">
                         {LANGUAGE_OPTIONS.map((option) => {
                             const active = option.code === language;
                             return (
@@ -265,8 +332,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
                 <Section
                     icon="account_circle"
-                    title="Account"
-                    description={user?.email ?? 'You are not signed in on this device.'}
+                    title={t('settings.account', 'Account')}
+                    description={user?.email ?? t('settings.notSignedIn', 'You are not signed in on this device.')}
                 >
                     <div className="space-y-3">
                         {onManageBilling && (
@@ -275,10 +342,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                 onClick={onManageBilling}
                                 className="dashboard-secondary-button w-full justify-between"
                             >
-                                Plan &amp; billing
-                                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
-                                    chevron_right
-                                </span>
+                                {t('settings.planAndBilling', 'Plan & billing')}
+                                <ChevronRight className="w-[18px] h-[18px]" aria-hidden="true" />
                             </button>
                         )}
                         {user && (
@@ -288,10 +353,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                 disabled={signingOut}
                                 className="dashboard-secondary-button w-full justify-between disabled:opacity-60"
                             >
-                                {signingOut ? 'Signing out…' : 'Sign out'}
-                                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
-                                    logout
-                                </span>
+                                {signingOut ? t('settings.signingOut', 'Signing out…') : t('dash.signOut', 'Sign out')}
+                                <LogOut className="w-[18px] h-[18px]" aria-hidden="true" />
                             </button>
                         )}
                         {signOutError && (
@@ -304,8 +367,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
                 <Section
                     icon="database"
-                    title="Data &amp; privacy"
-                    description="Your CV data is stored on this device and in your account."
+                    title={t('settings.yourData', 'Your data')}
+                    description={t('settings.yourDataDesc', 'Everything in your account is yours to take with you or remove.')}
                 >
                     <div className="space-y-3">
                         {onOpenBackup && (
@@ -314,10 +377,19 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                 onClick={onOpenBackup}
                                 className="dashboard-secondary-button w-full justify-between"
                             >
-                                Export or import a backup
-                                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
-                                    save
-                                </span>
+                                {t('settings.exportImportBackup', 'Export or import a backup')}
+                                <Save className="w-[18px] h-[18px]" aria-hidden="true" />
+                            </button>
+                        )}
+                        {user && (
+                            <button
+                                type="button"
+                                onClick={handleExport}
+                                disabled={exporting}
+                                className="dashboard-secondary-button w-full justify-between disabled:opacity-60"
+                            >
+                                {exporting ? t('settings.preparingExport', 'Preparing your export…') : t('settings.exportMyData', 'Export my data')}
+                                <Download className="w-[18px] h-[18px]" aria-hidden="true" />
                             </button>
                         )}
                         {onViewLegal && (
@@ -327,19 +399,95 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                     onClick={() => onViewLegal('privacy')}
                                     className="dashboard-secondary-button justify-center"
                                 >
-                                    Privacy policy
+                                    {t('settings.privacyPolicy', 'Privacy policy')}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => onViewLegal('terms')}
                                     className="dashboard-secondary-button justify-center"
                                 >
-                                    Terms
+                                    {t('settings.terms', 'Terms')}
                                 </button>
                             </div>
                         )}
+                        {user && (
+                            <div className="mt-2 border-t border-ink/[0.12] pt-4">
+                                {!deleteOpen ? (
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-semibold text-ink">{t('settings.deleteAccount', 'Delete account')}</p>
+                                            <p className="mt-0.5 text-sm text-ink-soft">
+                                                {t('settings.deleteAccountDesc', 'Removes your résumés, versions, tracked jobs, ATS reports and photos, and cancels any subscription. This cannot be undone.')}
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setDeleteOpen(true)}
+                                            className="tap-target flex-none text-sm font-semibold text-danger underline-offset-4 hover:underline"
+                                        >
+                                            {t('settings.deleteEllipsis', 'Delete…')}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleDelete} className="space-y-3" aria-busy={deleting}>
+                                        <div>
+                                            <label
+                                                htmlFor="setting-delete-confirm"
+                                                className="block text-sm font-semibold text-ink"
+                                            >
+                                                {t('settings.typeEmailToConfirm', 'Type your email to confirm')}
+                                            </label>
+                                            <p
+                                                id="setting-delete-confirm-description"
+                                                className="mt-0.5 text-sm text-ink-soft"
+                                            >
+                                                {t('settings.deletingPrefix', 'Deleting')}{' '}
+                                                <span className="font-medium text-ink">{accountEmail}</span>{' '}
+                                                {t('settings.deletingSuffix', 'removes everything in this account. This cannot be undone.')}
+                                            </p>
+                                        </div>
+                                        <input
+                                            id="setting-delete-confirm"
+                                            type="email"
+                                            autoComplete="off"
+                                            autoCapitalize="none"
+                                            spellCheck={false}
+                                            value={confirmEmail}
+                                            onChange={(event) => setConfirmEmail(event.target.value)}
+                                            placeholder={accountEmail}
+                                            aria-describedby="setting-delete-confirm-description"
+                                            aria-invalid={deleteError ? true : undefined}
+                                            disabled={deleting}
+                                            className="w-full rounded-xl border border-ink/[0.12] bg-transparent px-3 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-danger focus:outline-none focus:ring-2 focus:ring-danger/30 disabled:opacity-60"
+                                        />
+                                        {deleteError && (
+                                            <p role="alert" className="text-sm font-medium text-danger">
+                                                {deleteError}
+                                            </p>
+                                        )}
+                                        <div className="flex flex-wrap gap-2">
+                                            <button
+                                                type="submit"
+                                                disabled={!confirmMatches || deleting}
+                                                className="tap-target rounded-xl border border-danger px-4 py-2 text-sm font-semibold text-danger transition-colors hover:bg-danger hover:text-true-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-danger"
+                                            >
+                                                {deleting ? t('settings.deletingEllipsis', 'Deleting…') : t('settings.deleteMyAccount', 'Delete my account')}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={closeDelete}
+                                                disabled={deleting}
+                                                className="tap-target rounded-xl px-4 py-2 text-sm font-semibold text-ink-soft transition-colors hover:text-ink disabled:opacity-60"
+                                            >
+                                                {t('settings.keepMyAccount', 'Keep my account')}
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
+                            </div>
+                        )}
                         <p className="pt-1 text-xs text-ink-faint">
-                            CVBase {isNative ? `for ${Capacitor.getPlatform()}` : 'for web'}
+                            {isNative ? t('settings.cvbaseForPlatform', 'CVBase for {platform}').replace('{platform}', Capacitor.getPlatform()) : t('settings.cvbaseForWeb', 'CVBase for web')}
                         </p>
                     </div>
                 </Section>

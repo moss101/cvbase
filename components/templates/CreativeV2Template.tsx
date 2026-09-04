@@ -1,8 +1,10 @@
 
 import React from 'react';
 import { sanitizeHtml } from '../../lib/sanitizeHtml';
-import type { ResumePreviewProps } from '../../types';
+import type { ResumePreviewProps, SectionId } from '../../types';
+import { orderedSections } from '../../lib/templates/sectionOrder';
 import { countries } from '../../data/locationData';
+import { Award, BookOpen, Brain, Briefcase, Code, Contact, Ellipsis, Globe, GraduationCap, HeartHandshake, IdCard, Lightbulb, Star, Trophy } from 'lucide-react';
 
 const CreativeV2Template: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, visibleSections, settings }) => {
     const { contact, summary, experience, projects, education, skills, certifications, languages, awards, trainings, publications, volunteer, custom } = formData;
@@ -20,11 +22,177 @@ const CreativeV2Template: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
     const achievementsText = summaryParts[1] || '';
     const keyAchievements = achievementsText.split('*').map(s => s.trim()).filter(Boolean);
 
+    const renderSection = (id: SectionId): React.ReactNode => {
+        switch (id) {
+            case 'skills':
+                return skills.length > 0 ? (
+                    <section key="skills" data-section="skills" className="mb-6">
+                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2 break-after-avoid"><Brain aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[24px]" style={{ color: accentColor }} />SKILLS</h2>
+                        <div className="flex flex-wrap gap-1">
+                            {skills.map((skill, index) => (
+                                <span key={index} className="text-xs px-2 py-1 bg-white rounded shadow-sm border border-gray-100">{skill}</span>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'projects':
+                return projects.length > 0 ? (
+                    <section key="projects" data-section="projects" className="mb-6">
+                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2 break-after-avoid"><Code aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[24px]" style={{ color: accentColor }} />PROJECTS</h2>
+                        <div className="space-y-4">
+                            {projects.map(item => (
+                                <div className="break-inside-avoid" key={item.id}>
+                                    <div className="flex justify-between items-baseline">
+                                        <h3 className="font-bold text-sm">{item.name}</h3>
+                                        <p className="text-xs text-gray-500">{item.startDate} - {item.endDate}</p>
+                                    </div>
+                                    <p className="text-xs font-semibold">{item.technologies}</p>
+                                    <div className="mt-1 text-xs text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'certifications':
+                return certifications.length > 0 ? (
+                    <section key="certifications" data-section="certifications" className="mb-6">
+                         <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2 break-after-avoid"><Award aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[24px]" style={{ color: accentColor }} />CERTIFICATIONS</h2>
+                         <div className="space-y-1 text-xs">
+                            {certifications.map(cert => (
+                                <p className="break-inside-avoid" key={cert.id}>{cert.name}</p>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'languages':
+                return languages?.length > 0 ? (
+                    <section key="languages" data-section="languages" className="mb-6">
+                         <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2 break-after-avoid"><Globe aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[24px]" style={{ color: accentColor }} />LANGUAGES</h2>
+                         <div className="space-y-1 text-xs">
+                            {languages.map(lang => (
+                                <p className="break-inside-avoid" key={lang.id}>{lang.language} ({lang.proficiency})</p>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'awards':
+                return awards && awards.length > 0 ? (
+                    <section key="awards" data-section="awards" className="mb-6">
+                         <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2 break-after-avoid"><Trophy aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[24px]" style={{ color: accentColor }} />AWARDS</h2>
+                         <div className="space-y-1 text-xs">
+                            {awards.map(award => (
+                                <div className="break-inside-avoid" key={award.id}>
+                                    <p className="font-bold">{award.title}</p>
+                                    <p className="text-gray-500">{award.issuer}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'trainings':
+                return trainings && trainings.length > 0 ? (
+                    <section key="trainings" data-section="trainings" className="mb-6">
+                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2 break-after-avoid"><Lightbulb aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[24px]" style={{ color: accentColor }} />TRAININGS</h2>
+                        <div className="space-y-2">
+                            {trainings.map(item => (
+                                <div className="break-inside-avoid" key={item.id}>
+                                    <h3 className="font-bold text-sm">{item.course}</h3>
+                                    <p className="text-xs text-gray-600">{item.institution}</p>
+                                    <p className="text-[10px] text-gray-500">{item.date}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'publications':
+                return publications && publications.length > 0 ? (
+                    <section key="publications" data-section="publications" className="mb-6">
+                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2 break-after-avoid"><BookOpen aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[24px]" style={{ color: accentColor }} />PUBLICATIONS</h2>
+                        <div className="space-y-2">
+                            {publications.map(item => (
+                                <div className="break-inside-avoid" key={item.id}>
+                                    <h3 className="font-bold text-sm">{item.title}</h3>
+                                    <p className="text-xs text-gray-600">{item.publisher}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'volunteer':
+                return volunteer && volunteer.length > 0 ? (
+                    <section key="volunteer" data-section="volunteer" className="mb-6">
+                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2 break-after-avoid"><HeartHandshake aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[24px]" style={{ color: accentColor }} />VOLUNTEER</h2>
+                        <div className="space-y-2">
+                            {volunteer.map(item => (
+                                <div className="break-inside-avoid" key={item.id}>
+                                    <h3 className="font-bold text-sm">{item.role}</h3>
+                                    <p className="text-xs text-gray-600">{item.organization}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'custom':
+                return custom && custom.length > 0 ? (
+                    <section key="custom" data-section="custom" className="mb-6">
+                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2 break-after-avoid"><Ellipsis aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[24px]" style={{ color: accentColor }} />ADDITIONAL</h2>
+                        <div className="space-y-2">
+                            {custom.map(item => (
+                                <div className="break-inside-avoid" key={item.id}>
+                                    <h3 className="font-bold text-sm">{item.title}</h3>
+                                    <p className="text-xs text-gray-600">{item.subtitle}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'summary':
+                return (
+                     <section key="summary" data-section="summary" className="mb-6">
+                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2 break-after-avoid"><IdCard aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[24px]" style={{ color: accentColor }} />SUMMARY</h2>
+                        <div className="text-xs leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summaryText) }} />
+                    </section>
+                );
+            case 'experience':
+                return (
+                     <section key="experience" data-section="experience" className="mb-6">
+                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2 break-after-avoid"><Briefcase aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[24px]" style={{ color: accentColor }} />EXPERIENCE</h2>
+                        <div className="space-y-4">
+                            {experience.map(exp => (
+                                <div key={exp.id} className="break-inside-avoid">
+                                    <div className="flex justify-between items-baseline">
+                                        <h3 className="font-bold text-sm">{exp.jobTitle}</h3>
+                                        <p className="text-xs text-gray-500">{exp.startDate} - {exp.endDate}</p>
+                                    </div>
+                                    <p className="text-xs font-semibold">{exp.company}, {exp.location}</p>
+                                    <div className="mt-1 text-xs text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                );
+            case 'education':
+                return (
+                     <section key="education" data-section="education" className="mb-6">
+                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2 break-after-avoid"><GraduationCap aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[24px]" style={{ color: accentColor }} />EDUCATION</h2>
+                         {education.map(edu => (
+                            <div key={edu.id} className="text-xs mb-2 break-inside-avoid">
+                                <p className="font-bold">{edu.degree}</p>
+                                <p>{edu.school}</p>
+                                <p className="text-gray-500">{edu.startDate} - {edu.endDate}</p>
+                            </div>
+                         ))}
+                    </section>
+                );
+            default:
+                return null;
+        }
+    };
+    const renderRun = (ids: readonly SectionId[]): React.ReactNode[] =>
+        orderedSections(formData, visibleSections, ids).map(renderSection);
+
     return (
         <div id={isCardPreview ? undefined : "resume-preview-creative-v2"} className={`w-[794px] min-h-[1123px] h-auto bg-white ${fontSize} flex text-gray-700`} style={{ fontFamily: settings?.fontFamily || 'Arial, sans-serif' }}>
-            <style>
-                {`.material-symbols-outlined { font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 20 }`}
-            </style>
             <aside className="w-[40%] bg-gray-50 p-6 relative">
                  <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
                     <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="absolute -top-1/4 -left-1/4">
@@ -44,7 +212,7 @@ const CreativeV2Template: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                         </div>
                     )}
                     <section className="mb-6">
-                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>contacts</span>CONTACTS</h2>
+                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><Contact aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[24px]" style={{ color: accentColor }} />CONTACTS</h2>
                         <div className="space-y-1 text-xs">
                              {contact.phone && <p>{fullPhone}</p>}
                              {contact.email && <p>{contact.email}</p>}
@@ -54,7 +222,7 @@ const CreativeV2Template: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                     </section>
                      {keyAchievements.length > 0 && (
                         <section className="mb-6">
-                            <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>star</span>KEY ACHIEVEMENTS</h2>
+                            <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><Star aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[24px]" style={{ color: accentColor }} />KEY ACHIEVEMENTS</h2>
                             <ul className="space-y-2 text-xs">
                                 {keyAchievements.map((ach, i) => (
                                     <li key={i} className="flex items-start gap-2">
@@ -65,59 +233,7 @@ const CreativeV2Template: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                             </ul>
                         </section>
                     )}
-                     <section className="mb-6">
-                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>school</span>EDUCATION</h2>
-                         {education.map(edu => (
-                            <div key={edu.id} className="text-xs mb-2">
-                                <p className="font-bold">{edu.degree}</p>
-                                <p>{edu.school}</p>
-                                <p className="text-gray-500">{edu.startDate} - {edu.endDate}</p>
-                            </div>
-                         ))}
-                    </section>
-                    {skills.length > 0 && (
-                         <section className="mb-6">
-                            <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>psychology</span>SKILLS</h2>
-                            <div className="flex flex-wrap gap-1">
-                                {skills.map((skill, index) => (
-                                    <span key={index} className="text-xs px-2 py-1 bg-white rounded shadow-sm border border-gray-100">{skill}</span>
-                                ))}
-                            </div>
-                        </section>
-                    )}
-                    {visibleSections.includes('certifications') && certifications.length > 0 && (
-                        <section className="mb-6">
-                             <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>workspace_premium</span>CERTIFICATIONS</h2>
-                             <div className="space-y-1 text-xs">
-                                {certifications.map(cert => (
-                                    <p key={cert.id}>{cert.name}</p>
-                                ))}
-                            </div>
-                        </section>
-                    )}
-                    {visibleSections.includes('languages') && languages?.length > 0 && (
-                        <section className="mb-6">
-                             <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>language</span>LANGUAGES</h2>
-                             <div className="space-y-1 text-xs">
-                                {languages.map(lang => (
-                                    <p key={lang.id}>{lang.language} ({lang.proficiency})</p>
-                                ))}
-                            </div>
-                        </section>
-                    )}
-                     {visibleSections.includes('awards') && awards && awards.length > 0 && (
-                        <section className="mb-6">
-                             <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>emoji_events</span>AWARDS</h2>
-                             <div className="space-y-1 text-xs">
-                                {awards.map(award => (
-                                    <div key={award.id}>
-                                        <p className="font-bold">{award.title}</p>
-                                        <p className="text-gray-500">{award.issuer}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-                    )}
+                    {renderRun(['education', 'skills', 'certifications', 'languages', 'awards'])}
                 </div>
             </aside>
             <main className="w-[60%] p-8">
@@ -127,98 +243,10 @@ const CreativeV2Template: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                         <p className="font-light tracking-widest" style={{ color: accentColor }}>{contact.jobTitle || 'Your Job Title'}</p>
                     </div>
                 </header>
-                 <section className="mb-6">
-                    <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>badge</span>SUMMARY</h2>
-                    <div className="text-xs leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summaryText) }} />
-                </section>
-                 <section className="mb-6">
-                    <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>work</span>EXPERIENCE</h2>
-                    <div className="space-y-4">
-                        {experience.map(exp => (
-                            <div key={exp.id}>
-                                <div className="flex justify-between items-baseline">
-                                    <h3 className="font-bold text-sm">{exp.jobTitle}</h3>
-                                    <p className="text-xs text-gray-500">{exp.startDate} - {exp.endDate}</p>
-                                </div>
-                                <p className="text-xs font-semibold">{exp.company}, {exp.location}</p>
-                                <div className="mt-1 text-xs text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
-                            </div>
-                        ))}
-                    </div>
-                </section>
-                {visibleSections.includes('projects') && projects.length > 0 && (
-                    <section className="mb-6">
-                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>code</span>PROJECTS</h2>
-                        <div className="space-y-4">
-                            {projects.map(item => (
-                                <div key={item.id}>
-                                    <div className="flex justify-between items-baseline">
-                                        <h3 className="font-bold text-sm">{item.name}</h3>
-                                        <p className="text-xs text-gray-500">{item.startDate} - {item.endDate}</p>
-                                    </div>
-                                    <p className="text-xs font-semibold">{item.technologies}</p>
-                                    <div className="mt-1 text-xs text-gray-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-                 {visibleSections.includes('trainings') && trainings && trainings.length > 0 && (
-                    <section className="mb-6">
-                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>model_training</span>TRAININGS</h2>
-                        <div className="space-y-2">
-                            {trainings.map(item => (
-                                <div key={item.id}>
-                                    <h3 className="font-bold text-sm">{item.course}</h3>
-                                    <p className="text-xs text-gray-600">{item.institution}</p>
-                                    <p className="text-[10px] text-gray-500">{item.date}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-                {visibleSections.includes('publications') && publications && publications.length > 0 && (
-                    <section className="mb-6">
-                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>menu_book</span>PUBLICATIONS</h2>
-                        <div className="space-y-2">
-                            {publications.map(item => (
-                                <div key={item.id}>
-                                    <h3 className="font-bold text-sm">{item.title}</h3>
-                                    <p className="text-xs text-gray-600">{item.publisher}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-                {visibleSections.includes('volunteer') && volunteer && volunteer.length > 0 && (
-                    <section className="mb-6">
-                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>volunteer_activism</span>VOLUNTEER</h2>
-                        <div className="space-y-2">
-                            {volunteer.map(item => (
-                                <div key={item.id}>
-                                    <h3 className="font-bold text-sm">{item.role}</h3>
-                                    <p className="text-xs text-gray-600">{item.organization}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-                 {visibleSections.includes('custom') && custom && custom.length > 0 && (
-                    <section className="mb-6">
-                        <h2 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider mb-2"><span className="material-symbols-outlined" style={{ color: accentColor }}>more</span>ADDITIONAL</h2>
-                        <div className="space-y-2">
-                            {custom.map(item => (
-                                <div key={item.id}>
-                                    <h3 className="font-bold text-sm">{item.title}</h3>
-                                    <p className="text-xs text-gray-600">{item.subtitle}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
+                {renderRun(['summary', 'experience', 'projects', 'trainings', 'publications', 'volunteer', 'custom'])}
             </main>
         </div>
     );
 };
 
-export default CreativeV2Template;
+export default React.memo(CreativeV2Template);

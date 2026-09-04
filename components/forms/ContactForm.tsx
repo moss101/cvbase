@@ -6,6 +6,7 @@ import TipsCard from '../common/TipsCard';
 import FormActions from '../common/FormActions';
 import { generateProfessionalHeadshot } from '../../services/geminiService';
 import { WandIcon } from '../common/icons';
+import { Lock } from 'lucide-react';
 import { countries, cities } from '../../data/locationData';
 import { useTranslation } from '../../services/translationService';
 import AITipHelper from '../common/AITipHelper';
@@ -100,7 +101,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ data, onFormDataChange, onPho
     const handleEnhanceClick = async () => {
         if (!data.photo) return;
         if (!canUseHeadshot) {
-            setError('AI Headshot is an Elite feature. Upgrade your plan to generate a professional headshot.');
+            setError(t('contact.error.eliteGenerate', 'AI Headshot is an Elite feature. Upgrade your plan to generate a professional headshot.'));
             return;
         }
         setIsProcessing(true);
@@ -115,11 +116,11 @@ const ContactForm: React.FC<ContactFormProps> = ({ data, onFormDataChange, onPho
             // Surface the server's entitlement/limit errors with an actionable message.
             const code = (err as { code?: string })?.code;
             if (code === 'feature_locked') {
-                setError('AI Headshot is an Elite feature. Upgrade your plan to use it.');
+                setError(t('contact.error.eliteUse', 'AI Headshot is an Elite feature. Upgrade your plan to use it.'));
             } else if (code === 'limit_reached') {
-                setError("You've used all your AI actions for this month. Upgrade for more.");
+                setError(t('contact.error.limitReached', "You've used all your AI actions for this month. Upgrade for more."));
             } else {
-                setError('Failed to enhance photo. Please try again.');
+                setError(t('contact.error.enhanceFailed', 'Failed to enhance photo. Please try again.'));
             }
             console.error(err);
         } finally {
@@ -138,7 +139,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ data, onFormDataChange, onPho
                     <div className="md:col-span-2 grid grid-cols-2 gap-6">
                         <FormField label={t('contact.firstName', 'First Name')} name="firstName" value={data.firstName} onChange={handleChange} required />
                         <FormField label={t('contact.lastName', 'Last Name')} name="lastName" value={data.lastName} onChange={handleChange} required />
-                        <FormField label={t('contact.jobTitle', 'Job Title')} name="jobTitle" value={data.jobTitle} onChange={handleChange} placeholder="e.g., Senior Software Engineer" required fullWidth/>
+                        <FormField label={t('contact.jobTitle', 'Job Title')} name="jobTitle" value={data.jobTitle} onChange={handleChange} placeholder={t('contact.jobTitlePlaceholder', 'e.g., Senior Software Engineer')} required fullWidth/>
                         <FormField label={t('contact.email', 'Email Address')} name="email" value={data.email} onChange={handleChange} type="email" required fullWidth />
                         
                         <div className="col-span-2">
@@ -165,7 +166,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ data, onFormDataChange, onPho
                                 <AITipHelper section="contact" fieldName="Country" currentValue={data.country} />
                             </label>
                             <select id="country" name="country" value={data.country} onChange={handleCountryChange} className="w-full p-4 border border-border rounded-lg text-base bg-light focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
-                                <option value="">Select Country</option>
+                                <option value="">{t('contact.selectCountry', 'Select Country')}</option>
                                 {countries.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
                             </select>
                         </div>
@@ -176,34 +177,34 @@ const ContactForm: React.FC<ContactFormProps> = ({ data, onFormDataChange, onPho
                                 <AITipHelper section="contact" fieldName="City" currentValue={data.city === 'Other' ? data.customCity : data.city} />
                             </label>
                             <select id="city" name="city" value={data.city} onChange={handleCityChange} disabled={!data.country} className="w-full p-4 border border-border rounded-lg text-base bg-light focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-gray-200 appearance-none">
-                                <option value="">Select City</option>
+                                <option value="">{t('contact.selectCity', 'Select City')}</option>
                                 {cityOptions.map(c => <option key={c} value={c}>{c}</option>)}
-                                <option value="Other">Other</option>
+                                <option value="Other">{t('contact.other', 'Other')}</option>
                             </select>
                         </div>
 
                         {data.city === 'Other' && (
-                            <FormField label="Enter City" name="customCity" value={data.customCity} onChange={handleChange} fullWidth />
+                            <FormField label={t('contact.enterCity', 'Enter City')} name="customCity" value={data.customCity} onChange={handleChange} fullWidth />
                         )}
 
-                        <FormField label={t('contact.address', 'Street Address, State, ZIP')} name="address" value={data.address} onChange={handleChange} placeholder="e.g., 123 Main St, CA, 94107" fullWidth />
+                        <FormField label={t('contact.address', 'Street Address, State, ZIP')} name="address" value={data.address} onChange={handleChange} placeholder={t('contact.addressPlaceholder', 'e.g., 123 Main St, CA, 94107')} fullWidth />
 
                         <FormField label={t('contact.linkedin', 'LinkedIn Profile')} name="linkedin" value={data.linkedin} onChange={handleChange} />
                         <FormField label={t('contact.website', 'Personal Website/Portfolio')} name="website" value={data.website} onChange={handleChange} />
                     </div>
                      <div className="md:col-span-1 space-y-4">
-                        <label className="font-semibold mb-2.5 block text-sm text-gray-700 text-center">{t('contact.photo', 'Your Photo')}</label>
+                        <label className="font-semibold mb-2.5 block text-sm text-gray-700 text-center">{t('contact.yourPhoto', 'Your Photo')}</label>
                         <div className="flex flex-col items-center gap-4">
                             <div className="w-40 h-40 bg-light rounded-full flex items-center justify-center border-2 border-dashed border-border overflow-hidden">
                                 {data.photo ? (
                                     <img src={data.photo} alt="User headshot" className="w-full h-full object-cover" />
                                 ) : (
-                                    <span className="text-gray-400 text-sm text-center p-4">Upload a photo</span>
+                                    <span className="text-gray-400 text-sm text-center p-4">{t('contact.uploadPhotoPlaceholder', 'Upload a photo')}</span>
                                 )}
                             </div>
                              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
                             <button type="button" onClick={() => fileInputRef.current?.click()} className="w-full text-center px-4 py-2 bg-white border-2 border-border rounded-lg font-semibold text-sm text-dark hover:border-primary hover:text-primary transition-colors">
-                                {data.photo ? t('contact.photo', 'Change Photo') : t('contact.photo', 'Upload Photo')}
+                                {data.photo ? t('contact.changePhoto', 'Change Photo') : t('contact.photo', 'Upload Photo')}
                             </button>
                              {data.photo && (
                                 <>
@@ -211,15 +212,15 @@ const ContactForm: React.FC<ContactFormProps> = ({ data, onFormDataChange, onPho
                                     type="button"
                                     onClick={handleEnhanceClick}
                                     disabled={isProcessing}
-                                    title={canUseHeadshot ? undefined : 'Elite feature'}
+                                    title={canUseHeadshot ? undefined : t('contact.eliteFeature', 'Elite feature')}
                                     className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${canUseHeadshot ? 'text-primary bg-primary-light hover:bg-primary/20' : 'text-amber-700 bg-amber-50 hover:bg-amber-100'}`}
                                 >
                                     {canUseHeadshot
-                                        ? <><WandIcon />{isProcessing ? 'Processing...' : 'AI Enhance Headshot'}</>
-                                        : <><span className="material-symbols-outlined text-base">lock</span>AI Headshot · Elite</>}
+                                        ? <><WandIcon />{isProcessing ? t('contact.processing', 'Processing...') : t('contact.aiEnhanceHeadshot', 'AI Enhance Headshot')}</>
+                                        : <><Lock className="w-4 h-4" aria-hidden="true" />{t('contact.aiHeadshotElite', 'AI Headshot · Elite')}</>}
                                 </button>
                                 <button type="button" onClick={() => onPhotoChange('')} className="text-xs text-gray-500 hover:text-danger">
-                                    Remove Photo
+                                    {t('contact.removePhoto', 'Remove Photo')}
                                 </button>
                                 </>
                              )}

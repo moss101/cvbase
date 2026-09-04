@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { useTranslation } from '../services/translationService';
 
 export type LegalTab = 'privacy' | 'terms';
 
@@ -17,9 +19,11 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
     </section>
 );
 
-const PrivacyPolicy: React.FC = () => (
+const PrivacyPolicy: React.FC = () => {
+    const { t } = useTranslation();
+    return (
     <div>
-        <p className="text-sm text-gray-400 mb-8">Last updated: {LAST_UPDATED}</p>
+        <p className="text-sm text-gray-400 mb-8">{t('legal.lastUpdated', 'Last updated: {date}').replace('{date}', LAST_UPDATED)}</p>
 
         <Section title="Who we are">
             <p>CVBase is an online résumé/CV builder. This policy explains what personal data we
@@ -63,8 +67,10 @@ const PrivacyPolicy: React.FC = () => (
 
         <Section title="Your rights">
             <p>You can view, edit, export (PDF/Word/JSON), and delete your résumés and tracked jobs at any
-            time from within the app. To delete your account and associated data, or to request a copy of
-            your data, contact us at <a className="text-primary underline" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
+            time from within the app. To download a copy of everything in your account, or to permanently
+            delete your account and all associated data, open <strong>Settings → Your data</strong>. Deletion
+            cancels any active subscription and removes your résumés, versions, tracked jobs, ATS reports and
+            photos immediately. If you cannot sign in, contact us at <a className="text-primary underline" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
         </Section>
 
         <Section title="Service providers">
@@ -77,11 +83,14 @@ const PrivacyPolicy: React.FC = () => (
             <a className="text-primary underline" href={`mailto:${CONTACT_EMAIL}`}> {CONTACT_EMAIL}</a>.</p>
         </Section>
     </div>
-);
+    );
+};
 
-const TermsOfService: React.FC = () => (
+const TermsOfService: React.FC = () => {
+    const { t } = useTranslation();
+    return (
     <div>
-        <p className="text-sm text-gray-400 mb-8">Last updated: {LAST_UPDATED}</p>
+        <p className="text-sm text-gray-400 mb-8">{t('legal.lastUpdated', 'Last updated: {date}').replace('{date}', LAST_UPDATED)}</p>
 
         <Section title="Acceptance">
             <p>By creating an account or using CVBase, you agree to these terms. If you don't agree,
@@ -129,9 +138,11 @@ const TermsOfService: React.FC = () => (
             <a className="text-primary underline" href={`mailto:${CONTACT_EMAIL}`}> {CONTACT_EMAIL}</a>.</p>
         </Section>
     </div>
-);
+    );
+};
 
 const LegalPage: React.FC<LegalPageProps> = ({ onBack, initialTab = 'privacy' }) => {
+    const { t } = useTranslation();
     const [tab, setTab] = useState<LegalTab>(initialTab);
 
     return (
@@ -141,14 +152,14 @@ const LegalPage: React.FC<LegalPageProps> = ({ onBack, initialTab = 'privacy' })
                     onClick={onBack}
                     className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-800 mb-8"
                 >
-                    <span className="material-symbols-outlined text-base">arrow_back</span>
-                    Back
+                    <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+                    {t('btn.back', 'Back')}
                 </button>
 
-                <h1 className="text-3xl font-bold text-gray-900 mb-6">Legal</h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-6">{t('legal.title', 'Legal')}</h1>
 
                 <div className="flex gap-2 mb-8 border-b border-gray-200">
-                    {([['privacy', 'Privacy Policy'], ['terms', 'Terms of Service']] as const).map(([id, label]) => (
+                    {([['privacy', t('legal.privacyPolicy', 'Privacy Policy')], ['terms', t('legal.termsOfService', 'Terms of Service')]] as const).map(([id, label]) => (
                         <button
                             key={id}
                             onClick={() => setTab(id)}

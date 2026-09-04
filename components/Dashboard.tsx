@@ -1,31 +1,51 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
 import { SparklesIcon } from './common/icons';
 import {
-    ArrowLeft, BookOpen, CreditCard, FileText, IdCard, LayoutDashboard,
-    LayoutTemplate, Menu, Settings as SettingsIcon, ShieldCheck, Sparkles, Target, User, Wand2,
+    ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, CreditCard, FileText, IdCard, LayoutDashboard,
+    LayoutTemplate, LoaderCircle, LogIn, LogOut, Menu, Plus, Settings as SettingsIcon, ShieldCheck, Sparkles, Target, User, Wand2, X,
+    FilePenLine, Award,
 } from 'lucide-react';
+import { Icon } from './common/icons';
 import { AVAILABLE_TEMPLATES } from '../constants';
 import type { ResumeData, TemplateId } from '../types';
 import { useAuth } from './AuthProvider';
 import { AuthModal } from './AuthModal';
-import { UserProfileForm } from './UserProfileForm';
-import { SmartStudio } from './SmartStudio';
 import { useSubscription } from './SubscriptionProvider';
-import AtsAnalyzer from './ats/AtsAnalyzer';
-import BillingDashboard from './billing/BillingDashboard';
-import ResumeManager from './ResumeManager';
-import PrismWizard from './prism/PrismWizard';
 import { isPrismEnabled } from '../services/repos/prismRepo';
 import './dashboard.css';
 
 import { LazyTemplatePreview } from './templates/TemplatePreviewRegistry';
-import SettingsPanel from './SettingsPanel';
-import AdminPanel from './admin/AdminPanel';
 import { fetchIsAdmin } from '../services/adminApi';
 import type { LegalTab } from './LegalPage';
 import { useMobileShell } from '../lib/useMobileShell';
-import DashboardMobile from './mobile/DashboardMobile';
+import { useNavigation } from './NavigationProvider';
+import { ErrorBoundary } from './common/ErrorBoundary';
+import { useTranslation } from '../services/translationService';
+
+// Each tab's panel loads on first visit. The overview and template gallery
+// are inline; everything heavier (the studio's parsers, the ATS engine, the
+// admin panel) stays out of the dashboard chunk until it is opened.
+const UserProfileForm = lazy(() => import('./UserProfileForm').then((m) => ({ default: m.UserProfileForm })));
+const SmartStudio = lazy(() => import('./SmartStudio').then((m) => ({ default: m.SmartStudio })));
+const AtsAnalyzer = lazy(() => import('./ats/AtsAnalyzer'));
+const BillingDashboard = lazy(() => import('./billing/BillingDashboard'));
+const ResumeManager = lazy(() => import('./ResumeManager'));
+const PrismWizard = lazy(() => import('./prism/PrismWizard'));
+const SettingsPanel = lazy(() => import('./SettingsPanel'));
+const AdminPanel = lazy(() => import('./admin/AdminPanel'));
+const DashboardMobile = lazy(() => import('./mobile/DashboardMobile'));
+
+/** Suspense fallback for a tab: a quiet spinner in the content area. */
+const TabLoader: React.FC = () => {
+    const { t } = useTranslation();
+    return (
+        <div role="status" aria-live="polite" className="grid min-h-[40vh] place-items-center">
+            <LoaderCircle size={22} strokeWidth={1.75} className="animate-spin text-ink-faint" aria-hidden="true" />
+            <span className="sr-only">{t('label.loading', 'Loading')}</span>
+        </div>
+    );
+};
 
 export type DashboardTab = 'dashboard' | 'resumes' | 'templates' | 'profile' | 'smart-studio' | 'ats' | 'billing' | 'prism' | 'settings' | 'admin';
 
@@ -86,7 +106,7 @@ const BentoCard: React.FC<{
         <div className="relative z-10 flex flex-col h-full">
             {icon && (
                 <div className={`w-10 h-10 rounded-xl bg-paper-deep flex items-center justify-center mb-4 ${accentColor}`}>
-                    <span className="material-symbols-outlined text-xl">{icon}</span>
+                    <Icon name={icon} className="w-5 h-5" aria-hidden="true" />
                 </div>
             )}
             {title && <h3 className="text-xl font-semibold text-ink mb-1 transition-colors">{title}</h3>}
@@ -99,11 +119,12 @@ const BentoCard: React.FC<{
 );
 
 const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEditResume, onBackToLanding, onViewResources, onViewPricing, onViewLegal, initialTab = 'dashboard' }) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [savedResume, setSavedResume] = useState<ResumeData | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
-    const [greeting, setGreeting] = useState("Welcome back");
+    const [greeting, setGreeting] = useState(() => t('dash.welcomeBack', 'Welcome back'));
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const mainRef = useRef<HTMLElement>(null);
     const { user, userProfile, logout, profileComplete, missingProfileFields} = useAuth();
@@ -139,6 +160,16 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
         setActiveTab(initialTab);
     }, [initialTab]);
 
+    // Mirror the active tab into the URL (/app/<tab>) without adding a history
+    // entry: tabs are segments of one screen, not screens of their own, so back
+    // still leaves the dashboard the way the hardware button does.
+    const { route, replace } = useNavigation();
+    useEffect(() => {
+        if (route.view !== 'dashboard') return;
+        if ((route.dashboardTab ?? 'dashboard') === activeTab) return;
+        replace({ view: 'dashboard', dashboardTab: activeTab });
+    }, [activeTab, route, replace]);
+
     useEffect(() => {
         mainRef.current?.scrollTo({ top: 0, behavior: 'auto' });
     }, [activeTab]);
@@ -152,7 +183,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
 
     useEffect(() => {
         const hour = new Date().getHours();
-        const timeGreeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+        const timeGreeting = hour < 12 ? t('dash.goodMorning', 'Good morning') : hour < 18 ? t('dash.goodAfternoon', 'Good afternoon') : t('dash.goodEvening', 'Good evening');
 
         let parsed: ResumeData | null = null;
         const saved = localStorage.getItem('cvbase-resume-data');
@@ -174,13 +205,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
         } else {
             setGreeting(timeGreeting);
         }
-    }, [user, userProfile]);
+    }, [user, userProfile, t]);
 
-    const categories = ['All', ...Array.from(new Set(AVAILABLE_TEMPLATES.map(t => t.category)))];
-    
-    const filteredTemplates = selectedCategory === 'All' 
-        ? AVAILABLE_TEMPLATES 
-        : AVAILABLE_TEMPLATES.filter(t => t.category === selectedCategory);
+    const categories = ['All', ...Array.from(new Set(AVAILABLE_TEMPLATES.map(tpl => tpl.category)))];
+
+    const filteredTemplates = selectedCategory === 'All'
+        ? AVAILABLE_TEMPLATES
+        : AVAILABLE_TEMPLATES.filter(tpl => tpl.category === selectedCategory);
 
     /**
      * First-run gate. A signed-in user whose profile is missing required
@@ -196,16 +227,16 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
     }, [user, profileComplete, activeTab]);
 
     const activeTabLabel: Record<DashboardTab, string> = {
-        dashboard: 'Dashboard',
-        resumes: 'Resume',
-        templates: 'Template gallery',
-        profile: 'Profile',
-        'smart-studio': 'Smart Studio',
-        ats: 'ATS checker',
-        billing: 'Billing & plans',
-        prism: 'PRISM tailor',
-        settings: 'Settings',
-        admin: 'Admin',
+        dashboard: t('dash.tab.dashboard', 'Dashboard'),
+        resumes: t('dash.tab.resume', 'Resume'),
+        templates: t('dash.tab.templateGallery', 'Template gallery'),
+        profile: t('tabbar.profile', 'Profile'),
+        'smart-studio': t('mobile.smartStudio', 'Smart Studio'),
+        ats: t('dash.tab.atsChecker', 'ATS checker'),
+        billing: t('mobile.billingPlansLink', 'Billing & plans'),
+        prism: t('dash.tab.prismTailor', 'PRISM tailor'),
+        settings: t('mobile.settings', 'Settings'),
+        admin: t('mobile.admin', 'Admin'),
     };
 
     const todayLabel = new Intl.DateTimeFormat('en', {
@@ -217,6 +248,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
     if (isMobileShell) {
         return (
             <div className="dashboard-shell h-[100dvh] w-full overflow-hidden relative">
+                <ErrorBoundary key={activeTab} scope={`dashboard:${activeTab}`}>
+                <Suspense fallback={<TabLoader />}>
                 <DashboardMobile
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}
@@ -237,6 +270,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                     onViewLegal={onViewLegal}
                     onOpenAuth={() => setIsAuthModalOpen(true)}
                 />
+                </Suspense>
+                </ErrorBoundary>
                 <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
             </div>
         );
@@ -258,81 +293,81 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                         type="button"
                         onClick={() => { onBackToLanding?.(); setIsMobileMenuOpen(false); }} 
                         className="flex items-center gap-3 select-none group rounded-xl focus-visible:outline-none"
-                        title="Back to Homepage"
+                        title={t('dash.backToHomepage', 'Back to Homepage')}
                     >
                         <span className="grid h-10 w-10 place-items-center rounded-xl border border-white/15 bg-white/[0.07] font-display text-[15px] font-semibold text-paper-bright transition-transform group-hover:-rotate-3">CV</span>
                         <span className="text-left">
                             <span className="block font-display text-[20px] leading-none tracking-[-0.04em] text-paper-bright">CVbase.</span>
-                            <span className="mt-1 block font-label text-[8px] uppercase tracking-[0.16em] text-stone-400">career workspace</span>
+                            <span className="mt-1 block font-label text-[8px] uppercase tracking-[0.16em] text-stone-400">{t('dash.careerWorkspace', 'career workspace')}</span>
                         </span>
                     </button>
 
-                    <button 
+                    <button
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="lg:hidden p-2 rounded-lg text-stone-400 hover:text-white hover:bg-white/5 active:scale-95 transition"
-                        title="Close Menu"
+                        title={t('dash.closeMenu', 'Close Menu')}
                     >
-                        <span className="material-symbols-outlined text-lg leading-none">close</span>
+                        <X className="w-[1em] h-[1em] text-lg leading-none" aria-hidden="true" />
                     </button>
                 </div>
                 
                 <nav className="relative z-10 px-3.5 flex-1 overflow-y-auto custom-scrollbar">
-                    <p className="px-3 pb-2 pt-2 font-label text-[9px] font-semibold uppercase tracking-[0.16em] text-stone-500">Workspace</p>
+                    <p className="px-3 pb-2 pt-2 font-label text-[9px] font-semibold uppercase tracking-[0.16em] text-stone-500">{t('dash.workspace', 'Workspace')}</p>
                     <div className="space-y-1">
-                    <SidebarItem 
-                        icon={<LayoutDashboard size={19} strokeWidth={1.75} />} 
-                        label="Dashboard" 
-                        active={activeTab === 'dashboard'} 
+                    <SidebarItem
+                        icon={<LayoutDashboard size={19} strokeWidth={1.75} />}
+                        label={t('dash.tab.dashboard', 'Dashboard')}
+                        active={activeTab === 'dashboard'}
                         onClick={() => { setActiveTab('dashboard'); setIsMobileMenuOpen(false); }}
                     />
-                    <SidebarItem 
-                        icon={<FileText size={19} strokeWidth={1.75} />} 
-                        label="Resume" 
-                        active={activeTab === 'resumes'} 
+                    <SidebarItem
+                        icon={<FileText size={19} strokeWidth={1.75} />}
+                        label={t('dash.tab.resume', 'Resume')}
+                        active={activeTab === 'resumes'}
                         onClick={() => { setActiveTab('resumes'); setIsMobileMenuOpen(false); }}
                     />
                     <SidebarItem
                         icon={<Target size={19} strokeWidth={1.75} />}
-                        label="ATS Checker"
+                        label={t('mobile.atsChecker', 'ATS Checker')}
                         active={activeTab === 'ats'}
                         onClick={() => { setActiveTab('ats'); setIsMobileMenuOpen(false); }}
                     />
                     </div>
-                    <p className="px-3 pb-2 pt-5 font-label text-[9px] font-semibold uppercase tracking-[0.16em] text-stone-500">Intelligence</p>
+                    <p className="px-3 pb-2 pt-5 font-label text-[9px] font-semibold uppercase tracking-[0.16em] text-stone-500">{t('dash.intelligence', 'Intelligence')}</p>
                     <div className="space-y-1">
                         <SidebarItem
                             icon={<Sparkles size={19} strokeWidth={1.75} />}
-                            label="Smart Studio"
+                            label={t('mobile.smartStudio', 'Smart Studio')}
                             active={activeTab === 'smart-studio'}
                             onClick={() => { setActiveTab('smart-studio'); setIsMobileMenuOpen(false); }}
                         />
                     {prismEnabled && (
                         <SidebarItem
                             icon={<Wand2 size={19} strokeWidth={1.75} />}
-                            label="PRISM Tailor"
+                            label={t('mobile.prismTailor', 'PRISM Tailor')}
                             active={activeTab === 'prism'}
                             onClick={() => { setActiveTab('prism'); setIsMobileMenuOpen(false); }}
                         />
                     )}
                     </div>
-                    <p className="px-3 pb-2 pt-5 font-label text-[9px] font-semibold uppercase tracking-[0.16em] text-stone-500">Library & account</p>
+                    <p className="px-3 pb-2 pt-5 font-label text-[9px] font-semibold uppercase tracking-[0.16em] text-stone-500">{t('dash.libraryAndAccount', 'Library & account')}</p>
                     <div className="space-y-1">
-                    <SidebarItem 
-                        icon={<LayoutTemplate size={19} strokeWidth={1.75} />} 
-                        label="Template gallery" 
-                        active={activeTab === 'templates'} 
+                    <SidebarItem
+                        icon={<LayoutTemplate size={19} strokeWidth={1.75} />}
+                        label={t('dash.tab.templateGallery', 'Template gallery')}
+                        active={activeTab === 'templates'}
                         onClick={() => { setActiveTab('templates'); setIsMobileMenuOpen(false); }}
                     />
                     <SidebarItem
                         icon={<CreditCard size={19} strokeWidth={1.75} />}
-                        label="Billing & plans"
+                        label={t('mobile.billingPlansLink', 'Billing & plans')}
                         active={activeTab === 'billing'}
                         onClick={() => { setActiveTab('billing'); setIsMobileMenuOpen(false); }}
                     />
-                    <SidebarItem 
-                        icon={<IdCard size={19} strokeWidth={1.75} />} 
-                        label="Profile" 
-                        active={activeTab === 'profile'} 
+                    <SidebarItem
+                        icon={<IdCard size={19} strokeWidth={1.75} />}
+                        label={t('tabbar.profile', 'Profile')}
+                        active={activeTab === 'profile'}
                         onClick={() => {
                             setIsMobileMenuOpen(false);
                             if (!user) {
@@ -344,14 +379,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                     />
                     <SidebarItem
                         icon={<SettingsIcon size={19} strokeWidth={1.75} />}
-                        label="Settings"
+                        label={t('mobile.settings', 'Settings')}
                         active={activeTab === 'settings'}
                         onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }}
                     />
                     {isAdmin && (
                         <SidebarItem
                             icon={<ShieldCheck size={19} strokeWidth={1.75} />}
-                            label="Admin"
+                            label={t('mobile.admin', 'Admin')}
                             active={activeTab === 'admin'}
                             onClick={() => { setActiveTab('admin'); setIsMobileMenuOpen(false); }}
                         />
@@ -361,12 +396,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                     <div className="space-y-1 pb-3">
                     <SidebarItem
                         icon={<BookOpen size={19} strokeWidth={1.75} />}
-                        label="Career resources"
+                        label={t('mobile.careerResources', 'Career resources')}
                         onClick={() => { onViewResources?.(); setIsMobileMenuOpen(false); }}
                     />
-                    <SidebarItem 
-                        icon={<ArrowLeft size={19} strokeWidth={1.75} />} 
-                        label="Back to website" 
+                    <SidebarItem
+                        icon={<ArrowLeft size={19} strokeWidth={1.75} />}
+                        label={t('dash.backToWebsite', 'Back to website')}
                         onClick={() => { onBackToLanding?.(); setIsMobileMenuOpen(false); }}
                     />
                     </div>
@@ -374,10 +409,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
 
                 <div className="relative z-10 mx-4 mt-1 px-4 py-3 rounded-xl bg-white/[0.055] border border-white/[0.08] flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 overflow-hidden">
-                        <span className="material-symbols-outlined text-base text-[#ed8e78]">workspace_premium</span>
-                        <span className="text-xs font-semibold text-white truncate">{plan.name} plan</span>
+                        <Award className="w-4 h-4 text-[#ed8e78]" aria-hidden="true" />
+                        <span className="text-xs font-semibold text-white truncate">{t('dash.planSuffix', '{plan} plan').replace('{plan}', plan.name)}</span>
                         {billing.subscription.cancelAtPeriodEnd && (
-                            <span className="text-[9px] font-bold uppercase tracking-wide bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded-full shrink-0">Ending</span>
+                            <span className="text-[9px] font-bold uppercase tracking-wide bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded-full shrink-0">{t('dash.ending', 'Ending')}</span>
                         )}
                     </div>
                     {plan.id === 'free' ? (
@@ -385,14 +420,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                             onClick={() => { onViewPricing?.(); setIsMobileMenuOpen(false); }}
                             className="text-[9px] font-label font-semibold uppercase tracking-[0.1em] bg-ember text-white px-2.5 py-1.5 rounded-md hover:bg-ember-deep transition shrink-0"
                         >
-                            Upgrade
+                            {t('dash.upgrade', 'Upgrade')}
                         </button>
                     ) : (
                         <button
                             onClick={() => { setActiveTab('billing'); setIsMobileMenuOpen(false); }}
                             className="text-[10px] font-bold text-slate-300 hover:text-white transition shrink-0"
                         >
-                            Manage
+                            {t('dash.manage', 'Manage')}
                         </button>
                     )}
                 </div>
@@ -407,28 +442,28 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                                     </div>
                                  </div>
                                  <div className="overflow-hidden">
-                                     <p className="text-xs font-semibold text-white truncate">{userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : (user.email ? user.email.split('@')[0] : 'User')}</p>
+                                     <p className="text-xs font-semibold text-white truncate">{userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : (user.email ? user.email.split('@')[0] : t('mobile.user', 'User'))}</p>
                                      <p className="text-[10px] text-stone-400 truncate">{user.email}</p>
                                  </div>
                              </div>
-                             <button 
+                             <button
                                  onClick={logout}
                                  className="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-white/5 transition-all shrink-0"
-                                 title="Sign Out"
+                                 title={t('dash.signOut', 'Sign Out')}
                              >
-                                 <span className="material-symbols-outlined text-base">logout</span>
+                                 <LogOut className="w-4 h-4" aria-hidden="true" />
                              </button>
                         </div>
                     ) : (
                         <div className="text-center">
-                            <p className="text-[10px] text-stone-400 mb-2 font-medium leading-relaxed">Sign in to sync your workspace across devices.</p>
-                            <button 
+                            <p className="text-[10px] text-stone-400 mb-2 font-medium leading-relaxed">{t('dash.signInToSyncWorkspace', 'Sign in to sync your workspace across devices.')}</p>
+                            <button
                                 onClick={() => setIsAuthModalOpen(true)}
                                 className="w-full py-2.5 px-3 bg-paper-bright text-ink rounded-lg text-xs font-semibold hover:bg-white transition-all flex items-center justify-center gap-1.5"
                                 id="header-auth-trigger"
                             >
-                                <span className="material-symbols-outlined text-xs">login</span>
-                                Sign In / Sync
+                                <LogIn className="w-3 h-3" aria-hidden="true" />
+                                {t('dash.signInSync', 'Sign In / Sync')}
                             </button>
                         </div>
                     )}
@@ -438,14 +473,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
             <main ref={mainRef} className="dashboard-main flex-1 min-w-0 overflow-y-auto relative">
                 <div className="dashboard-toolbar sticky top-0 z-20 h-16 flex items-center justify-between px-5 lg:px-8 select-none">
                     <div className="flex items-center gap-3 min-w-0">
-                        <button 
+                        <button
                             onClick={() => setIsMobileMenuOpen(true)}
                             className="lg:hidden p-2 rounded-lg text-ink hover:bg-ink/5 active:scale-95 transition flex items-center justify-center"
-                            title="Open Main Menu"
+                            title={t('dash.openMainMenu', 'Open Main Menu')}
                         >
                             <Menu size={20} strokeWidth={1.75} />
                         </button>
-                        <span className="font-label text-[10px] uppercase tracking-[0.14em] text-ink-faint hidden sm:block">Workspace</span>
+                        <span className="font-label text-[10px] uppercase tracking-[0.14em] text-ink-faint hidden sm:block">{t('dash.workspace', 'Workspace')}</span>
                         <span className="text-stone-300 hidden sm:block">/</span>
                         <span className="text-sm font-semibold text-ink truncate">{activeTabLabel[activeTab]}</span>
                     </div>
@@ -455,7 +490,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                             type="button"
                             onClick={() => user ? setActiveTab('profile') : setIsAuthModalOpen(true)}
                             className="grid h-8 w-8 place-items-center rounded-lg border border-ink/10 bg-paper-bright text-ink transition hover:border-ember/40 hover:text-ember-deep"
-                            title="Open profile"
+                            title={t('dash.openProfile', 'Open profile')}
                         >
                             <User size={17} strokeWidth={1.75} />
                         </button>
@@ -463,40 +498,43 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                 </div>
 
                 <div className="dashboard-content p-6 md:p-10 xl:p-12 relative z-10">
+                    {/* Keyed on the tab so a crash in one panel clears when another opens. */}
+                    <ErrorBoundary key={activeTab} scope={`dashboard:${activeTab}`}>
+                    <Suspense fallback={<TabLoader />}>
                     
                     {/* DASHBOARD VIEW (Bento Grid) */}
                     {activeTab === 'dashboard' && (
                         <div className="animate-fade-in">
                             <header className="mb-9 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
                                 <div className="max-w-3xl">
-                                    <p className="dashboard-eyebrow mb-3">Career workspace · {todayLabel}</p>
+                                    <p className="dashboard-eyebrow mb-3">{t('dash.careerWorkspaceEyebrow', 'Career workspace')} · {todayLabel}</p>
                                     <h1 className="dashboard-display text-[clamp(3rem,7vw,5.8rem)] text-ink">
                                         {greeting}<span className="text-ember">.</span>
                                     </h1>
-                                    <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-ink-soft/70">Your documents, job-fit signals, and writing tools—organized around the next application.</p>
+                                    <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-ink-soft/70">{t('dash.overviewTagline', 'Your documents, job-fit signals, and writing tools—organized around the next application.')}</p>
                                 </div>
                                 <button onClick={() => onCreateNew()} className="dashboard-primary-button shrink-0">
-                                    Create a resume
-                                    <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
+                                    {t('dash.createAResume', 'Create a resume')}
+                                    <ArrowRight className="w-[17px] h-[17px]" aria-hidden="true" />
                                 </button>
                             </header>
 
-                            <section className="grid grid-cols-1 gap-5 lg:grid-cols-12" aria-label="Career workspace overview">
-                                <BentoCard 
+                            <section className="grid grid-cols-1 gap-5 lg:grid-cols-12" aria-label={t('dash.overviewAriaLabel', 'Career workspace overview')}>
+                                <BentoCard
                                     className="dashboard-card-dark min-h-[360px] lg:col-span-7 lg:row-span-2 p-7 md:p-9"
                                     onClick={() => onCreateNew()}
                                 >
                                     <div className="relative flex h-full min-h-[300px] flex-col justify-between">
                                         <div className="relative z-10 max-w-md">
-                                            <p className="font-label text-[9px] uppercase tracking-[0.16em] text-[#ed8e78]">Recommended next step</p>
-                                            <h2 className="mt-5 font-display text-[clamp(2.6rem,5vw,4.6rem)] font-medium leading-[0.92] tracking-[-0.05em] text-paper-bright">Make the document fit the role.</h2>
-                                            <p className="mt-5 max-w-[42ch] text-sm leading-relaxed text-stone-300">Start with a proven structure, then shape every line for the work you want.</p>
+                                            <p className="font-label text-[9px] uppercase tracking-[0.16em] text-[#ed8e78]">{t('dash.recommendedNextStep', 'Recommended next step')}</p>
+                                            <h2 className="mt-5 font-display text-[clamp(2.6rem,5vw,4.6rem)] font-medium leading-[0.92] tracking-[-0.05em] text-paper-bright">{t('dash.fitTheRole', 'Make the document fit the role.')}</h2>
+                                            <p className="mt-5 max-w-[42ch] text-sm leading-relaxed text-stone-300">{t('dash.provenStructure', 'Start with a proven structure, then shape every line for the work you want.')}</p>
                                         </div>
                                         <div className="relative z-10 mt-8 flex items-center gap-4">
                                             <span className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-paper-bright px-4 text-sm font-bold text-ink transition group-hover:bg-white">
-                                                Start building <span className="material-symbols-outlined text-[17px]">north_east</span>
+                                                {t('dash.startBuilding', 'Start building')} <ArrowUpRight className="w-[17px] h-[17px] inline" aria-hidden="true" />
                                             </span>
-                                            <span className="font-label text-[9px] uppercase tracking-[0.13em] text-stone-400">No card required</span>
+                                            <span className="font-label text-[9px] uppercase tracking-[0.13em] text-stone-400">{t('dash.noCardRequired', 'No card required')}</span>
                                         </div>
                                         <div className="pointer-events-none absolute -bottom-7 -right-5 hidden h-[250px] w-[190px] rotate-[7deg] rounded-[8px] border border-white/15 bg-[#f5f1e9] p-5 shadow-2xl 2xl:block">
                                             <div className="font-label text-[8px] uppercase tracking-[0.15em] text-ember-deep">CV / 01</div>
@@ -507,7 +545,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                                                 <div className="h-1 w-[92%] rounded bg-ink/15" />
                                                 <div className="h-1 w-[76%] rounded bg-ink/15" />
                                             </div>
-                                            <div className="absolute bottom-5 left-5 right-5 border-t border-ink/15 pt-3 font-label text-[7px] uppercase tracking-[0.12em] text-ink-faint">Ready for the shortlist</div>
+                                            <div className="absolute bottom-5 left-5 right-5 border-t border-ink/15 pt-3 font-label text-[7px] uppercase tracking-[0.12em] text-ink-faint">{t('dash.readyForShortlist', 'Ready for the shortlist')}</div>
                                         </div>
                                     </div>
                                 </BentoCard>
@@ -520,14 +558,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#e4ece7] text-[#426a5a]"><Target size={19} strokeWidth={1.75} /></span>
-                                                <p className="dashboard-eyebrow !text-[#426a5a]">ATS signal</p>
+                                                <p className="dashboard-eyebrow !text-[#426a5a]">{t('dash.atsSignal', 'ATS signal')}</p>
                                             </div>
-                                            <h3 className="mt-5 text-xl font-semibold text-ink">{lastAtsScore ? 'Your latest scan' : 'Check before you send'}</h3>
-                                            <p className="mt-2 max-w-[34ch] text-sm leading-relaxed text-ink-soft/65">{lastAtsScore ? 'Review job match and the highest-impact fixes.' : 'See how tracking systems read your resume.'}</p>
+                                            <h3 className="mt-5 text-xl font-semibold text-ink">{lastAtsScore ? t('dash.yourLatestScan', 'Your latest scan') : t('dash.checkBeforeYouSend', 'Check before you send')}</h3>
+                                            <p className="mt-2 max-w-[34ch] text-sm leading-relaxed text-ink-soft/65">{lastAtsScore ? t('dash.reviewJobMatch', 'Review job match and the highest-impact fixes.') : t('dash.seeHowTrackingReads', 'See how tracking systems read your resume.')}</p>
                                         </div>
                                         <div className="text-right">
                                             <div className="dashboard-number font-display text-5xl font-medium tracking-[-0.05em] text-ink">{lastAtsScore?.atsScore ?? '—'}</div>
-                                            <span className="mt-1 block font-label text-[8px] uppercase tracking-[0.12em] text-ink-faint">score / 100</span>
+                                            <span className="mt-1 block font-label text-[8px] uppercase tracking-[0.12em] text-ink-faint">{t('dash.scoreOutOf100', 'score / 100')}</span>
                                         </div>
                                     </div>
                                 </BentoCard>
@@ -538,9 +576,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                                 >
                                     <div className="flex h-full items-start justify-between gap-6">
                                         <div>
-                                            <p className="dashboard-eyebrow">Writing tools</p>
-                                            <h3 className="mt-5 text-xl font-semibold text-ink">Smart Studio</h3>
-                                            <p className="mt-2 max-w-[36ch] text-sm leading-relaxed text-ink-soft/65">Turn job requirements into a stronger profile, cover letter, and application plan.</p>
+                                            <p className="dashboard-eyebrow">{t('dash.writingTools', 'Writing tools')}</p>
+                                            <h3 className="mt-5 text-xl font-semibold text-ink">{t('mobile.smartStudio', 'Smart Studio')}</h3>
+                                            <p className="mt-2 max-w-[36ch] text-sm leading-relaxed text-ink-soft/65">{t('dash.smartStudioBlurb', 'Turn job requirements into a stronger profile, cover letter, and application plan.')}</p>
                                         </div>
                                         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-ember/10 text-ember-deep transition-transform group-hover:rotate-3"><SparklesIcon /></span>
                                     </div>
@@ -553,30 +591,30 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                                     <div className="h-40 overflow-hidden border-b border-ink/10 bg-[#e9e3d9]">
                                         {savedResume ? <LazyTemplatePreview templateId="modern" /> : (
                                             <div className="flex h-full items-center justify-center">
-                                                <span className="material-symbols-outlined text-5xl text-ink/20">draft</span>
+                                                <FilePenLine className="w-12 h-12 text-ink/20" aria-hidden="true" />
                                             </div>
                                         )}
                                     </div>
                                     <div className="p-5">
-                                        <p className="dashboard-eyebrow">Recent document</p>
-                                        <h3 className="mt-3 truncate text-lg font-semibold text-ink">{savedResume ? `${savedResume.contact.firstName || 'Untitled'} resume` : 'No draft yet'}</h3>
-                                        <p className="mt-1 text-xs text-ink-faint">{savedResume ? 'Continue where you left off' : 'Your first draft will appear here'}</p>
+                                        <p className="dashboard-eyebrow">{t('dash.recentDocument', 'Recent document')}</p>
+                                        <h3 className="mt-3 truncate text-lg font-semibold text-ink">{savedResume ? t('dash.nameResume', '{name} resume').replace('{name}', savedResume.contact.firstName || t('dash.untitled', 'Untitled')) : t('dash.noDraftYet', 'No draft yet')}</h3>
+                                        <p className="mt-1 text-xs text-ink-faint">{savedResume ? t('mobile.continueEditing', 'Continue where you left off') : t('dash.firstDraftWillAppear', 'Your first draft will appear here')}</p>
                                     </div>
                                 </BentoCard>
 
-                                <BentoCard 
+                                <BentoCard
                                     className="dashboard-card-ember min-h-[280px] lg:col-span-4 p-6"
                                     onClick={() => setActiveTab('templates')}
                                 >
                                     <div className="flex h-full flex-col justify-between">
                                         <div className="flex items-start justify-between">
-                                            <p className="font-label text-[9px] uppercase tracking-[0.14em] text-white/70">Design library</p>
+                                            <p className="font-label text-[9px] uppercase tracking-[0.14em] text-white/70">{t('dash.designLibrary', 'Design library')}</p>
                                             <span className="font-display text-5xl font-medium tracking-[-0.06em] text-white/30">{AVAILABLE_TEMPLATES.length}</span>
                                         </div>
                                         <div>
-                                            <h3 className="font-display text-4xl font-medium leading-none tracking-[-0.05em]">Find your type.</h3>
-                                            <p className="mt-3 max-w-[31ch] text-sm leading-relaxed text-white/75">Browse recruiter-ready layouts from quiet classic to sharp contemporary.</p>
-                                            <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold">Explore templates <span className="material-symbols-outlined text-[17px]">arrow_forward</span></span>
+                                            <h3 className="font-display text-4xl font-medium leading-none tracking-[-0.05em]">{t('dash.findYourType', 'Find your type.')}</h3>
+                                            <p className="mt-3 max-w-[31ch] text-sm leading-relaxed text-white/75">{t('dash.browseRecruiterReady', 'Browse recruiter-ready layouts from quiet classic to sharp contemporary.')}</p>
+                                            <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold">{t('dash.exploreTemplates', 'Explore templates')} <ArrowRight className="w-[17px] h-[17px] inline" aria-hidden="true" /></span>
                                         </div>
                                     </div>
                                 </BentoCard>
@@ -588,13 +626,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                                     <div className="flex h-full flex-col justify-between">
                                         <div>
                                             <div className="flex items-center justify-between">
-                                                <p className="dashboard-eyebrow">Current plan</p>
+                                                <p className="dashboard-eyebrow">{t('dash.currentPlan', 'Current plan')}</p>
                                                 <span className="rounded-md border border-ink/10 bg-paper-deep px-2 py-1 font-label text-[8px] uppercase tracking-[0.12em] text-ink-soft">{plan.name}</span>
                                             </div>
-                                            <h3 className="mt-7 font-display text-4xl font-medium leading-none tracking-[-0.05em] text-ink">Keep momentum.</h3>
-                                            <p className="mt-4 max-w-[32ch] text-sm leading-relaxed text-ink-soft/65">{plan.id === 'free' ? 'Compare plans when you need more scans, AI actions, or document versions.' : 'Review usage, invoices, and payment details in one place.'}</p>
+                                            <h3 className="mt-7 font-display text-4xl font-medium leading-none tracking-[-0.05em] text-ink">{t('dash.keepMomentum', 'Keep momentum.')}</h3>
+                                            <p className="mt-4 max-w-[32ch] text-sm leading-relaxed text-ink-soft/65">{plan.id === 'free' ? t('dash.comparePlansBlurb', 'Compare plans when you need more scans, AI actions, or document versions.') : t('dash.reviewUsageBlurb', 'Review usage, invoices, and payment details in one place.')}</p>
                                         </div>
-                                        <span className="inline-flex items-center gap-2 text-sm font-bold text-ember-deep">{plan.id === 'free' ? 'Compare plans' : 'Manage billing'} <span className="material-symbols-outlined text-[17px]">arrow_forward</span></span>
+                                        <span className="inline-flex items-center gap-2 text-sm font-bold text-ember-deep">{plan.id === 'free' ? t('dash.comparePlans', 'Compare plans') : t('dash.manageBilling', 'Manage billing')} <ArrowRight className="w-[17px] h-[17px] inline" aria-hidden="true" /></span>
                                     </div>
                                 </BentoCard>
                             </section>
@@ -616,22 +654,22 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                         <div className="dashboard-module animate-fade-in">
                              <header className="flex flex-col gap-5 sm:flex-row sm:justify-between sm:items-end mb-8">
                                 <div>
-                                    <p className="dashboard-eyebrow mb-3">Resume archive</p>
-                                    <h1 className="mb-3">Your resumes.</h1>
-                                    <p className="text-ink-soft/65">Build, revisit, and tailor every version from one place.</p>
+                                    <p className="dashboard-eyebrow mb-3">{t('dash.resumeArchive', 'Resume archive')}</p>
+                                    <h1 className="mb-3">{t('dash.yourResumesHeading', 'Your resumes.')}</h1>
+                                    <p className="text-ink-soft/65">{t('dash.buildRevisitTailor', 'Build, revisit, and tailor every version from one place.')}</p>
                                 </div>
                                 <button
                                     onClick={() => onCreateNew()}
                                     className="dashboard-primary-button"
                                 >
-                                    <span className="material-symbols-outlined">add</span>
-                                    Create New
+                                    <Plus className="w-[1em] h-[1em]" aria-hidden="true" />
+                                    {t('dash.createNew', 'Create New')}
                                 </button>
                             </header>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {/* New Resume Card */}
-                                <div 
+                                <div
                                     onClick={() => onCreateNew()}
                                     className="glass-card h-[320px] flex flex-col items-center justify-center cursor-pointer group border-dashed border-2"
                                     role="button"
@@ -639,14 +677,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                                     onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') onCreateNew(); }}
                                 >
                                     <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                                        <span className="material-symbols-outlined text-3xl text-primary">add</span>
+                                        <Plus className="w-8 h-8 text-primary" aria-hidden="true" />
                                     </div>
-                                    <p className="font-bold text-gray-500 group-hover:text-primary">Create New Resume</p>
+                                    <p className="font-bold text-gray-500 group-hover:text-primary">{t('mobile.createNewResume', 'Create New Resume')}</p>
                                 </div>
 
                                 {/* Saved Resume Card */}
                                 {savedResume && (
-                                    <div 
+                                    <div
                                         onClick={onEditExisting}
                                         className="glass-card h-[320px] flex flex-col p-0 overflow-hidden group"
                                     >
@@ -656,14 +694,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                                         </div>
                                         <div className="p-5 flex-1 flex flex-col relative">
                                             <h3 className="font-bold text-lg text-gray-800 mb-1 truncate">
-                                                {savedResume.contact.firstName || 'Untitled'} Resume
+                                                {t('dash.nameResume', '{name} resume').replace('{name}', savedResume.contact.firstName || t('dash.untitled', 'Untitled'))}
                                             </h3>
                                             <p className="text-xs text-gray-500 mb-4">
-                                                {savedResume.contact.jobTitle || 'No Job Title'}
+                                                {savedResume.contact.jobTitle || t('mobile.noJobTitle', 'No job title')}
                                             </p>
                                             <div className="mt-auto flex justify-between items-center">
-                                                <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-1 rounded-full uppercase tracking-wide">Draft</span>
-                                                <div className="text-xs text-gray-400">Edited just now</div>
+                                                <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-1 rounded-full uppercase tracking-wide">{t('mobile.draft', 'Draft')}</span>
+                                                <div className="text-xs text-gray-400">{t('dash.editedJustNow', 'Edited just now')}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -676,9 +714,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                     {activeTab === 'templates' && (
                         <div className="dashboard-module animate-fade-in">
                             <header className="mb-8">
-                                <p className="dashboard-eyebrow mb-3">Design library · {AVAILABLE_TEMPLATES.length} layouts</p>
-                                <h1 className="mb-3">Find your type.</h1>
-                                <p className="max-w-2xl text-ink-soft/65">Choose a recruiter-ready layout that fits the role, seniority, and tone of your application.</p>
+                                <p className="dashboard-eyebrow mb-3">{t('dash.designLibraryLayouts', 'Design library · {count} layouts').replace('{count}', String(AVAILABLE_TEMPLATES.length))}</p>
+                                <h1 className="mb-3">{t('dash.findYourType', 'Find your type.')}</h1>
+                                <p className="max-w-2xl text-ink-soft/65">{t('dash.chooseRecruiterReady', 'Choose a recruiter-ready layout that fits the role, seniority, and tone of your application.')}</p>
                             </header>
 
                             {/* Glass Filters */}
@@ -693,7 +731,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                                             : 'bg-white/50 text-gray-600 border border-white/40 hover:bg-white'
                                         }`}
                                     >
-                                        {cat}
+                                        {cat === 'All' ? t('dash.allCategory', 'All') : cat}
                                     </button>
                                 ))}
                             </div>
@@ -715,7 +753,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                                             {/* Overlay */}
                                             <div className="absolute inset-0 bg-dark/0 group-hover:bg-dark/10 transition-colors flex items-center justify-center backdrop-blur-[2px] opacity-0 group-hover:opacity-100 duration-300 z-10">
                                                 <button className="px-8 py-3 bg-white text-dark font-bold rounded-full shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                                    Use Template
+                                                    {t('dash.useTemplate', 'Use Template')}
                                                 </button>
                                             </div>
                                         </div>
@@ -738,11 +776,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                             className="mb-5 rounded-2xl border border-primary/30 bg-primary/5 p-5"
                         >
                             <h2 className="font-semibold text-dark">
-                                Finish your profile to continue
+                                {t('mobile.finishProfileToContinue', 'Finish your profile to continue')}
                             </h2>
                             <p className="mt-1.5 text-sm text-ink-soft">
-                                We use these on every CV you generate, so they are worth getting
-                                right once. Still needed:{' '}
+                                {t('dash.weUseTheseOnEveryCv', 'We use these on every CV you generate, so they are worth getting right once.')} {t('mobile.stillNeeded', 'Still needed:')}{' '}
                                 <span className="font-semibold text-dark">
                                     {missingProfileFields.join(', ')}
                                 </span>
@@ -801,6 +838,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onCreateNew, onEditExisting, onEd
                             />
                         </div>
                     )}
+                    </Suspense>
+                    </ErrorBoundary>
                 </div>
             </main>
             <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />

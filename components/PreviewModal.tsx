@@ -5,6 +5,7 @@ import ResumePreview from './ResumePreview';
 import { templateMap } from './templates/TemplatePreviewRegistry';
 import { useMobileShell } from '../lib/useMobileShell';
 import { useFitScale } from '../lib/useFitScale';
+import { useDialog } from '../lib/useDialog';
 
 
 
@@ -25,6 +26,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, formData, 
     // mounting/unmounting between opens (see lib/useFitScale.ts).
     const isMobileShell = useMobileShell();
     const fit = useFitScale<HTMLDivElement>(794);
+    const dialog = useDialog({ open: isOpen, onClose, label: 'Resume preview' });
 
     if (!isOpen) return null;
 
@@ -40,8 +42,9 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, formData, 
         // both fits and keeps normal, natural vertical scrolling for multi-page CVs.
         return (
             <div
-                className="fixed inset-0 z-[100] flex flex-col bg-dark/85 animate-fade-in"
-                onClick={onClose}
+                {...dialog.overlayProps}
+                {...dialog.panelProps}
+                className="fixed inset-0 z-[100] flex flex-col bg-dark/85 animate-fade-in outline-none"
             >
                 <div
                     className="pt-safe flex shrink-0 items-center justify-between px-4 pb-2"
@@ -75,11 +78,11 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, formData, 
     return (
         <div
             className="fixed inset-0 bg-black bg-opacity-75 z-[100] flex justify-center items-start p-8 overflow-y-auto animate-fade-in"
-            onClick={onClose}
+            {...dialog.overlayProps}
         >
             <div
-                className="relative mt-8 mb-8"
-                onClick={e => e.stopPropagation()}
+                {...dialog.panelProps}
+                className="relative mt-8 mb-8 outline-none"
             >
                 <button
                     onClick={onClose}

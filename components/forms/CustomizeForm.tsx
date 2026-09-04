@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import ContentHeader from '../common/ContentHeader';
-import { 
+import { Wrench, GripVertical, Info, Lightbulb, ChevronUp, ChevronDown } from 'lucide-react';
+import {
     ProjectsIcon, 
     LanguagesIcon, 
     CertificationsIcon, 
@@ -16,6 +17,7 @@ import {
     SkillsIcon
 } from '../common/icons';
 import type { SectionId } from '../../types';
+import { useTranslation, type Translate } from '../../services/translationService';
 
 interface CustomizeFormProps {
     visibleSections: SectionId[];
@@ -24,68 +26,68 @@ interface CustomizeFormProps {
     onOrderChange: (newOrder: string[]) => void;
 }
 
-const ALL_SECTION_META: Record<string, { label: string; icon: React.ReactNode; description: string }> = {
-    summary: { 
-        label: 'Professional Summary', 
-        icon: <SummaryIcon />, 
-        description: 'A brief summary of your background, key strengths, and professional achievements.' 
+const buildSectionMeta = (t: Translate): Record<string, { label: string; icon: React.ReactNode; description: string }> => ({
+    summary: {
+        label: t('nav.summary', 'Summary'),
+        icon: <SummaryIcon />,
+        description: t('customize.summary_desc', 'A brief summary of your background, key strengths, and professional achievements.')
     },
-    experience: { 
-        label: 'Work Experience', 
-        icon: <ExperienceIcon />, 
-        description: 'Chronological list of your previous job titles, companies, locations, dates, and responsibilities.' 
+    experience: {
+        label: t('nav.experience', 'Experience'),
+        icon: <ExperienceIcon />,
+        description: t('customize.experience_desc', 'Chronological list of your previous job titles, companies, locations, dates, and responsibilities.')
     },
-    education: { 
-        label: 'Education', 
-        icon: <EducationIcon />, 
-        description: 'Your academic history including institutions, degrees, certifications, dates, and courses.' 
+    education: {
+        label: t('nav.education', 'Education'),
+        icon: <EducationIcon />,
+        description: t('customize.education_desc', 'Your academic history including institutions, degrees, certifications, dates, and courses.')
     },
-    skills: { 
-        label: 'Skills', 
-        icon: <SkillsIcon />, 
-        description: 'List of your technical abilities, tools, programming languages, or core competencies.' 
+    skills: {
+        label: t('nav.skills', 'Skills'),
+        icon: <SkillsIcon />,
+        description: t('customize.skills_desc', 'List of your technical abilities, tools, programming languages, or core competencies.')
     },
-    projects: { 
-        label: 'Projects', 
-        icon: <ProjectsIcon />, 
-        description: 'Showcase specific case studies, coding projects, or freelance work.' 
+    projects: {
+        label: t('nav.projects', 'Projects'),
+        icon: <ProjectsIcon />,
+        description: t('customize.projects_desc', 'Showcase specific case studies, coding projects, or freelance work.')
     },
-    certifications: { 
-        label: 'Certifications', 
-        icon: <CertificationsIcon />, 
-        description: 'Professional licenses, certificates, and accreditations.' 
+    certifications: {
+        label: t('nav.certifications', 'Certifications'),
+        icon: <CertificationsIcon />,
+        description: t('customize.certifications_desc', 'Professional licenses, certificates, and accreditations.')
     },
-    languages: { 
-        label: 'Languages', 
-        icon: <LanguagesIcon />, 
-        description: 'List languages you speak and your proficiency levels.' 
+    languages: {
+        label: t('nav.languages', 'Languages'),
+        icon: <LanguagesIcon />,
+        description: t('customize.languages_desc', 'List languages you speak and your proficiency levels.')
     },
-    awards: { 
-        label: 'Awards', 
-        icon: <AwardIcon />, 
-        description: 'Honors, scholarships, and workplace recognition.' 
+    awards: {
+        label: t('nav.awards', 'Awards'),
+        icon: <AwardIcon />,
+        description: t('customize.awards_desc', 'Honors, scholarships, and workplace recognition.')
     },
-    trainings: { 
-        label: 'Trainings', 
-        icon: <TrainingIcon />, 
-        description: 'Workshops, bootcamps, and continuing education.' 
+    trainings: {
+        label: t('nav.trainings', 'Trainings'),
+        icon: <TrainingIcon />,
+        description: t('customize.trainings_desc', 'Workshops, bootcamps, and continuing education.')
     },
-    publications: { 
-        label: 'Publications', 
-        icon: <PublicationIcon />, 
-        description: 'Academic papers, books, or articles you have authored.' 
+    publications: {
+        label: t('nav.publications', 'Publications'),
+        icon: <PublicationIcon />,
+        description: t('customize.publications_desc', 'Academic papers, books, or articles you have authored.')
     },
-    volunteer: { 
-        label: 'Volunteering', 
-        icon: <VolunteerIcon />, 
-        description: 'Community service and volunteer leadership roles.' 
+    volunteer: {
+        label: t('nav.volunteer', 'Volunteering'),
+        icon: <VolunteerIcon />,
+        description: t('customize.volunteer_desc', 'Community service and volunteer leadership roles.')
     },
-    custom: { 
-        label: 'Custom Section', 
-        icon: <CustomIcon />, 
-        description: 'Add any other relevant activities (e.g. Patents, Military Service).' 
+    custom: {
+        label: t('nav.custom', 'Custom Section'),
+        icon: <CustomIcon />,
+        description: t('customize.custom_desc', 'Add any other relevant activities (e.g. Patents, Military Service).')
     }
-};
+});
 
 const OptionCard: React.FC<{ 
     id: SectionId; 
@@ -119,58 +121,21 @@ const OptionCard: React.FC<{
 };
 
 const CustomizeForm: React.FC<CustomizeFormProps> = ({ visibleSections, onToggleSection, sectionOrder, onOrderChange }) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<'toggle' | 'reorder'>('toggle');
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
+    const ALL_SECTION_META = buildSectionMeta(t);
+
     const options: { id: SectionId; label: string; icon: React.ReactNode; description: string }[] = [
-        { 
-            id: 'certifications', 
-            label: 'Certifications', 
-            icon: <CertificationsIcon />, 
-            description: 'Professional licenses, certificates, and accreditations.' 
-        },
-        { 
-            id: 'projects', 
-            label: 'Projects', 
-            icon: <ProjectsIcon />, 
-            description: 'Showcase specific case studies, coding projects, or freelance work.' 
-        },
-        { 
-            id: 'languages', 
-            label: 'Languages', 
-            icon: <LanguagesIcon />, 
-            description: 'List languages you speak and your proficiency levels.' 
-        },
-        { 
-            id: 'awards', 
-            label: 'Awards', 
-            icon: <AwardIcon />, 
-            description: 'Honors, scholarships, and workplace recognition.' 
-        },
-        { 
-            id: 'trainings', 
-            label: 'Trainings', 
-            icon: <TrainingIcon />, 
-            description: 'Workshops, bootcamps, and continuing education.' 
-        },
-        { 
-            id: 'publications', 
-            label: 'Publications', 
-            icon: <PublicationIcon />, 
-            description: 'Academic papers, books, or articles you have authored.' 
-        },
-        { 
-            id: 'volunteer', 
-            label: 'Volunteering', 
-            icon: <VolunteerIcon />, 
-            description: 'Community service and volunteer leadership roles.' 
-        },
-        { 
-            id: 'custom', 
-            label: 'Custom Section', 
-            icon: <CustomIcon />, 
-            description: 'Add any other relevant activities (e.g. Patents, Military Service).' 
-        },
+        { id: 'certifications', ...ALL_SECTION_META.certifications },
+        { id: 'projects', ...ALL_SECTION_META.projects },
+        { id: 'languages', ...ALL_SECTION_META.languages },
+        { id: 'awards', ...ALL_SECTION_META.awards },
+        { id: 'trainings', ...ALL_SECTION_META.trainings },
+        { id: 'publications', ...ALL_SECTION_META.publications },
+        { id: 'volunteer', ...ALL_SECTION_META.volunteer },
+        { id: 'custom', ...ALL_SECTION_META.custom },
     ];
 
     // Filter order to show only sections that are currently on the resume (either core or enabled optional sections)
@@ -221,27 +186,27 @@ const CustomizeForm: React.FC<CustomizeFormProps> = ({ visibleSections, onToggle
     return (
         <>
             <ContentHeader
-                title="Customize Sections"
-                description="Tailor your resume structure. Enable optional blocks or drag and drop sections to rearrange the layout order in real-time."
+                title={t('customize.title', 'Customize Sections')}
+                description={t('customizeForm.desc', 'Tailor your resume structure. Enable optional blocks or drag and drop sections to rearrange the layout order in real-time.')}
             />
 
             {/* Custom Tabs */}
             <div className="flex border-b border-gray-100 mb-6 font-sans shrink-0">
-                <button 
+                <button
                     type="button"
                     onClick={() => setActiveTab('toggle')}
                     className={`px-5 py-3 font-bold text-sm transition-all border-b-2 flex items-center gap-2 ${activeTab === 'toggle' ? 'border-primary text-primary bg-primary/5 rounded-t-xl' : 'border-transparent text-gray-500 hover:text-gray-900'}`}
                 >
-                    <span className="material-symbols-outlined text-[18px]">build</span>
-                    Toggle Optional
+                    <Wrench className="w-[18px] h-[18px]" aria-hidden="true" />
+                    {t('customizeForm.toggleOptional', 'Toggle Optional')}
                 </button>
-                <button 
+                <button
                     type="button"
                     onClick={() => setActiveTab('reorder')}
                     className={`px-5 py-3 font-bold text-sm transition-all border-b-2 flex items-center gap-2 ${activeTab === 'reorder' ? 'border-primary text-primary bg-primary/5 rounded-t-xl' : 'border-transparent text-gray-500 hover:text-gray-900'}`}
                 >
-                    <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
-                    Arrange Sections Order
+                    <GripVertical className="w-[18px] h-[18px]" aria-hidden="true" />
+                    {t('customizeForm.arrangeOrder', 'Arrange Sections Order')}
                 </button>
             </div>
             
@@ -259,8 +224,8 @@ const CustomizeForm: React.FC<CustomizeFormProps> = ({ visibleSections, onToggle
             ) : (
                 <div className="space-y-3">
                     <p className="text-sm text-gray-500 mb-4 bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-gray-400">info</span>
-                        Drag and drop items using the handle, or use the up/down arrows to live-reorder your resume sections.
+                        <Info className="w-[1em] h-[1em] text-gray-400" aria-hidden="true" />
+                        {t('customizeForm.dragDropHint', 'Drag and drop items using the handle, or use the up/down arrows to live-reorder your resume sections.')}
                     </p>
                     <div className="bg-light p-4 rounded-2xl border border-border flex flex-col gap-2">
                         {visibleReorderList.map((sectionId, index) => {
@@ -281,7 +246,7 @@ const CustomizeForm: React.FC<CustomizeFormProps> = ({ visibleSections, onToggle
                                 >
                                     {/* Drag Handle */}
                                     <div className="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-primary transition-colors">
-                                        <span className="material-symbols-outlined text-[20px] block">drag_indicator</span>
+                                        <GripVertical className="w-5 h-5 block" aria-hidden="true" />
                                     </div>
 
                                     {/* Icon */}
@@ -302,18 +267,20 @@ const CustomizeForm: React.FC<CustomizeFormProps> = ({ visibleSections, onToggle
                                             disabled={index === 0}
                                             onClick={() => moveItem(index, 'up')}
                                             className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-50 rounded-lg disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:bg-transparent"
-                                            title="Move Up"
+                                            title={t('customizeForm.moveUp', 'Move Up')}
+                                            aria-label={t('customizeForm.moveUp', 'Move Up')}
                                         >
-                                            <span className="material-symbols-outlined text-[18px] block">keyboard_arrow_up</span>
+                                            <ChevronUp className="w-[18px] h-[18px] block" aria-hidden="true" />
                                         </button>
                                         <button
                                             type="button"
                                             disabled={index === visibleReorderList.length - 1}
                                             onClick={() => moveItem(index, 'down')}
                                             className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-50 rounded-lg disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:bg-transparent"
-                                            title="Move Down"
+                                            title={t('customizeForm.moveDown', 'Move Down')}
+                                            aria-label={t('customizeForm.moveDown', 'Move Down')}
                                         >
-                                            <span className="material-symbols-outlined text-[18px] block">keyboard_arrow_down</span>
+                                            <ChevronDown className="w-[18px] h-[18px] block" aria-hidden="true" />
                                         </button>
                                     </div>
                                 </div>
@@ -325,11 +292,11 @@ const CustomizeForm: React.FC<CustomizeFormProps> = ({ visibleSections, onToggle
             
             <div className="mt-10 p-6 bg-blue-50 rounded-xl border border-blue-100">
                 <h4 className="font-bold text-blue-800 mb-2 font-sans flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[20px]">lightbulb</span>
-                    Did you know?
+                    <Lightbulb className="w-5 h-5" aria-hidden="true" />
+                    {t('customizeForm.didYouKnow', 'Did you know?')}
                 </h4>
                 <p className="text-sm text-blue-700 leading-relaxed font-sans">
-                    You can keep sections hidden while you work on them. Reordering respects active sections on your resume. Your custom section order updates in real-time in the live preview and on your final exported PDF.
+                    {t('customizeForm.tipText', 'You can keep sections hidden while you work on them. Reordering respects active sections on your resume. Your custom section order updates in real-time in the live preview and on your final exported PDF.')}
                 </p>
             </div>
         </>

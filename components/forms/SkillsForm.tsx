@@ -5,6 +5,8 @@ import TipsCard from '../common/TipsCard';
 import FormActions from '../common/FormActions';
 import { generateSkillSuggestions } from '../../services/geminiService';
 import { SparklesIcon } from '../common/icons';
+import { CirclePlus, X, Search } from 'lucide-react';
+import { useTranslation } from '../../services/translationService';
 
 interface SkillsFormProps {
     skills: string[];
@@ -24,6 +26,7 @@ const SUGGESTED_CATEGORIES = {
 };
 
 const SkillsForm: React.FC<SkillsFormProps> = ({ skills, jobTitle, onAdd, onRemove, onClear, onNext }) => {
+    const { t } = useTranslation();
     const [currentSkill, setCurrentSkill] = useState('');
     const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
     const [isLoadingAi, setIsLoadingAi] = useState(false);
@@ -93,19 +96,19 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ skills, jobTitle, onAdd, onRemo
     return (
         <>
             <ContentHeader
-                title="Skills & Expertise"
-                description="Highlight your technical and professional skills. We'll help you find the best ones for your role."
+                title={t('skills.title', 'Skills & Expertise')}
+                description={t('skillsForm.desc', "Highlight your technical and professional skills. We'll help you find the best ones for your role.")}
             />
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 {/* Left Column: Input and Active Skills */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="bg-white p-6 rounded-2xl border border-border shadow-sm">
-                        <label htmlFor="skill-input" className="font-bold mb-3 block text-gray-700 text-sm uppercase tracking-wide">Add a Skill</label>
+                        <label htmlFor="skill-input" className="font-bold mb-3 block text-gray-700 text-sm uppercase tracking-wide">{t('skillsForm.addASkill', 'Add a Skill')}</label>
                         <div className="flex gap-3 mb-6">
                             <div className="relative flex-1">
                                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <span className="material-symbols-outlined text-gray-400">add_circle</span>
+                                    <CirclePlus className="w-[1em] h-[1em] text-gray-400" aria-hidden="true" />
                                 </div>
                                 <input
                                     id="skill-input"
@@ -114,42 +117,43 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ skills, jobTitle, onAdd, onRemo
                                     value={currentSkill}
                                     onChange={(e) => setCurrentSkill(e.target.value)}
                                     onKeyDown={handleKeyDown}
-                                    placeholder="e.g. Public Speaking"
+                                    placeholder={t('skillsForm.addSkillPlaceholder', 'e.g. Public Speaking')}
                                 />
                             </div>
-                            <button 
-                                type="button" 
-                                className="px-8 py-3 bg-dark text-white rounded-xl font-bold cursor-pointer transition-all hover:bg-black hover:-translate-y-0.5 shadow-md" 
+                            <button
+                                type="button"
+                                className="px-8 py-3 bg-dark text-white rounded-xl font-bold cursor-pointer transition-all hover:bg-black hover:-translate-y-0.5 shadow-md"
                                 onClick={handleAddClick}
                             >
-                                Add
+                                {t('skillsForm.add', 'Add')}
                             </button>
                         </div>
 
                         <div>
                             <h3 className="font-bold text-gray-700 text-sm mb-3 flex items-center gap-2">
-                                <span>Your Skills</span>
+                                <span>{t('skillsForm.yourSkills', 'Your Skills')}</span>
                                 <span className="bg-primary-light text-primary text-xs px-2 py-0.5 rounded-full">{skills.length}</span>
                             </h3>
-                            
+
                             {skills.length > 0 ? (
                                 <div className="flex flex-wrap gap-2">
                                     {skills.map((skill, index) => (
                                         <div key={`${skill}-${index}`} className="group flex items-center gap-2 pl-3 pr-2 py-2 bg-white border border-border rounded-lg text-dark font-medium shadow-sm hover:border-primary hover:shadow-md transition-all animate-fade-in">
                                             <span>{skill}</span>
-                                            <button 
-                                                className="w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:bg-red-50 hover:text-danger transition-colors" 
+                                            <button
+                                                className="w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:bg-red-50 hover:text-danger transition-colors"
                                                 onClick={() => onRemove(index)}
-                                                title="Remove skill"
+                                                title={t('skillsForm.removeSkill', 'Remove skill')}
+                                                aria-label={t('skillsForm.removeSkillAria', 'Remove {skill}').replace('{skill}', skill)}
                                             >
-                                                <span className="material-symbols-outlined text-[16px]">close</span>
+                                                <X className="w-4 h-4" aria-hidden="true" />
                                             </button>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
                                 <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50">
-                                    <p className="text-gray-400 text-sm">No skills added yet. Start typing or select from suggestions below.</p>
+                                    <p className="text-gray-400 text-sm">{t('skillsForm.noSkillsYet', 'No skills added yet. Start typing or select from suggestions below.')}</p>
                                 </div>
                             )}
                         </div>
@@ -162,27 +166,27 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ skills, jobTitle, onAdd, onRemo
                         <div className="p-4 bg-gray-50 border-b border-border">
                             <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
                                 <SparklesIcon />
-                                <span>AI Suggestions</span>
+                                <span>{t('experienceForm.aiSuggestions', 'AI Suggestions')}</span>
                             </h3>
                             <div className="relative">
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     value={suggestionContext}
                                     onChange={(e) => setSuggestionContext(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleContextSubmit(e)}
                                     className="w-full pl-3 pr-10 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-                                    placeholder="Role, Industry or Keyword..."
+                                    placeholder={t('skillsForm.roleIndustryPlaceholder', 'Role, Industry or Keyword...')}
                                 />
-                                <button 
+                                <button
                                     onClick={() => fetchAiSuggestions(suggestionContext)}
                                     className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-primary transition-colors rounded-md hover:bg-gray-100"
                                     disabled={isLoadingAi}
-                                    title="Generate Suggestions"
+                                    title={t('skillsForm.generateSuggestions', 'Generate Suggestions')}
                                 >
                                     {isLoadingAi ? (
                                         <span className="animate-spin block w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full"/>
                                     ) : (
-                                        <span className="material-symbols-outlined text-[18px]">search</span>
+                                        <Search className="w-[18px] h-[18px]" aria-hidden="true" />
                                     )}
                                 </button>
                             </div>
@@ -229,7 +233,7 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ skills, jobTitle, onAdd, onRemo
                                     );
                                 })}
                                 {currentSuggestions.length === 0 && !isLoadingAi && (
-                                    <p className="text-sm text-gray-400 p-4 text-center w-full">No suggestions found for this category.</p>
+                                    <p className="text-sm text-gray-400 p-4 text-center w-full">{t('skillsForm.noSuggestionsForCategory', 'No suggestions found for this category.')}</p>
                                 )}
                                 {isLoadingAi && currentSuggestions.length === 0 && (
                                      <div className="p-8 flex justify-center w-full">

@@ -5,6 +5,7 @@ import ContentHeader from '../common/ContentHeader';
 import TipsCard from '../common/TipsCard';
 import FormActions from '../common/FormActions';
 import ItemCard from './ItemCard';
+import { useTranslation } from '../../services/translationService';
 
 interface EducationFormProps {
     data: Education[];
@@ -16,11 +17,12 @@ interface EducationFormProps {
 }
 
 const EducationForm: React.FC<EducationFormProps> = ({ data, onChange, onAdd, onRemove, onClear, onNext }) => {
+    const { t } = useTranslation();
     return (
         <>
             <ContentHeader
-                title="Education"
-                description="List your educational background, starting with the most recent."
+                title={t('education.title', 'Education')}
+                description={t('education.desc', 'List your educational background, starting with the most recent.')}
             />
             {data.map((item) => (
                 <ItemCard
@@ -36,7 +38,7 @@ const EducationForm: React.FC<EducationFormProps> = ({ data, onChange, onAdd, on
                 className="w-full p-5 bg-white border-2 border-dashed border-border rounded-lg cursor-pointer text-gray-500 font-semibold transition-all text-base hover:border-primary hover:text-primary hover:bg-primary-light"
                 onClick={onAdd}
             >
-                + Add Education
+                {t('education.addBtn', '+ Add Education')}
             </button>
             <TipsCard activeSection="education" />
             <FormActions onClear={onClear} onNext={onNext} />

@@ -1,6 +1,7 @@
 import React from 'react';
 import { sanitizeHtml } from '../../lib/sanitizeHtml';
-import type { ResumePreviewProps } from '../../types';
+import type { ResumePreviewProps, SectionId } from '../../types';
+import { orderedSections } from '../../lib/templates/sectionOrder';
 import { countries } from '../../data/locationData';
 
 const SynergyStartupTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, visibleSections, settings }) => {
@@ -12,6 +13,128 @@ const SynergyStartupTemplate: React.FC<ResumePreviewProps> = ({ formData, isCard
     const city = contact.city === 'Other' ? contact.customCity : contact.city;
     const fullAddress = [contact.address, city, countryName].filter(Boolean).join(', ');
     const fullPhone = `${contact.phoneCountryCode || ''} ${contact.phone || ''}`.trim();
+
+    const renderSection = (id: SectionId): React.ReactNode => {
+        switch (id) {
+            case 'summary':
+                return summary.professionalSummary ? (
+                    <section key="summary" data-section="summary">
+                        <h2 className="text-xs font-extrabold uppercase tracking-widest text-[#414552] mb-1.5 inline-block border-l-4 pl-2 break-after-avoid" style={{ borderColor: accentColor }}>
+                            Profile Narrative
+                        </h2>
+                        <div className="text-xs text-slate-700 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
+                    </section>
+                ) : null;
+            case 'experience':
+                return experience.length > 0 ? (
+                    <section key="experience" data-section="experience">
+                        <h2 className="text-xs font-extrabold uppercase tracking-widest text-[#414552] mb-2.5 inline-block border-l-4 pl-2 break-after-avoid" style={{ borderColor: accentColor }}>
+                            Professional Experience
+                        </h2>
+                        <div className="space-y-4">
+                            {experience.map(exp => (
+                                <div className="break-inside-avoid" key={exp.id}>
+                                    <div className="flex justify-between items-baseline mb-0.5">
+                                        <h3 className="text-xs text-slate-900 font-extrabold">{exp.jobTitle}</h3>
+                                        <span className="text-[10px] text-slate-500 font-bold">{exp.startDate} – {exp.endDate}</span>
+                                    </div>
+                                    <div className="flex justify-between items-baseline text-[10px] text-slate-450 italic mb-1.5">
+                                        <span>{exp.company}</span>
+                                        <span className="text-[9.5px] font-normal not-italic text-slate-400">{exp.location}</span>
+                                    </div>
+                                    <div className="text-xs text-slate-655 leading-relaxed text-justify pl-1" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'education':
+                return education.length > 0 ? (
+                    <section key="education" data-section="education">
+                        <h2 className="text-xs font-extrabold uppercase tracking-widest text-[#414552] mb-2.5 inline-block border-l-4 pl-2 break-after-avoid" style={{ borderColor: accentColor }}>
+                            Academics
+                        </h2>
+                        <div className="space-y-3">
+                            {education.map(edu => (
+                                <div className="break-inside-avoid" key={edu.id}>
+                                    <div className="flex justify-between items-baseline mb-0.5">
+                                        <h3 className="text-xs text-slate-900 font-extrabold">{edu.school}</h3>
+                                        <span className="text-[10px] text-slate-505 font-bold">{edu.startDate} – {edu.endDate}</span>
+                                    </div>
+                                    <div className="flex justify-between items-baseline text-xs text-slate-600 italic">
+                                        <span>{edu.degree}</span>
+                                        <span className="text-[10px] font-normal not-italic text-slate-400">{edu.location}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'skills':
+                return skills.length > 0 ? (
+                    <section key="skills" data-section="skills">
+                        <h2 className="text-xs font-extrabold uppercase tracking-widest text-[#414552] mb-2 inline-block border-l-4 pl-2 break-after-avoid" style={{ borderColor: accentColor }}>
+                            Capabilities Stacks
+                        </h2>
+                        <div className="flex flex-wrap gap-1">
+                            {skills.map((skill, index) => (
+                                <span key={index} className="px-2 py-0.5 text-[9px] font-semibold bg-[#EEF2FF] text-[#4F46E5] rounded">
+                                    {skill}
+                                </span>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'projects':
+                return projects.length > 0 ? (
+                    <section key="projects" data-section="projects">
+                        <h2 className="text-xs font-extrabold uppercase tracking-widest text-[#414552] mb-2.5 inline-block border-l-4 pl-2 break-after-avoid" style={{ borderColor: accentColor }}>
+                            Featured Initiatives
+                        </h2>
+                        <div className="space-y-3.5">
+                            {projects.map(item => (
+                                <div className="break-inside-avoid" key={item.id}>
+                                    <div className="flex justify-between items-baseline mb-0.5">
+                                        <h3 className="text-xs text-slate-900 font-extrabold">{item.name}</h3>
+                                        <span className="text-[10px] text-slate-500 font-bold">{item.startDate} – {item.endDate}</span>
+                                    </div>
+                                    {item.technologies && (
+                                        <p className="text-[9.5px] italic text-[#4F46E5] mb-1.5 font-medium">Stack: {item.technologies}</p>
+                                    )}
+                                    <div className="text-xs text-slate-655 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'certifications':
+                return certifications.length > 0 ? (
+                    <div key="certifications" data-section="certifications">
+                        <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-805 break-after-avoid">Certifications</h3>
+                        <div className="text-xs text-slate-600 space-y-0.5">
+                            {certifications.map(c => (
+                                <div className="break-inside-avoid" key={c.id}>• {c.name}</div>
+                            ))}
+                        </div>
+                    </div>
+                ) : null;
+            case 'languages':
+                return languages.length > 0 ? (
+                    <div key="languages" data-section="languages">
+                        <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-805 break-after-avoid">languages</h3>
+                        <div className="text-xs text-slate-600 space-y-0.5">
+                            {languages.map(l => (
+                                <div className="break-inside-avoid" key={l.id}>• {l.language} ({l.proficiency})</div>
+                            ))}
+                        </div>
+                    </div>
+                ) : null;
+            default:
+                return null;
+        }
+    };
+    const renderRun = (ids: readonly SectionId[]): React.ReactNode[] =>
+        orderedSections(formData, visibleSections, ids).map(renderSection);
 
     return (
         <div 
@@ -43,128 +166,15 @@ const SynergyStartupTemplate: React.FC<ResumePreviewProps> = ({ formData, isCard
             {/* Contemporary Flow */}
             <div className="space-y-4">
                 {/* Core Objective Statement */}
-                {summary.professionalSummary && (
-                    <section>
-                        <h2 className="text-xs font-extrabold uppercase tracking-widest text-[#414552] mb-1.5 inline-block border-l-4 pl-2" style={{ borderColor: accentColor }}>
-                            Profile Narrative
-                        </h2>
-                        <div className="text-xs text-slate-700 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
-                    </section>
-                )}
-
-                {/* Grid layout for structured skills block */}
-                {skills.length > 0 && (
-                    <section>
-                        <h2 className="text-xs font-extrabold uppercase tracking-widest text-[#414552] mb-2 inline-block border-l-4 pl-2" style={{ borderColor: accentColor }}>
-                            Capabilities Stacks
-                        </h2>
-                        <div className="flex flex-wrap gap-1">
-                            {skills.map((skill, index) => (
-                                <span key={index} className="px-2 py-0.5 text-[9px] font-semibold bg-[#EEF2FF] text-[#4F46E5] rounded">
-                                    {skill}
-                                </span>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
-                {/* Career Ledger */}
-                {experience.length > 0 && (
-                    <section>
-                        <h2 className="text-xs font-extrabold uppercase tracking-widest text-[#414552] mb-2.5 inline-block border-l-4 pl-2" style={{ borderColor: accentColor }}>
-                            Professional Experience
-                        </h2>
-                        <div className="space-y-4">
-                            {experience.map(exp => (
-                                <div key={exp.id}>
-                                    <div className="flex justify-between items-baseline mb-0.5">
-                                        <h3 className="text-xs text-slate-900 font-extrabold">{exp.jobTitle}</h3>
-                                        <span className="text-[10px] text-slate-500 font-bold">{exp.startDate} – {exp.endDate}</span>
-                                    </div>
-                                    <div className="flex justify-between items-baseline text-[10px] text-slate-450 italic mb-1.5">
-                                        <span>{exp.company}</span>
-                                        <span className="text-[9.5px] font-normal not-italic text-slate-400">{exp.location}</span>
-                                    </div>
-                                    <div className="text-xs text-slate-655 leading-relaxed text-justify pl-1" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
-                {/* Key Initiatives / Projects */}
-                {visibleSections.includes('projects') && projects.length > 0 && (
-                    <section>
-                        <h2 className="text-xs font-extrabold uppercase tracking-widest text-[#414552] mb-2.5 inline-block border-l-4 pl-2" style={{ borderColor: accentColor }}>
-                            Featured Initiatives
-                        </h2>
-                        <div className="space-y-3.5">
-                            {projects.map(item => (
-                                <div key={item.id}>
-                                    <div className="flex justify-between items-baseline mb-0.5">
-                                        <h3 className="text-xs text-slate-900 font-extrabold">{item.name}</h3>
-                                        <span className="text-[10px] text-slate-500 font-bold">{item.startDate} – {item.endDate}</span>
-                                    </div>
-                                    {item.technologies && (
-                                        <p className="text-[9.5px] italic text-[#4F46E5] mb-1.5 font-medium">Stack: {item.technologies}</p>
-                                    )}
-                                    <div className="text-xs text-slate-655 leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
-                {/* Academic History */}
-                {education.length > 0 && (
-                    <section>
-                        <h2 className="text-xs font-extrabold uppercase tracking-widest text-[#414552] mb-2.5 inline-block border-l-4 pl-2" style={{ borderColor: accentColor }}>
-                            Academics
-                        </h2>
-                        <div className="space-y-3">
-                            {education.map(edu => (
-                                <div key={edu.id}>
-                                    <div className="flex justify-between items-baseline mb-0.5">
-                                        <h3 className="text-xs text-slate-900 font-extrabold">{edu.school}</h3>
-                                        <span className="text-[10px] text-slate-505 font-bold">{edu.startDate} – {edu.endDate}</span>
-                                    </div>
-                                    <div className="flex justify-between items-baseline text-xs text-slate-600 italic">
-                                        <span>{edu.degree}</span>
-                                        <span className="text-[10px] font-normal not-italic text-slate-400">{edu.location}</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
+                {renderRun(['summary', 'skills', 'experience', 'projects', 'education'])}
 
                 {/* Compact multi sections blocks */}
                 <div className="grid grid-cols-2 gap-4 pt-1">
-                    {visibleSections.includes('certifications') && certifications.length > 0 && (
-                        <div>
-                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-805">Certifications</h3>
-                            <div className="text-xs text-slate-600 space-y-0.5">
-                                {certifications.map(c => (
-                                    <div key={c.id}>• {c.name}</div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {visibleSections.includes('languages') && languages.length > 0 && (
-                        <div>
-                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-805">languages</h3>
-                            <div className="text-xs text-slate-600 space-y-0.5">
-                                {languages.map(l => (
-                                    <div key={l.id}>• {l.language} ({l.proficiency})</div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    {renderRun(['certifications', 'languages'])}
                 </div>
             </div>
         </div>
     );
 };
 
-export default SynergyStartupTemplate;
+export default React.memo(SynergyStartupTemplate);

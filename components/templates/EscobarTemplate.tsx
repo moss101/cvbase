@@ -1,8 +1,10 @@
 
 import React from 'react';
 import { sanitizeHtml } from '../../lib/sanitizeHtml';
-import type { ResumePreviewProps } from '../../types';
+import type { ResumePreviewProps, SectionId } from '../../types';
+import { orderedSections } from '../../lib/templates/sectionOrder';
 import { countries } from '../../data/locationData';
+import { Link, Mail, MapPin, Phone } from 'lucide-react';
 
 // Helper for proficiency dots
 const Dots = ({ level, color }: { level: string; color: string }) => {
@@ -44,53 +46,22 @@ const EscobarTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
     const fullAddress = [contact.address, city, countryName].filter(Boolean).join(', ');
     const fullPhone = `${contact.phoneCountryCode || ''} ${contact.phone || ''}`.trim();
 
-    return (
-        <div id={isCardPreview ? undefined : "resume-preview-escobar"} className={`w-[794px] min-h-[1123px] h-auto bg-white shadow-sm border border-gray-200 flex ${fontSize} font-sans`} style={{ fontFamily: settings?.fontFamily || 'Arial, sans-serif' }}>
-            <style>
-                {`.material-symbols-outlined { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20; }`}
-            </style>
-
-            {/* LEFT COLUMN (≈66%) */}
-            <div className="w-2/3 px-10 pt-10 pb-8">
-                {/* Header */}
-                <header>
-                    <h1 className="text-[34px] leading-none tracking-tight font-extrabold text-gray-900 uppercase">{contact.firstName} {contact.lastName}</h1>
-                    <p className="mt-1 text-[14px] font-semibold" style={{ color: primaryBlue }}>
-                        {contact.jobTitle}
-                    </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-[12px] text-gray-600">
-                        {contact.email && <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">mail</span> {contact.email}</span>}
-                        {contact.linkedin && (
-                            <>
-                                <span className="text-gray-300">•</span>
-                                <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">link</span> LinkedIn</span>
-                            </>
-                        )}
-                        {(fullPhone || fullAddress) && (
-                             <>
-                                <span className="text-gray-300">•</span>
-                                {fullPhone && <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">call</span> {fullPhone}</span>}
-                                {fullAddress && <span className="inline-flex items-center gap-1 ml-2"><span className="material-symbols-outlined text-[14px]">location_on</span> {city}</span>}
-                             </>
-                        )}
-                    </div>
-                </header>
-
-                {/* SUMMARY */}
-                {summary.professionalSummary && (
-                    <section className="mt-7">
-                        <div className="flex items-end gap-3">
+    const renderSection = (id: SectionId): React.ReactNode => {
+        switch (id) {
+            case 'summary':
+                return summary.professionalSummary ? (
+                    <section key="summary" data-section="summary" className="mt-7">
+                        <div className="flex items-end gap-3 break-after-avoid">
                             <h2 className="text-[12px] tracking-[0.18em] text-gray-800 font-semibold uppercase">SUMMARY</h2>
                             <Rule />
                         </div>
                         <div className="mt-2 text-[13px] leading-relaxed text-gray-700 text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
                     </section>
-                )}
-
-                {/* EXPERIENCE */}
-                {experience.length > 0 && (
-                    <section className="mt-7">
-                        <div className="flex items-end gap-3">
+                ) : null;
+            case 'experience':
+                return experience.length > 0 ? (
+                    <section key="experience" data-section="experience" className="mt-7">
+                        <div className="flex items-end gap-3 break-after-avoid">
                             <h2 className="text-[12px] tracking-[0.18em] text-gray-800 font-semibold uppercase">EXPERIENCE</h2>
                             <Rule />
                         </div>
@@ -109,12 +80,41 @@ const EscobarTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                             </div>
                         ))}
                     </section>
-                )}
-
-                {/* PROJECTS */}
-                {visibleSections.includes('projects') && projects.length > 0 && (
-                    <section className="mt-7">
-                        <div className="flex items-end gap-3">
+                ) : null;
+            case 'education':
+                return education.length > 0 ? (
+                    <section key="education" data-section="education" className="mt-7">
+                        <div className="flex items-end gap-3 break-after-avoid">
+                            <h2 className="text-[12px] tracking-[0.18em] text-gray-800 font-semibold uppercase">EDUCATION</h2>
+                            <Rule />
+                        </div>
+                        {education.map((edu) => (
+                            <div key={edu.id} className="mt-3 break-inside-avoid">
+                                <p className="text-[13px] font-semibold text-gray-900">{edu.degree}</p>
+                                <p className="text-[12px] text-gray-600">{edu.school}</p>
+                                <p className="text-[12px] text-gray-500">{edu.startDate} - {edu.endDate} · {edu.location}</p>
+                            </div>
+                        ))}
+                    </section>
+                ) : null;
+            case 'skills':
+                return skills.length > 0 ? (
+                    <section key="skills" data-section="skills" className="mb-7">
+                        <div className="flex items-end gap-3 mb-4 break-after-avoid">
+                            <h2 className="text-[12px] tracking-[0.18em] font-semibold uppercase text-gray-300">SKILLS</h2>
+                            <Rule dark />
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {skills.map((skill, i) => (
+                                <span key={i} className="bg-white/10 px-2 py-1 rounded text-[11px] font-medium text-gray-200 border border-white/5">{skill}</span>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'projects':
+                return projects.length > 0 ? (
+                    <section key="projects" data-section="projects" className="mt-7">
+                        <div className="flex items-end gap-3 break-after-avoid">
                             <h2 className="text-[12px] tracking-[0.18em] text-gray-800 font-semibold uppercase">PROJECTS</h2>
                             <Rule />
                         </div>
@@ -129,29 +129,28 @@ const EscobarTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                             </div>
                         ))}
                     </section>
-                )}
-
-                {/* EDUCATION */}
-                {education.length > 0 && (
-                    <section className="mt-7">
-                        <div className="flex items-end gap-3">
-                            <h2 className="text-[12px] tracking-[0.18em] text-gray-800 font-semibold uppercase">EDUCATION</h2>
-                            <Rule />
+                ) : null;
+            case 'certifications':
+                return certifications.length > 0 ? (
+                    <section key="certifications" data-section="certifications" className="mb-7">
+                        <div className="flex items-end gap-3 mb-4 break-after-avoid">
+                            <h2 className="text-[12px] tracking-[0.18em] font-semibold uppercase text-gray-300">CERTIFICATIONS</h2>
+                            <Rule dark />
                         </div>
-                        {education.map((edu) => (
-                            <div key={edu.id} className="mt-3 break-inside-avoid">
-                                <p className="text-[13px] font-semibold text-gray-900">{edu.degree}</p>
-                                <p className="text-[12px] text-gray-600">{edu.school}</p>
-                                <p className="text-[12px] text-gray-500">{edu.startDate} - {edu.endDate} · {edu.location}</p>
-                            </div>
-                        ))}
+                        <div className="space-y-4">
+                            {certifications.map((cert, i) => (
+                                <div className="break-inside-avoid" key={i}>
+                                    <p className="text-[13px] font-semibold text-white">{cert.name}</p>
+                                    {cert.expiryDate && <p className="text-[11px] text-gray-400 mt-0.5">Expires: {cert.expiryDate}</p>}
+                                </div>
+                            ))}
+                        </div>
                     </section>
-                )}
-
-                {/* LANGUAGES (Left column) */}
-                {visibleSections.includes('languages') && languages.length > 0 && (
-                    <section className="mt-7">
-                        <div className="flex items-end gap-3">
+                ) : null;
+            case 'languages':
+                return languages.length > 0 ? (
+                    <section key="languages" data-section="languages" className="mt-7">
+                        <div className="flex items-end gap-3 break-after-avoid">
                             <h2 className="text-[12px] tracking-[0.18em] text-gray-800 font-semibold uppercase">LANGUAGES</h2>
                             <Rule />
                         </div>
@@ -167,12 +166,45 @@ const EscobarTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                             ))}
                         </div>
                     </section>
-                )}
-                
-                {/* PUBLICATIONS */}
-                {visibleSections.includes('publications') && publications.length > 0 && (
-                    <section className="mt-7">
-                        <div className="flex items-end gap-3">
+                ) : null;
+            case 'awards':
+                return awards.length > 0 ? (
+                    <section key="awards" data-section="awards" className="mb-7">
+                        <div className="flex items-end gap-3 mb-4 break-after-avoid">
+                            <h2 className="text-[12px] tracking-[0.18em] font-semibold uppercase text-gray-300">AWARDS</h2>
+                            <Rule dark />
+                        </div>
+                        <div className="space-y-4">
+                            {awards.map((award, i) => (
+                                <div className="break-inside-avoid" key={i}>
+                                    <p className="text-[13px] font-semibold text-white">{award.title}</p>
+                                    <p className="text-[11px] text-gray-400 mt-0.5">{award.issuer}, {award.date}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'trainings':
+                return trainings.length > 0 ? (
+                    <section key="trainings" data-section="trainings" className="mb-7">
+                        <div className="flex items-end gap-3 mb-4 break-after-avoid">
+                            <h2 className="text-[12px] tracking-[0.18em] font-semibold uppercase text-gray-300">TRAINING</h2>
+                            <Rule dark />
+                        </div>
+                        <div className="space-y-4">
+                            {trainings.map((item, i) => (
+                                <div className="break-inside-avoid" key={i}>
+                                    <p className="text-[13px] font-semibold text-white">{item.course}</p>
+                                    <p className="text-[11px] text-gray-400 mt-0.5">{item.institution}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'publications':
+                return publications.length > 0 ? (
+                    <section key="publications" data-section="publications" className="mt-7">
+                        <div className="flex items-end gap-3 break-after-avoid">
                             <h2 className="text-[12px] tracking-[0.18em] text-gray-800 font-semibold uppercase">PUBLICATIONS</h2>
                             <Rule />
                         </div>
@@ -184,7 +216,79 @@ const EscobarTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                             </div>
                         ))}
                     </section>
-                )}
+                ) : null;
+            case 'volunteer':
+                return volunteer.length > 0 ? (
+                    <section key="volunteer" data-section="volunteer" className="mb-7">
+                        <div className="flex items-end gap-3 mb-4 break-after-avoid">
+                            <h2 className="text-[12px] tracking-[0.18em] font-semibold uppercase text-gray-300">VOLUNTEERING</h2>
+                            <Rule dark />
+                        </div>
+                        <div className="space-y-4">
+                            {volunteer.map((vol, i) => (
+                                <div className="break-inside-avoid" key={i}>
+                                    <p className="text-[13px] font-semibold text-white">{vol.role}</p>
+                                    <p className="text-[11px] text-gray-400 mt-0.5">{vol.organization}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'custom':
+                return custom.length > 0 ? (
+                    <section key="custom" data-section="custom" className="mb-7">
+                        <div className="flex items-end gap-3 mb-4 break-after-avoid">
+                            <h2 className="text-[12px] tracking-[0.18em] font-semibold uppercase text-gray-300">ADDITIONAL</h2>
+                            <Rule dark />
+                        </div>
+                        <div className="space-y-4">
+                            {custom.map((item, i) => (
+                                <div className="break-inside-avoid" key={i}>
+                                    <p className="text-[13px] font-semibold text-white">{item.title}</p>
+                                    <p className="text-[11px] text-gray-400 mt-0.5">{item.subtitle}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            default:
+                return null;
+        }
+    };
+    const renderRun = (ids: readonly SectionId[]): React.ReactNode[] =>
+        orderedSections(formData, visibleSections, ids).map(renderSection);
+
+    return (
+        <div id={isCardPreview ? undefined : "resume-preview-escobar"} className={`w-[794px] min-h-[1123px] h-auto bg-white shadow-sm border border-gray-200 flex ${fontSize} font-sans`} style={{ fontFamily: settings?.fontFamily || 'Arial, sans-serif' }}>
+
+            {/* LEFT COLUMN (≈66%) */}
+            <div className="w-2/3 px-10 pt-10 pb-8">
+                {/* Header */}
+                <header>
+                    <h1 className="text-[34px] leading-none tracking-tight font-extrabold text-gray-900 uppercase">{contact.firstName} {contact.lastName}</h1>
+                    <p className="mt-1 text-[14px] font-semibold" style={{ color: primaryBlue }}>
+                        {contact.jobTitle}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-3 text-[12px] text-gray-600">
+                        {contact.email && <span className="inline-flex items-center gap-1"><Mail aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[14px]" /> {contact.email}</span>}
+                        {contact.linkedin && (
+                            <>
+                                <span className="text-gray-300">•</span>
+                                <span className="inline-flex items-center gap-1"><Link aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[14px]" /> LinkedIn</span>
+                            </>
+                        )}
+                        {(fullPhone || fullAddress) && (
+                             <>
+                                <span className="text-gray-300">•</span>
+                                {fullPhone && <span className="inline-flex items-center gap-1"><Phone aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[14px]" /> {fullPhone}</span>}
+                                {fullAddress && <span className="inline-flex items-center gap-1 ml-2"><MapPin aria-hidden="true" className="w-[1em] h-[1em] shrink-0 inline-block align-[-0.125em] text-[14px]" /> {city}</span>}
+                             </>
+                        )}
+                    </div>
+                </header>
+
+                {/* SUMMARY */}
+                {renderRun(['summary', 'experience', 'projects', 'education', 'languages', 'publications'])}
             </div>
 
             {/* RIGHT SIDEBAR (≈34%) */}
@@ -200,113 +304,11 @@ const EscobarTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview
                 )}
 
                 {/* SKILLS */}
-                {skills.length > 0 && (
-                    <section className="mb-7">
-                        <div className="flex items-end gap-3 mb-4">
-                            <h2 className="text-[12px] tracking-[0.18em] font-semibold uppercase text-gray-300">SKILLS</h2>
-                            <Rule dark />
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {skills.map((skill, i) => (
-                                <span key={i} className="bg-white/10 px-2 py-1 rounded text-[11px] font-medium text-gray-200 border border-white/5">{skill}</span>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
-                {/* CERTIFICATIONS */}
-                {visibleSections.includes('certifications') && certifications.length > 0 && (
-                    <section className="mb-7">
-                        <div className="flex items-end gap-3 mb-4">
-                            <h2 className="text-[12px] tracking-[0.18em] font-semibold uppercase text-gray-300">CERTIFICATIONS</h2>
-                            <Rule dark />
-                        </div>
-                        <div className="space-y-4">
-                            {certifications.map((cert, i) => (
-                                <div key={i}>
-                                    <p className="text-[13px] font-semibold text-white">{cert.name}</p>
-                                    {cert.expiryDate && <p className="text-[11px] text-gray-400 mt-0.5">Expires: {cert.expiryDate}</p>}
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
-                {/* AWARDS */}
-                {visibleSections.includes('awards') && awards.length > 0 && (
-                    <section className="mb-7">
-                        <div className="flex items-end gap-3 mb-4">
-                            <h2 className="text-[12px] tracking-[0.18em] font-semibold uppercase text-gray-300">AWARDS</h2>
-                            <Rule dark />
-                        </div>
-                        <div className="space-y-4">
-                            {awards.map((award, i) => (
-                                <div key={i}>
-                                    <p className="text-[13px] font-semibold text-white">{award.title}</p>
-                                    <p className="text-[11px] text-gray-400 mt-0.5">{award.issuer}, {award.date}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
-                {/* TRAININGS */}
-                {visibleSections.includes('trainings') && trainings.length > 0 && (
-                    <section className="mb-7">
-                        <div className="flex items-end gap-3 mb-4">
-                            <h2 className="text-[12px] tracking-[0.18em] font-semibold uppercase text-gray-300">TRAINING</h2>
-                            <Rule dark />
-                        </div>
-                        <div className="space-y-4">
-                            {trainings.map((item, i) => (
-                                <div key={i}>
-                                    <p className="text-[13px] font-semibold text-white">{item.course}</p>
-                                    <p className="text-[11px] text-gray-400 mt-0.5">{item.institution}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
-                {/* VOLUNTEERING */}
-                {visibleSections.includes('volunteer') && volunteer.length > 0 && (
-                    <section className="mb-7">
-                        <div className="flex items-end gap-3 mb-4">
-                            <h2 className="text-[12px] tracking-[0.18em] font-semibold uppercase text-gray-300">VOLUNTEERING</h2>
-                            <Rule dark />
-                        </div>
-                        <div className="space-y-4">
-                            {volunteer.map((vol, i) => (
-                                <div key={i}>
-                                    <p className="text-[13px] font-semibold text-white">{vol.role}</p>
-                                    <p className="text-[11px] text-gray-400 mt-0.5">{vol.organization}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
-                {/* CUSTOM */}
-                {visibleSections.includes('custom') && custom.length > 0 && (
-                    <section className="mb-7">
-                        <div className="flex items-end gap-3 mb-4">
-                            <h2 className="text-[12px] tracking-[0.18em] font-semibold uppercase text-gray-300">ADDITIONAL</h2>
-                            <Rule dark />
-                        </div>
-                        <div className="space-y-4">
-                            {custom.map((item, i) => (
-                                <div key={i}>
-                                    <p className="text-[13px] font-semibold text-white">{item.title}</p>
-                                    <p className="text-[11px] text-gray-400 mt-0.5">{item.subtitle}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
+                {renderRun(['skills', 'certifications', 'awards', 'trainings', 'volunteer', 'custom'])}
 
             </aside>
         </div>
     );
 };
 
-export default EscobarTemplate;
+export default React.memo(EscobarTemplate);

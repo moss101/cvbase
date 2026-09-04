@@ -19,20 +19,21 @@ import type { StoredResume } from '../../services/repos/mappers';
 import type { ResumeData, TemplateId } from '../../types';
 import type { DashboardTab } from '../Dashboard';
 import type { LegalTab } from '../LegalPage';
+import { useTranslation } from '../../services/translationService';
 
 const PRIMARY_TABS: DashboardTab[] = ['dashboard', 'resumes', 'templates', 'profile'];
-const PRIMARY_TITLES: Partial<Record<DashboardTab, string>> = {
-    resumes: 'Resumes',
-    templates: 'Templates',
-    profile: 'Profile',
+const PRIMARY_TITLE_KEYS: Partial<Record<DashboardTab, [string, string]>> = {
+    resumes: ['tabbar.resumes', 'Resumes'],
+    templates: ['tabbar.templates', 'Templates'],
+    profile: ['tabbar.profile', 'Profile'],
 };
-const SECONDARY_TITLES: Partial<Record<DashboardTab, string>> = {
-    'smart-studio': 'Smart Studio',
-    ats: 'ATS Checker',
-    billing: 'Billing & Plans',
-    prism: 'PRISM Tailor',
-    admin: 'Admin',
-    settings: 'Settings',
+const SECONDARY_TITLE_KEYS: Partial<Record<DashboardTab, [string, string]>> = {
+    'smart-studio': ['mobile.smartStudio', 'Smart Studio'],
+    ats: ['mobile.atsChecker', 'ATS Checker'],
+    billing: ['mobile.billingPlans', 'Billing & Plans'],
+    prism: ['mobile.prismTailor', 'PRISM Tailor'],
+    admin: ['mobile.admin', 'Admin'],
+    settings: ['mobile.settings', 'Settings'],
 };
 
 interface DashboardMobileProps {
@@ -89,6 +90,7 @@ const DashboardMobile: React.FC<DashboardMobileProps> = ({
 }) => {
     const { user, userProfile, logout, profileComplete, missingProfileFields } = useAuth();
     const { plan } = useSubscription();
+    const { t } = useTranslation();
 
     // The real multi-resume list, for Home's carousel and the Resumes tab.
     // `savedResume` (a single localStorage draft) remains the fallback for
@@ -107,11 +109,11 @@ const DashboardMobile: React.FC<DashboardMobileProps> = ({
     const carouselResumes = resumes ?? [];
     const heroSource = carouselResumes[0] ?? null;
     const heroResumeMeta = heroSource
-        ? { title: heroSource.title, subtitle: heroSource.data?.contact?.jobTitle || 'Draft' }
+        ? { title: heroSource.title, subtitle: heroSource.data?.contact?.jobTitle || t('mobile.draft', 'Draft') }
         : savedResume
             ? {
-                title: savedResume.contact.firstName ? `${savedResume.contact.firstName}'s resume` : 'Untitled resume',
-                subtitle: savedResume.contact.jobTitle || 'Draft',
+                title: savedResume.contact.firstName ? t('mobile.usersResume', "{name}'s resume").replace('{name}', savedResume.contact.firstName) : t('mobile.untitledResume', 'Untitled resume'),
+                subtitle: savedResume.contact.jobTitle || t('mobile.draft', 'Draft'),
             }
             : null;
     const hasAnyResume = !!heroResumeMeta;
@@ -129,17 +131,17 @@ const DashboardMobile: React.FC<DashboardMobileProps> = ({
             {!isPrimaryTab && (
                 <MobileTopBar
                     onBack={() => setActiveTab('dashboard')}
-                    center={<span className="text-[15.5px] font-bold text-dark">{SECONDARY_TITLES[activeTab]}</span>}
+                    center={<span className="text-[15.5px] font-bold text-dark">{SECONDARY_TITLE_KEYS[activeTab] ? t(...SECONDARY_TITLE_KEYS[activeTab]!) : ''}</span>}
                 />
             )}
             {isPrimaryTab && activeTab !== 'dashboard' && (
                 <MobileTopBar
-                    center={<span className="font-display text-[19px] font-semibold text-dark">{PRIMARY_TITLES[activeTab]}</span>}
+                    center={<span className="font-display text-[19px] font-semibold text-dark">{PRIMARY_TITLE_KEYS[activeTab] ? t(...PRIMARY_TITLE_KEYS[activeTab]!) : ''}</span>}
                     trailing={activeTab === 'resumes' ? (
                         <button
                             type="button"
                             onClick={() => onCreateNew()}
-                            aria-label="New resume"
+                            aria-label={t('mobile.newResume', 'New resume')}
                             className="tap-target flex items-center justify-center rounded-full text-dark transition active:scale-95"
                         >
                             <Plus size={20} strokeWidth={2} />
@@ -157,7 +159,7 @@ const DashboardMobile: React.FC<DashboardMobileProps> = ({
                             <button
                                 type="button"
                                 onClick={() => onCreateNew()}
-                                aria-label="New resume"
+                                aria-label={t('mobile.newResume', 'New resume')}
                                 className="tap-target flex items-center justify-center rounded-full border border-border bg-white text-dark transition active:scale-95"
                             >
                                 <Plus size={18} strokeWidth={2} />
@@ -167,7 +169,7 @@ const DashboardMobile: React.FC<DashboardMobileProps> = ({
                         <div className="px-4 pt-3">
                             <h1 className="font-display text-[26px] font-semibold leading-tight tracking-[-0.01em] text-dark">{greeting}</h1>
                             <p className="mt-1 text-[13.5px] text-gray-500">
-                                {hasAnyResume ? 'Pick up where you left off.' : "Let's build your first resume."}
+                                {hasAnyResume ? t('mobile.pickUpWhereLeftOff', 'Pick up where you left off.') : t('mobile.buildFirstResume', "Let's build your first resume.")}
                             </p>
                         </div>
 
@@ -190,7 +192,7 @@ const DashboardMobile: React.FC<DashboardMobileProps> = ({
                                 </div>
                             ) : (
                                 <p className="px-1 py-2 text-[13.5px] leading-relaxed text-gray-500">
-                                    Templates typeset like fine print, an AI editor, and an ATS-ready structure — in under ten minutes.
+                                    {t('mobile.homeTagline', 'Templates typeset like fine print, an AI editor, and an ATS-ready structure — in under ten minutes.')}
                                 </p>
                             )}
                             <button
@@ -198,13 +200,13 @@ const DashboardMobile: React.FC<DashboardMobileProps> = ({
                                 onClick={handleContinue}
                                 className="tap-target mt-3 flex w-full items-center justify-center rounded-2xl bg-primary text-[15px] font-bold text-white shadow-sm transition active:scale-[0.98]"
                             >
-                                {hasAnyResume ? 'Continue editing' : 'Start your resume'}
+                                {hasAnyResume ? t('mobile.continueEditing', 'Continue editing') : t('mobile.startYourResume', 'Start your resume')}
                             </button>
                         </div>
 
                         {carouselResumes.length > 0 && (
                             <>
-                                <p className="mb-2.5 mt-6 px-4 text-[13px] font-bold text-dark">Your resumes</p>
+                                <p className="mb-2.5 mt-6 px-4 text-[13px] font-bold text-dark">{t('mobile.yourResumes', 'Your resumes')}</p>
                                 <div className="flex gap-2.5 overflow-x-auto px-4 pb-1">
                                     {carouselResumes.map((r) => (
                                         <button
@@ -218,7 +220,7 @@ const DashboardMobile: React.FC<DashboardMobileProps> = ({
                                             </div>
                                             <p className="truncate text-[12.5px] font-bold text-dark">{r.title}</p>
                                             <p className="truncate text-[11px] text-gray-500">
-                                                {r.data?.contact?.jobTitle || AVAILABLE_TEMPLATES.find((t) => t.id === r.templateId)?.name || 'Draft'}
+                                                {r.data?.contact?.jobTitle || AVAILABLE_TEMPLATES.find((tpl) => tpl.id === r.templateId)?.name || t('mobile.draft', 'Draft')}
                                             </p>
                                         </button>
                                     ))}
@@ -228,7 +230,7 @@ const DashboardMobile: React.FC<DashboardMobileProps> = ({
                                         className="flex w-[116px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-border text-primary transition active:scale-[0.98]"
                                     >
                                         <Plus size={20} strokeWidth={2} />
-                                        <span className="text-[11.5px] font-bold">New resume</span>
+                                        <span className="text-[11.5px] font-bold">{t('mobile.newResume', 'New resume')}</span>
                                     </button>
                                 </div>
                             </>
@@ -237,18 +239,18 @@ const DashboardMobile: React.FC<DashboardMobileProps> = ({
                         <div className="mx-4 mt-6 divide-y divide-border border-t border-border">
                             <button type="button" onClick={() => setActiveTab('ats')} className="tap-target flex w-full items-center gap-3 py-3.5 text-left">
                                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-light text-primary-dark"><Target size={16} strokeWidth={1.75} /></span>
-                                <span className="flex-1 text-[14px] font-semibold text-dark">Check ATS compatibility</span>
+                                <span className="flex-1 text-[14px] font-semibold text-dark">{t('mobile.checkAtsCompatibility', 'Check ATS compatibility')}</span>
                                 {lastAtsScore && <span className="text-[12px] font-semibold text-gray-400">{lastAtsScore.atsScore}</span>}
                                 <ChevronRight size={16} className="text-gray-300" />
                             </button>
                             <button type="button" onClick={() => setActiveTab('smart-studio')} className="tap-target flex w-full items-center gap-3 py-3.5 text-left">
                                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-light text-primary-dark"><Sparkles size={16} strokeWidth={1.75} /></span>
-                                <span className="flex-1 text-[14px] font-semibold text-dark">Improve with AI</span>
+                                <span className="flex-1 text-[14px] font-semibold text-dark">{t('mobile.improveWithAi', 'Improve with AI')}</span>
                                 <ChevronRight size={16} className="text-gray-300" />
                             </button>
                             <button type="button" onClick={() => setActiveTab('templates')} className="tap-target flex w-full items-center gap-3 py-3.5 text-left">
                                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-light text-primary-dark"><LayoutTemplate size={16} strokeWidth={1.75} /></span>
-                                <span className="flex-1 text-[14px] font-semibold text-dark">Browse templates</span>
+                                <span className="flex-1 text-[14px] font-semibold text-dark">{t('mobile.browseTemplates', 'Browse templates')}</span>
                                 <ChevronRight size={16} className="text-gray-300" />
                             </button>
                         </div>
@@ -270,13 +272,13 @@ const DashboardMobile: React.FC<DashboardMobileProps> = ({
                                     className="flex h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-white"
                                 >
                                     <Plus size={22} className="mb-2 text-primary" strokeWidth={2} />
-                                    <p className="font-bold text-gray-500">Create new resume</p>
+                                    <p className="font-bold text-gray-500">{t('mobile.createNewResume', 'Create new resume')}</p>
                                 </div>
                                 {savedResume && (
                                     <div onClick={onEditExisting} className="cursor-pointer overflow-hidden rounded-2xl border border-border bg-white">
                                         <div className="p-4">
-                                            <h3 className="truncate text-[15px] font-bold text-dark">{savedResume.contact.firstName || 'Untitled'} resume</h3>
-                                            <p className="mt-0.5 text-[12.5px] text-gray-500">{savedResume.contact.jobTitle || 'No job title'}</p>
+                                            <h3 className="truncate text-[15px] font-bold text-dark">{savedResume.contact.firstName ? t('mobile.usersResume', "{name}'s resume").replace('{name}', savedResume.contact.firstName) : t('mobile.untitledResume', 'Untitled resume')}</h3>
+                                            <p className="mt-0.5 text-[12.5px] text-gray-500">{savedResume.contact.jobTitle || t('mobile.noJobTitle', 'No job title')}</p>
                                         </div>
                                     </div>
                                 )}
@@ -326,9 +328,9 @@ const DashboardMobile: React.FC<DashboardMobileProps> = ({
                     <div className="pb-8">
                         {user && !profileComplete && (
                             <div role="status" className="mx-4 mt-4 rounded-2xl border border-primary/30 bg-primary/5 p-4">
-                                <h2 className="text-[14px] font-semibold text-dark">Finish your profile to continue</h2>
+                                <h2 className="text-[14px] font-semibold text-dark">{t('mobile.finishProfileToContinue', 'Finish your profile to continue')}</h2>
                                 <p className="mt-1 text-[12.5px] text-ink-soft">
-                                    Still needed: <span className="font-semibold text-dark">{missingProfileFields.join(', ')}</span>.
+                                    {t('mobile.stillNeeded', 'Still needed:')} <span className="font-semibold text-dark">{missingProfileFields.join(', ')}</span>.
                                 </p>
                             </div>
                         )}
@@ -340,20 +342,20 @@ const DashboardMobile: React.FC<DashboardMobileProps> = ({
                                 </div>
                                 <div className="min-w-0">
                                     <p className="truncate text-[15px] font-bold text-dark">
-                                        {userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName ?? ''}`.trim() : (user.email?.split('@')[0] ?? 'User')}
+                                        {userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName ?? ''}`.trim() : (user.email?.split('@')[0] ?? t('mobile.user', 'User'))}
                                     </p>
                                     <p className="truncate text-[12.5px] text-gray-500">{user.email}</p>
                                 </div>
                             </div>
                         ) : (
                             <div className="mx-4 mt-5 rounded-2xl border border-border bg-white p-4 text-center">
-                                <p className="text-[13.5px] text-gray-500">Sign in to sync your resumes and profile across devices.</p>
+                                <p className="text-[13.5px] text-gray-500">{t('mobile.signInToSync', 'Sign in to sync your resumes and profile across devices.')}</p>
                                 <button
                                     type="button"
                                     onClick={onOpenAuth}
                                     className="tap-target mt-3 flex w-full items-center justify-center rounded-xl bg-dark text-[14px] font-bold text-white transition active:scale-[0.98]"
                                 >
-                                    Sign in
+                                    {t('mobile.signIn', 'Sign in')}
                                 </button>
                             </div>
                         )}
@@ -365,34 +367,34 @@ const DashboardMobile: React.FC<DashboardMobileProps> = ({
                         {user && (
                             <div className="mx-4 mt-6 divide-y divide-border rounded-2xl border border-border bg-white">
                                 <button type="button" onClick={() => setActiveTab('billing')} className="tap-target flex w-full items-center gap-3 px-4 text-left">
-                                    <span className="flex-1 text-[14px] font-semibold text-dark">Billing &amp; plans</span>
+                                    <span className="flex-1 text-[14px] font-semibold text-dark">{t('mobile.billingPlansLink', 'Billing & plans')}</span>
                                     <span className="text-[12px] text-gray-400">{plan.name}</span>
                                     <ChevronRight size={16} className="text-gray-300" />
                                 </button>
                                 <button type="button" onClick={() => setActiveTab('settings')} className="tap-target flex w-full items-center gap-3 px-4 text-left">
-                                    <span className="flex-1 text-[14px] font-semibold text-dark">Settings</span>
+                                    <span className="flex-1 text-[14px] font-semibold text-dark">{t('mobile.settings', 'Settings')}</span>
                                     <ChevronRight size={16} className="text-gray-300" />
                                 </button>
                                 {prismEnabled && (
                                     <button type="button" onClick={() => setActiveTab('prism')} className="tap-target flex w-full items-center gap-3 px-4 text-left">
-                                        <span className="flex-1 text-[14px] font-semibold text-dark">PRISM Tailor</span>
+                                        <span className="flex-1 text-[14px] font-semibold text-dark">{t('mobile.prismTailor', 'PRISM Tailor')}</span>
                                         <ChevronRight size={16} className="text-gray-300" />
                                     </button>
                                 )}
                                 {isAdmin && (
                                     <button type="button" onClick={() => setActiveTab('admin')} className="tap-target flex w-full items-center gap-3 px-4 text-left">
-                                        <span className="flex-1 text-[14px] font-semibold text-dark">Admin</span>
+                                        <span className="flex-1 text-[14px] font-semibold text-dark">{t('mobile.admin', 'Admin')}</span>
                                         <ChevronRight size={16} className="text-gray-300" />
                                     </button>
                                 )}
                                 {onViewResources && (
                                     <button type="button" onClick={onViewResources} className="tap-target flex w-full items-center gap-3 px-4 text-left">
-                                        <span className="flex-1 text-[14px] font-semibold text-dark">Career resources</span>
+                                        <span className="flex-1 text-[14px] font-semibold text-dark">{t('mobile.careerResources', 'Career resources')}</span>
                                         <ChevronRight size={16} className="text-gray-300" />
                                     </button>
                                 )}
                                 <button type="button" onClick={logout} className="tap-target flex w-full items-center justify-center px-4 text-[14px] font-bold text-danger">
-                                    Sign out
+                                    {t('mobile.signOut', 'Sign out')}
                                 </button>
                             </div>
                         )}

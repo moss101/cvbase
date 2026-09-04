@@ -1,6 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { X } from 'lucide-react';
 import { useBackHandler } from '../NavigationProvider';
+import { useDialog } from '../../lib/useDialog';
+import { useTranslation } from '../../services/translationService';
 
 interface BottomSheetProps {
     isOpen: boolean;
@@ -15,16 +17,13 @@ interface BottomSheetProps {
  * Generic backdrop + slide-up panel. Registers with the navigation stack's
  * back-handler chain so an in-app back tap, the browser/gesture back, and the
  * Android hardware back button all close the sheet before popping a screen.
+ * `useDialog` adds the keyboard side: Escape, a Tab trap, focus in/restore and
+ * the body scroll lock.
  */
 const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, children, heightClassName }) => {
+    const { t } = useTranslation();
     useBackHandler(isOpen, onClose);
-
-    useEffect(() => {
-        if (!isOpen) return;
-        const previousOverflow = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-        return () => { document.body.style.overflow = previousOverflow; };
-    }, [isOpen]);
+    const dialog = useDialog({ open: isOpen, onClose, label: title ?? t('label.sheet', 'Sheet') });
 
     if (!isOpen) return null;
 
@@ -36,10 +35,8 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, child
                 aria-hidden="true"
             />
             <div
-                className={`relative flex flex-col rounded-t-[28px] bg-white shadow-2xl sheet-panel-enter ${heightClassName ?? 'max-h-[80vh]'}`}
-                role="dialog"
-                aria-modal="true"
-                aria-label={title}
+                {...dialog.panelProps}
+                className={`relative flex flex-col rounded-t-[28px] bg-white shadow-2xl outline-none sheet-panel-enter ${heightClassName ?? 'max-h-[80vh]'}`}
             >
                 <div className="flex shrink-0 justify-center pb-1 pt-2.5">
                     <span className="h-1 w-9 rounded-full bg-border" />
@@ -50,7 +47,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, child
                         <button
                             type="button"
                             onClick={onClose}
-                            aria-label="Close"
+                            aria-label={t('btn.close', 'Close')}
                             className="tap-target -mr-2 flex items-center justify-center rounded-full text-gray-400 transition hover:text-dark active:scale-95"
                         >
                             <X size={20} strokeWidth={1.75} />

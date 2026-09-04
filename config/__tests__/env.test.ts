@@ -30,4 +30,16 @@ describe('getClientEnv', () => {
     expect(() => getClientEnv()).not.toThrow();
     expect(getClientEnv().stripePublishableKey).toBe('');
   });
+
+  it('treats the Sentry DSN as optional and passes it through when set', () => {
+    vi.stubEnv('VITE_SUPABASE_URL', 'https://x.supabase.co');
+    vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'anon-key');
+    vi.stubEnv('VITE_SENTRY_DSN', '');
+    expect(() => getClientEnv()).not.toThrow();
+    expect(getClientEnv().sentryDsn).toBe('');
+
+    __resetClientEnvCache();
+    vi.stubEnv('VITE_SENTRY_DSN', 'https://abc@o1.ingest.sentry.io/1');
+    expect(getClientEnv().sentryDsn).toBe('https://abc@o1.ingest.sentry.io/1');
+  });
 });

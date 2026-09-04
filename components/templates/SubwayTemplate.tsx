@@ -1,8 +1,12 @@
 import React from 'react';
 import { sanitizeHtml } from '../../lib/sanitizeHtml';
-import type { ResumePreviewProps } from '../../types';
+import type { ResumePreviewProps, SectionId } from '../../types';
+import { orderedSections, sectionLayout } from '../../lib/templates/sectionOrder';
 import { countries } from '../../data/locationData';
 import { OptionalSectionsRenderer } from './OptionalSectionsRenderer';
+
+/** Sections handed to the shared OptionalSectionsRenderer, in its default order. */
+const OPTIONAL_IDS: readonly SectionId[] = ['awards', 'trainings', 'publications', 'volunteer', 'custom'];
 
 const SubwayTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, visibleSections, settings }) => {
     const { contact, summary, experience, projects, education, skills, certifications, languages, awards, trainings, publications, volunteer, custom } = formData;
@@ -24,6 +28,95 @@ const SubwayTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
             </div>
         </div>
     );
+
+    const renderSection = (id: SectionId): React.ReactNode => {
+        switch (id) {
+            case 'summary':
+                return summary.professionalSummary ? (
+                    <section key="summary" data-section="summary" className="mb-4">
+                        <div className="break-after-avoid">{renderHeader('profile', '01')}</div>
+                        <div className="text-stone-700 leading-relaxed pl-11 text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
+                    </section>
+                ) : null;
+            case 'experience':
+                return experience.length > 0 ? (
+                    <section key="experience" data-section="experience" className="mb-4">
+                        <div className="break-after-avoid">{renderHeader('experience', '02')}</div>
+                        <div className="space-y-4 pl-11">
+                            {experience.map(exp => (
+                                <div key={exp.id} className="border-l-2 border-dashed border-stone-300 pl-4 relative break-inside-avoid">
+                                    {/* Small circle accent */}
+                                    <span className="absolute -left-[5px] top-1.5 w-[8px] h-[8px] rounded-full bg-stone-400"></span>
+
+                                    <div className="flex justify-between items-baseline mb-0.5">
+                                        <h3 className="font-black text-[11px] uppercase text-stone-900">{exp.jobTitle}</h3>
+                                        <span className="text-[9px] font-bold text-stone-500">[{exp.startDate} :: {exp.endDate}]</span>
+                                    </div>
+                                    <p className="text-[9px] text-[#A67E14] font-bold mb-1 uppercase tracking-wide">
+                                        &gt; {exp.company} // {exp.location}
+                                    </p>
+                                    <div className="text-stone-600 text-xs text-justify font-sans" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'education':
+                return education.length > 0 ? (
+                    <div key="education" data-section="education" className="space-y-3">
+                        {education.map(edu => (
+                            <div key={edu.id} className="text-[9.5px] break-inside-avoid">
+                                <p className="font-extrabold text-stone-900 uppercase">{edu.school}</p>
+                                <p className="text-stone-500 italic">{edu.degree}</p>
+                                <p className="text-[8px] text-stone-400 mt-0.5">{edu.startDate} – {edu.endDate}</p>
+                            </div>
+                        ))}
+                    </div>
+                ) : null;
+            case 'projects':
+                return projects.length > 0 ? (
+                    <section key="projects" data-section="projects" className="mb-4">
+                        <div className="break-after-avoid">{renderHeader('projects', '03')}</div>
+                        <div className="space-y-4 pl-11">
+                            {projects.map(proj => (
+                                <div key={proj.id} className="border-l-2 border-stone-200 pl-4 relative break-inside-avoid">
+                                    <span className="absolute -left-[4px] top-1.5 w-[6px] h-[6px] rounded-full bg-stone-300"></span>
+                                    <div className="flex justify-between items-baseline mb-0.5">
+                                        <h3 className="font-black text-[11px] uppercase text-stone-800">{proj.name}</h3>
+                                        <span className="text-[9px] text-stone-400">[{proj.startDate} – {proj.endDate}]</span>
+                                    </div>
+                                    {proj.technologies && (
+                                        <p className="text-[8.5px] text-stone-400 font-bold mb-1">
+                                            ENV_TAGS :: {proj.technologies}
+                                        </p>
+                                    )}
+                                    <div className="text-stone-600 text-xs text-justify font-sans" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            default:
+                return null;
+        }
+    };
+    const renderRun = (ids: readonly SectionId[]): React.ReactNode[] =>
+        sectionLayout(orderedSections(formData, visibleSections, ids), { runs: { optional: OPTIONAL_IDS } }).map((run) =>
+            run.kind === 'section' ? renderSection(run.id) : (
+                <OptionalSectionsRenderer
+                        key={`optional-${run.ids[0]}`}
+                        sections={run.ids}
+                        formData={formData}
+                        visibleSections={visibleSections}
+                        fontClass="font-mono text-[9px]"
+                        textClass="text-stone-605 text-[10px] font-sans leading-relaxed text-justify"
+                        titleClass="font-extrabold text-stone-900 text-[10px] uppercase tracking-wider"
+                        subtextClass="text-[8.5px] font-mono text-stone-400"
+                        accentColor="#DC2626"
+                        renderHeader={(title, tag) => renderHeader(title.toLowerCase(), tag || 'OPT')}
+                />
+            ),
+        );
 
     return (
         <div 
@@ -58,77 +151,14 @@ const SubwayTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                 </header>
 
                 {/* Professional Statement */}
-                {summary.professionalSummary && (
-                    <section className="mb-4">
-                        {renderHeader('profile', '01')}
-                        <div className="text-stone-700 leading-relaxed pl-11 text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
-                    </section>
-                )}
-
-                {/* Work Experience */}
-                {experience.length > 0 && (
-                    <section className="mb-4">
-                        {renderHeader('experience', '02')}
-                        <div className="space-y-4 pl-11">
-                            {experience.map(exp => (
-                                <div key={exp.id} className="border-l-2 border-dashed border-stone-300 pl-4 relative">
-                                    {/* Small circle accent */}
-                                    <span className="absolute -left-[5px] top-1.5 w-[8px] h-[8px] rounded-full bg-stone-400"></span>
-                                    
-                                    <div className="flex justify-between items-baseline mb-0.5">
-                                        <h3 className="font-black text-[11px] uppercase text-stone-900">{exp.jobTitle}</h3>
-                                        <span className="text-[9px] font-bold text-stone-500">[{exp.startDate} :: {exp.endDate}]</span>
-                                    </div>
-                                    <p className="text-[9px] text-[#A67E14] font-bold mb-1 uppercase tracking-wide">
-                                        &gt; {exp.company} // {exp.location}
-                                    </p>
-                                    <div className="text-stone-600 text-xs text-justify font-sans" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
-                {/* Projects */}
-                {visibleSections.includes('projects') && projects.length > 0 && (
-                    <section className="mb-4">
-                        {renderHeader('projects', '03')}
-                        <div className="space-y-4 pl-11">
-                            {projects.map(proj => (
-                                <div key={proj.id} className="border-l-2 border-stone-200 pl-4 relative">
-                                    <span className="absolute -left-[4px] top-1.5 w-[6px] h-[6px] rounded-full bg-stone-300"></span>
-                                    <div className="flex justify-between items-baseline mb-0.5">
-                                        <h3 className="font-black text-[11px] uppercase text-stone-800">{proj.name}</h3>
-                                        <span className="text-[9px] text-stone-400">[{proj.startDate} – {proj.endDate}]</span>
-                                    </div>
-                                    {proj.technologies && (
-                                        <p className="text-[8.5px] text-stone-400 font-bold mb-1">
-                                            ENV_TAGS :: {proj.technologies}
-                                        </p>
-                                    )}
-                                    <div className="text-stone-600 text-xs text-justify font-sans" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
+                {renderRun(['summary', 'experience', 'projects'])}
 
                 {/* Triple block horizontal info grid */}
                 <div className="grid grid-cols-3 gap-6 mt-6 pt-3 pl-11">
                     {/* Education block */}
                     <div>
                         <h4 className="font-black uppercase text-[10px] text-stone-905 border-b pb-1 mb-2 tracking-widest">// education</h4>
-                        {education.length > 0 && (
-                            <div className="space-y-3">
-                                {education.map(edu => (
-                                    <div key={edu.id} className="text-[9.5px]">
-                                        <p className="font-extrabold text-stone-900 uppercase">{edu.school}</p>
-                                        <p className="text-stone-500 italic">{edu.degree}</p>
-                                        <p className="text-[8px] text-stone-400 mt-0.5">{edu.startDate} – {edu.endDate}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        {renderRun(['education'])}
                     </div>
 
                     {/* Skill Tags block */}
@@ -166,21 +196,11 @@ const SubwayTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                 </div>
 
                 <div className="mt-6 border-t border-dashed border-stone-300 pt-5">
-                    <OptionalSectionsRenderer
-                        formData={formData}
-                        visibleSections={visibleSections}
-                        excludeSections={['projects', 'certifications', 'languages']}
-                        fontClass="font-mono text-[9px]"
-                        textClass="text-stone-605 text-[10px] font-sans leading-relaxed text-justify"
-                        titleClass="font-extrabold text-stone-900 text-[10px] uppercase tracking-wider"
-                        subtextClass="text-[8.5px] font-mono text-stone-400"
-                        accentColor="#DC2626"
-                        renderHeader={(title, tag) => renderHeader(title.toLowerCase(), tag || 'OPT')}
-                    />
+                    {renderRun(['awards', 'trainings', 'publications', 'volunteer', 'custom'])}
                 </div>
             </div>
         </div>
     );
 };
 
-export default SubwayTemplate;
+export default React.memo(SubwayTemplate);

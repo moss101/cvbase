@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFitScale } from '../lib/useFitScale';
 import type { ResumeData, SectionId, TemplateId, ResumeSettings } from '../types';
 import { NAV_SECTIONS, getVisibleNavSections } from '../constants';
 import { ContactIcon, SummaryIcon, ExperienceIcon, ProjectsIcon, EducationIcon, SkillsIcon, CertificationsIcon, FinalizeIcon, LanguagesIcon, CustomizeIcon, AwardIcon, TrainingIcon, PublicationIcon, VolunteerIcon, CustomIcon } from './common/icons';
+import { ArrowLeft, X, Eye, ChevronDown, Download } from 'lucide-react';
 import GsbExecutiveTemplate from './templates/GsbExecutiveTemplate';
 import IvyEliteTemplate from './templates/IvyEliteTemplate';
 import VanguardClassicTemplate from './templates/VanguardClassicTemplate';
@@ -126,6 +127,17 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
     const previewFit = useFitScale<HTMLDivElement>(794);
     const [isToggleListOpen, setIsToggleListOpen] = useState(false);
     const { t } = useTranslation();
+    const [isOffline, setIsOffline] = useState(() => typeof navigator !== 'undefined' && navigator.onLine === false);
+    useEffect(() => {
+        const goOnline = () => setIsOffline(false);
+        const goOffline = () => setIsOffline(true);
+        window.addEventListener('online', goOnline);
+        window.addEventListener('offline', goOffline);
+        return () => {
+            window.removeEventListener('online', goOnline);
+            window.removeEventListener('offline', goOffline);
+        };
+    }, []);
     
     const renderTemplate = () => {
         const props = { formData, isCardPreview: false, visibleSections, settings };
@@ -213,6 +225,21 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
 
     return (
         <>
+            {/* Keyboard users jump straight past the sidebar to the editor. The
+                target `id="main-content"` lives on ResumeBuilder's <main>. */}
+            <a href="#main-content" className="skip-link">
+                {t('label.skipToContent', 'Skip to main content')}
+            </a>
+            {isOffline && (
+                <div
+                    role="status"
+                    aria-live="polite"
+                    className="fixed inset-x-0 top-0 z-[60] bg-amber-100 px-4 py-2 text-center text-sm font-medium text-amber-900 shadow-sm"
+                    style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top, 0px))' }}
+                >
+                    {t('label.offlineNotice', "You're offline. Changes are saved on this device.")}
+                </div>
+            )}
             {isMobileOpen && (
                 <div 
                     className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-30 lg:hidden transition-opacity duration-300"
@@ -232,7 +259,7 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
                             title={t('label.backToDashboard', 'Back to Dashboard')}
                         >
                             <div className="bg-gradient-to-br from-primary to-secondary text-white p-2.5 rounded-xl shadow-lg shadow-primary/20">
-                                 <span className="material-symbols-outlined text-[22px]">arrow_back</span>
+                                 <ArrowLeft className="w-[22px] h-[22px]" aria-hidden="true" />
                             </div>
                             <div>
                                 <span className="text-dark">CV<span className="text-primary">Base</span></span>
@@ -242,9 +269,10 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
                             <button 
                                 onClick={onCloseMobile}
                                 className="lg:hidden p-2 rounded-xl text-gray-400 hover:text-gray-900 active:scale-95 transition cursor-pointer flex items-center justify-center"
-                                title="Close Sidebar"
+                                title={t('label.closeSidebar', 'Close Sidebar')}
+                                aria-label={t('label.closeSidebar', 'Close Sidebar')}
                             >
-                                <span className="material-symbols-outlined text-lg leading-none">close</span>
+                                <X className="w-[1em] h-[1em] text-lg leading-none" aria-hidden="true" />
                             </button>
                         )}
                     </div>
@@ -278,15 +306,13 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
                             className="w-full flex items-center justify-between text-left focus:outline-none hover:bg-gray-100/40 p-1.5 rounded-lg transition-all"
                         >
                             <div className="flex items-center gap-2">
-                                <span className="material-symbols-outlined text-gray-500 text-[18px]">visibility</span>
-                                <span className="text-[12px] font-bold text-gray-700 tracking-wide uppercase">Toggle Sections</span>
+                                <Eye className="w-[18px] h-[18px] text-gray-500" aria-hidden="true" />
+                                <span className="text-[12px] font-bold text-gray-700 tracking-wide uppercase">{t('label.toggleSections', 'Toggle Sections')}</span>
                                 <span className="bg-primary/12 text-primary text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">
                                     {visibleSections.length}
                                 </span>
                             </div>
-                            <span className={`material-symbols-outlined text-gray-400 text-[18px] transition-transform duration-300 ${isToggleListOpen ? 'rotate-180' : ''}`}>
-                                keyboard_arrow_down
-                            </span>
+                            <ChevronDown className={`w-[18px] h-[18px] text-gray-400 transition-transform duration-300 ${isToggleListOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
                         </button>
                         
                         {isToggleListOpen && (
@@ -333,11 +359,11 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
                             ref={previewFit.ref}
                             className="w-full aspect-[210/297] bg-white rounded-xl shadow-lg border border-gray-200/80 overflow-hidden cursor-pointer hover:shadow-2xl hover:border-primary/50 transition-all transform hover:-translate-y-1 relative group"
                             onClick={() => setIsPreviewModalOpen(true)}
-                            title="Click for full-size preview"
+                            title={t('label.clickFullPreview', 'Click for full-size preview')}
                         >
                             <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 z-20 transition-colors flex items-center justify-center">
                                 <span className="opacity-0 group-hover:opacity-100 bg-white/90 backdrop-blur text-primary px-4 py-2 rounded-full font-bold text-sm shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
-                                    Expand View
+                                    {t('label.expandView', 'Expand View')}
                                 </span>
                             </div>
                             
@@ -365,7 +391,7 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
                             onClick={onDownloadPDF}
                             className="w-full mt-5 py-3.5 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-bold text-sm transition-all hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98] flex items-center justify-center gap-2 group"
                         >
-                            <span className="material-symbols-outlined text-lg transition-transform duration-300 ease-out group-hover:translate-y-0.5">download</span>
+                            <Download className="w-[1em] h-[1em] text-lg transition-transform duration-300 ease-out group-hover:translate-y-0.5" aria-hidden="true" />
                             {t('btn.downloadPDF', 'Download PDF')}
                         </button>
                     </div>

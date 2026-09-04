@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import type { ResumeData, AIAnalysisResult, SectionId } from '../types';
 import { getAiSuggestionsForSection } from '../services/geminiService';
 import { SparklesIcon } from './common/icons';
+import { useDialog } from '../lib/useDialog';
 
 interface AIActionModalProps {
     isOpen: boolean;
@@ -56,20 +57,22 @@ const AIActionModal: React.FC<AIActionModalProps> = ({ isOpen, onClose, resumeDa
         }, 300);
     };
 
+    const dialog = useDialog({ open: isOpen, onClose: handleClose });
+
     if (!isOpen) return null;
 
     const sectionName = activeSection.charAt(0).toUpperCase() + activeSection.slice(1);
     const hasSuggestions = analysis && (analysis.summarySuggestion || (analysis.experienceSuggestions && analysis.experienceSuggestions.length > 0) || (analysis.missingKeywords && analysis.missingKeywords.length > 0));
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 animate-fade-in" onClick={handleClose}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 animate-fade-in" {...dialog.overlayProps}>
+            <div {...dialog.panelProps} className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col outline-none">
                 <header className="flex items-center justify-between p-5 border-b border-border">
                     <div className="flex items-center gap-3">
                         <SparklesIcon />
-                        <h2 className="text-2xl font-bold text-dark">AI Enhancement for {sectionName}</h2>
+                        <h2 id={dialog.titleId} className="text-2xl font-bold text-dark">AI Enhancement for {sectionName}</h2>
                     </div>
-                    <button onClick={handleClose} className="text-gray-400 hover:text-gray-700 transition-colors text-2xl font-bold">&times;</button>
+                    <button type="button" onClick={handleClose} aria-label="Close" className="text-gray-400 hover:text-gray-700 transition-colors text-2xl font-bold">&times;</button>
                 </header>
 
                 <div className="p-6 overflow-y-auto flex-grow">
@@ -82,6 +85,7 @@ const AIActionModal: React.FC<AIActionModalProps> = ({ isOpen, onClose, resumeDa
                                 onChange={(e) => setJobDescription(e.target.value)}
                                 className="w-full p-4 border border-border rounded-lg text-base bg-light focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 min-h-[250px] resize-y"
                                 placeholder="Paste the full job description here..."
+                                aria-label="Job description"
                             />
                             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
                         </div>

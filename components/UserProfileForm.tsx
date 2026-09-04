@@ -11,6 +11,11 @@ import {
   urlOnDomain,
 } from '../lib/validation';
 import FieldError from './common/FieldError';
+import {
+  CircleUserRound, IdCard, CircleCheck, CircleAlert, User, Link, Share2, Code, Globe,
+  Briefcase, Compass, Brain, X, Plus, Award, RefreshCw,
+} from 'lucide-react';
+import { useTranslation } from '../services/translationService';
 
 /** Shared input styling, with an error state that does not rely on colour alone. */
 const fieldClass = (hasError: boolean) =>
@@ -22,7 +27,8 @@ const fieldClass = (hasError: boolean) =>
 
 export const UserProfileForm: React.FC = () => {
   const { user, userProfile, updateUserProfile, loading, error } = useAuth();
-  
+  const { t } = useTranslation();
+
   // State variables for form fields initialized from userProfile
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -73,11 +79,11 @@ export const UserProfileForm: React.FC = () => {
     return (
       <div className="bg-white/60 backdrop-blur-md border border-slate-100 rounded-3xl p-8 text-center" id="profile-logged-out-state">
         <div className="inline-flex w-16 h-16 bg-slate-150 rounded-full items-center justify-center text-slate-400 mb-4 animate-bounce">
-          <span className="material-symbols-outlined text-3xl">account_circle</span>
+          <CircleUserRound className="w-8 h-8" aria-hidden="true" />
         </div>
-        <h3 className="text-xl font-bold text-slate-800">Authentication Required</h3>
+        <h3 className="text-xl font-bold text-slate-800">{t('profileForm.authRequired', 'Authentication Required')}</h3>
         <p className="text-slate-500 text-sm max-w-sm mx-auto mt-2 mb-6">
-          Please sign up or sign in to build, edit, and securely persist your master Professional Profile.
+          {t('profileForm.authRequiredDesc', 'Please sign up or sign in to build, edit, and securely persist your master Professional Profile.')}
         </p>
       </div>
     );
@@ -208,16 +214,16 @@ export const UserProfileForm: React.FC = () => {
 
   const validators = useMemo(
     () => ({
-      firstName: compose(required('First name'), maxLength(60, 'First name')),
-      lastName: compose(required('Last name'), maxLength(60, 'Last name')),
+      firstName: compose(required(t('profileForm.field.firstName', 'First name')), maxLength(60, t('profileForm.field.firstName', 'First name'))),
+      lastName: compose(required(t('profileForm.field.lastName', 'Last name')), maxLength(60, t('profileForm.field.lastName', 'Last name'))),
       phone: phoneRule,
-      jobTitle: maxLength(100, 'Target job title'),
-      bio: maxLength(2000, 'Executive summary'),
+      jobTitle: maxLength(100, t('profileForm.field.jobTitle', 'Target job title')),
+      bio: maxLength(2000, t('profileForm.field.bio', 'Executive summary')),
       linkedin: urlOnDomain('linkedin.com', 'LinkedIn'),
       github: urlOnDomain('github.com', 'GitHub'),
       portfolio: urlRule,
     }),
-    [],
+    [t],
   );
 
   const validation = useFormValidation(values, validators);
@@ -265,16 +271,16 @@ export const UserProfileForm: React.FC = () => {
       <div className="dashboard-feature-hero p-8 md:p-10 text-white relative">
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2">
-            <span className="material-symbols-outlined text-primary text-2xl">badge</span>
-            <span className="font-label text-[9px] font-semibold bg-white/10 text-[#f5c2b5] px-3 py-1.5 rounded-md uppercase tracking-[0.14em]">Master profile</span>
+            <IdCard className="w-6 h-6 text-primary" aria-hidden="true" />
+            <span className="font-label text-[9px] font-semibold bg-white/10 text-[#f5c2b5] px-3 py-1.5 rounded-md uppercase tracking-[0.14em]">{t('profileForm.masterProfile', 'Master profile')}</span>
           </div>
-          <h2 className="font-display text-4xl md:text-5xl font-medium tracking-[-0.045em] leading-none text-white mb-4">Your professional profile.</h2>
+          <h2 className="font-display text-4xl md:text-5xl font-medium tracking-[-0.045em] leading-none text-white mb-4">{t('profileForm.heading', 'Your professional profile.')}</h2>
           <p className="text-slate-300 text-sm max-w-xl leading-relaxed">
-            Configure your master personal statement, core links, skills, and certifications. These details automatically hydrate sections while building your resume designs.
+            {t('profileForm.headerDesc', 'Configure your master personal statement, core links, skills, and certifications. These details automatically hydrate sections while building your resume designs.')}
           </p>
         </div>
         <div className="absolute right-6 bottom-0 translate-y-4 opacity-10 pointer-events-none">
-          <span className="material-symbols-outlined text-[150px] text-white">badge</span>
+          <IdCard className="w-[150px] h-[150px] text-white" aria-hidden="true" />
         </div>
       </div>
 
@@ -282,17 +288,17 @@ export const UserProfileForm: React.FC = () => {
         {/* Success / Error banners */}
         {saveSuccess && (
           <div className="p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-2xl text-emerald-800 text-xs font-semibold flex items-center gap-3 animate-fade-in" id="profile-save-success-banner">
-            <span className="material-symbols-outlined text-emerald-600 text-lg">check_circle</span>
+            <CircleCheck className="w-[1em] h-[1em] text-emerald-600 text-lg" aria-hidden="true" />
             <div>
-              <p className="font-bold text-emerald-950">Master profile saved</p>
-              <p className="font-normal text-slate-500 mt-0.5">Your profile details are ready to reuse across resume drafts.</p>
+              <p className="font-bold text-emerald-950">{t('profileForm.savedTitle', 'Master profile saved')}</p>
+              <p className="font-normal text-slate-500 mt-0.5">{t('profileForm.savedDesc', 'Your profile details are ready to reuse across resume drafts.')}</p>
             </div>
           </div>
         )}
 
         {error && (
           <div className="p-4 bg-rose-50 border-l-4 border-rose-500 rounded-r-2xl text-rose-800 text-xs font-semibold flex items-center gap-3" id="profile-save-error-banner">
-            <span className="material-symbols-outlined text-rose-600 text-lg">error</span>
+            <CircleAlert className="w-[1em] h-[1em] text-rose-600 text-lg" aria-hidden="true" />
             <span>{error}</span>
           </div>
         )}
@@ -300,12 +306,12 @@ export const UserProfileForm: React.FC = () => {
         {/* Section 1: Contact Details */}
         <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <span className="material-symbols-outlined text-slate-400 text-base">person</span>
-            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">1. Personal & Contact Details</h3>
+            <User className="w-4 h-4 text-slate-400" aria-hidden="true" />
+            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">{t('profileForm.section1Title', '1. Personal & Contact Details')}</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label htmlFor="profile-first-name" className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">First Name</label>
+              <label htmlFor="profile-first-name" className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('contact.firstName', 'First Name')}</label>
               <input
                 id="profile-first-name"
                 type="text"
@@ -320,7 +326,7 @@ export const UserProfileForm: React.FC = () => {
               <FieldError id="profile-first-name" message={validation.errorFor('firstName')} />
             </div>
             <div>
-              <label htmlFor="profile-last-name" className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">Last Name</label>
+              <label htmlFor="profile-last-name" className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('contact.lastName', 'Last Name')}</label>
               <input
                 id="profile-last-name"
                 type="text"
@@ -335,7 +341,7 @@ export const UserProfileForm: React.FC = () => {
               <FieldError id="profile-last-name" message={validation.errorFor('lastName')} />
             </div>
             <div>
-              <label htmlFor="profile-phone" className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">Phone Number</label>
+              <label htmlFor="profile-phone" className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('contact.phone', 'Phone Number')}</label>
               <input
                 id="profile-phone"
                 type="tel"
@@ -352,12 +358,12 @@ export const UserProfileForm: React.FC = () => {
             </div>
           </div>
           <div>
-            <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">Registered Email (Read-Only)</label>
+            <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('profileForm.registeredEmail', 'Registered Email (Read-Only)')}</label>
             <input
               type="text"
               value={user.email || ''}
               disabled
-              title="Registered email cannot be modified directly"
+              title={t('profileForm.registeredEmailTitle', 'Registered email cannot be modified directly')}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-slate-100 text-slate-400 font-medium cursor-not-allowed"
             />
           </div>
@@ -366,13 +372,13 @@ export const UserProfileForm: React.FC = () => {
         {/* Section 2: Online Presence & Links */}
         <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <span className="material-symbols-outlined text-slate-400 text-base">link</span>
-            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">2. Online Presence & Social Links</h3>
+            <Link className="w-4 h-4 text-slate-400" aria-hidden="true" />
+            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">{t('profileForm.section2Title', '2. Online Presence & Social Links')}</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label htmlFor="profile-linkedin" className="block text-[#0a66c2] text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                <span className="material-symbols-outlined text-xs">share</span> LinkedIn Profile
+                <Share2 className="w-3 h-3" aria-hidden="true" /> {t('profileForm.linkedinProfile', 'LinkedIn Profile')}
               </label>
               <input
                 id="profile-linkedin"
@@ -392,7 +398,7 @@ export const UserProfileForm: React.FC = () => {
             </div>
             <div>
               <label htmlFor="profile-github" className="block text-slate-800 text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                <span className="material-symbols-outlined text-xs">code</span> GitHub Profile
+                <Code className="w-3 h-3" aria-hidden="true" /> {t('profileForm.githubProfile', 'GitHub Profile')}
               </label>
               <input
                 id="profile-github"
@@ -412,7 +418,7 @@ export const UserProfileForm: React.FC = () => {
             </div>
             <div>
               <label htmlFor="profile-portfolio" className="block text-indigo-600 text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                <span className="material-symbols-outlined text-xs">language</span> Personal Portfolio
+                <Globe className="w-3 h-3" aria-hidden="true" /> {t('profileForm.personalPortfolio', 'Personal Portfolio')}
               </label>
               <input
                 id="profile-portfolio"
@@ -436,12 +442,12 @@ export const UserProfileForm: React.FC = () => {
         {/* Section 3: Professional specifications */}
         <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <span className="material-symbols-outlined text-slate-400 text-base">work_history</span>
-            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">3. Career & Domain Specifications</h3>
+            <Briefcase className="w-4 h-4 text-slate-400" aria-hidden="true" />
+            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">{t('profileForm.section3Title', '3. Career & Domain Specifications')}</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">Target Job Title</label>
+              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('contact.jobTitle', 'Target Job Title')}</label>
               <input
                 type="text"
                 value={jobTitle}
@@ -451,7 +457,7 @@ export const UserProfileForm: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">Primary Sector</label>
+              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('profileForm.primarySector', 'Primary Sector')}</label>
               <select
                 value={industry}
                 onChange={(e) => {
@@ -469,7 +475,7 @@ export const UserProfileForm: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">Years / Level of Experience</label>
+              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('profileForm.yearsOfExperience', 'Years / Level of Experience')}</label>
               <input
                 type="text"
                 value={experienceYears}
@@ -480,7 +486,7 @@ export const UserProfileForm: React.FC = () => {
             </div>
           </div>
           <div>
-            <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">Executive Summary / Professional bio</label>
+            <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('profileForm.executiveSummary', 'Executive Summary / Professional bio')}</label>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
@@ -489,8 +495,8 @@ export const UserProfileForm: React.FC = () => {
               className="w-full h-32 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800 leading-relaxed resize-none"
             />
             <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-              <span>Write a catchy hook for recruiting managers.</span>
-              <span>{bio.length}/2000 characters</span>
+              <span>{t('profileForm.catchyHook', 'Write a catchy hook for recruiting managers.')}</span>
+              <span>{t('profileForm.charCount', '{count}/2000 characters').replace('{count}', String(bio.length))}</span>
             </div>
           </div>
         </div>
@@ -498,13 +504,13 @@ export const UserProfileForm: React.FC = () => {
         {/* Section 4: Preferences */}
         <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <span className="material-symbols-outlined text-slate-400 text-base">explore</span>
-            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">4. Style & Work Preferences</h3>
+            <Compass className="w-4 h-4 text-slate-400" aria-hidden="true" />
+            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">{t('profileForm.section4Title', '4. Style & Work Preferences')}</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">Work Authorization & Base Location</label>
+              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('profileForm.workAuthLocation', 'Work Authorization & Base Location')}</label>
               <input
                 type="text"
                 value={licensedState}
@@ -512,10 +518,10 @@ export const UserProfileForm: React.FC = () => {
                 placeholder="London, United Kingdom (Hybrid OK)"
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800"
               />
-              <p className="text-[10px] text-slate-400 mt-1 font-medium">Specify cities, states, or regions of physical availability.</p>
+              <p className="text-[10px] text-slate-400 mt-1 font-medium">{t('profileForm.workAuthHint', 'Specify cities, states, or regions of physical availability.')}</p>
             </div>
             <div>
-              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">Availability / Collaboration Style</label>
+              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('profileForm.availabilityStyle', 'Availability / Collaboration Style')}</label>
               <select
                 value={availability}
                 onChange={(e) => setAvailability(e.target.value)}
@@ -527,7 +533,7 @@ export const UserProfileForm: React.FC = () => {
                 <option value="Freelance & Consulting">Freelance & Consulting</option>
                 <option value="Co-founder & Advising">Co-founder & Advising</option>
               </select>
-              <p className="text-[10px] text-slate-400 mt-1 font-medium">Set preferred hiring schema details.</p>
+              <p className="text-[10px] text-slate-400 mt-1 font-medium">{t('profileForm.availabilityHint', 'Set preferred hiring schema details.')}</p>
             </div>
           </div>
         </div>
@@ -535,13 +541,13 @@ export const UserProfileForm: React.FC = () => {
         {/* Section 5: Core Specialties & Skills with custom inputs */}
         <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <span className="material-symbols-outlined text-slate-400 text-base">psychology</span>
-            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">5. Core Specialties & Technical Skills ({careSpecialties.length}/50)</h3>
+            <Brain className="w-4 h-4 text-slate-400" aria-hidden="true" />
+            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">{t('profileForm.section5Title', '5. Core Specialties & Technical Skills ({count}/50)').replace('{count}', String(careSpecialties.length))}</h3>
           </div>
 
           <div>
             <p className="text-xs text-slate-500 mb-3 leading-relaxed">
-              Toggle industry specific preset suggestions below, or type in your own custom skills using the input fields. These will generate your resume skills list seamlessly.
+              {t('profileForm.section5Desc', 'Toggle industry specific preset suggestions below, or type in your own custom skills using the input fields. These will generate your resume skills list seamlessly.')}
             </p>
 
             {/* Selected Specialties Display */}
@@ -552,10 +558,10 @@ export const UserProfileForm: React.FC = () => {
                     key={spec} 
                     className="inline-flex items-center gap-1.5 bg-primary/10 text-primary hover:bg-rose-100 hover:text-rose-700 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer group"
                     onClick={() => handleRemoveSpecialty(spec)}
-                    title="Click to remove skill"
+                    title={t('profileForm.clickToRemoveSkill', 'Click to remove skill')}
                   >
                     {spec}
-                    <span className="material-symbols-outlined text-[10px] font-bold group-hover:text-rose-600">close</span>
+                    <X className="w-2.5 h-2.5 group-hover:text-rose-600" aria-hidden="true" />
                   </span>
                 ))}
               </div>
@@ -563,7 +569,7 @@ export const UserProfileForm: React.FC = () => {
 
             {/* Specialty tag picker */}
             <div className="space-y-3">
-              <label className="block text-slate-400 text-[10px] font-bold uppercase tracking-widest">Select relevant suggestions:</label>
+              <label className="block text-slate-400 text-[10px] font-bold uppercase tracking-widest">{t('profileForm.selectSuggestions', 'Select relevant suggestions:')}</label>
               <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-2">
                 {currentPresets.specialties.map(specialty => {
                   const isSelected = careSpecialties.includes(specialty);
@@ -605,8 +611,8 @@ export const UserProfileForm: React.FC = () => {
                 onClick={handleAddCustomSpecialty}
                 className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-1"
               >
-                <span className="material-symbols-outlined text-sm">add</span>
-                Add Skill
+                <Plus className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
+                {t('profileForm.addSkill', 'Add Skill')}
               </button>
             </div>
           </div>
@@ -615,13 +621,13 @@ export const UserProfileForm: React.FC = () => {
         {/* Section 6: Certifications & Credentials with custom inputs */}
         <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <span className="material-symbols-outlined text-slate-400 text-base">workspace_premium</span>
-            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">6. Certifications & Credentials ({certifications.length}/50)</h3>
+            <Award className="w-4 h-4 text-slate-400" aria-hidden="true" />
+            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">{t('profileForm.section6Title', '6. Certifications & Credentials ({count}/50)').replace('{count}', String(certifications.length))}</h3>
           </div>
 
           <div>
             <p className="text-xs text-slate-500 mb-3 leading-relaxed">
-              Persist active credentials, board registrations, professional licenses, or course certificates.
+              {t('profileForm.section6Desc', 'Persist active credentials, board registrations, professional licenses, or course certificates.')}
             </p>
 
             {/* Selected Certifications Display */}
@@ -632,10 +638,10 @@ export const UserProfileForm: React.FC = () => {
                     key={cert} 
                     className="inline-flex items-center gap-1.5 bg-secondary/10 text-secondary hover:bg-rose-100 hover:text-rose-700 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer group"
                     onClick={() => handleRemoveCert(cert)}
-                    title="Click to remove certification"
+                    title={t('profileForm.clickToRemoveCert', 'Click to remove certification')}
                   >
                     {cert}
-                    <span className="material-symbols-outlined text-[10px] font-bold group-hover:text-rose-600">close</span>
+                    <X className="w-2.5 h-2.5 group-hover:text-rose-600" aria-hidden="true" />
                   </span>
                 ))}
               </div>
@@ -643,7 +649,7 @@ export const UserProfileForm: React.FC = () => {
 
             {/* Certifications suggestions */}
             <div className="space-y-3">
-              <label className="block text-slate-400 text-[10px] font-bold uppercase tracking-widest">Select relevant suggestions:</label>
+              <label className="block text-slate-400 text-[10px] font-bold uppercase tracking-widest">{t('profileForm.selectSuggestions', 'Select relevant suggestions:')}</label>
               <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-2">
                 {currentPresets.certifications.map(cert => {
                   const isSelected = certifications.includes(cert);
@@ -685,8 +691,8 @@ export const UserProfileForm: React.FC = () => {
                 onClick={handleAddCustomCert}
                 className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-1"
               >
-                <span className="material-symbols-outlined text-sm">add</span>
-                Add Cert
+                <Plus className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
+                {t('profileForm.addCert', 'Add Cert')}
               </button>
             </div>
           </div>
@@ -704,8 +710,8 @@ export const UserProfileForm: React.FC = () => {
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : (
               <>
-                <span className="material-symbols-outlined text-base">cloud_sync</span>
-                Save Sync Master Profile
+                <RefreshCw className="w-4 h-4" aria-hidden="true" />
+                {t('profileForm.saveSyncButton', 'Save Sync Master Profile')}
               </>
             )}
           </button>

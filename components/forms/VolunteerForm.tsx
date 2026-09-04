@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { Pencil, ChevronDown, X } from 'lucide-react';
 import type { Volunteer } from '../../types';
 import ContentHeader from '../common/ContentHeader';
 import FormActions from '../common/FormActions';
 import { VolunteerIcon } from '../common/icons';
+import { useTranslation, type Translate } from '../../services/translationService';
 
 interface VolunteerFormProps {
     data: Volunteer[];
@@ -13,7 +15,7 @@ interface VolunteerFormProps {
     onNext: () => void;
 }
 
-const VolunteerCard: React.FC<{ item: Volunteer; onChange: (id: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void; onRemove: (id: string) => void; }> = ({ item, onChange, onRemove }) => {
+const VolunteerCard: React.FC<{ item: Volunteer; onChange: (id: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void; onRemove: (id: string) => void; t: Translate; }> = ({ item, onChange, onRemove, t }) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(item.id, e);
     const [isExpanded, setIsExpanded] = useState(true);
 
@@ -24,55 +26,56 @@ const VolunteerCard: React.FC<{ item: Volunteer; onChange: (id: string, e: React
                     <span className="p-2 bg-green-50 text-green-600 rounded-full">
                          <VolunteerIcon />
                     </span>
-                    <h3 className="font-bold text-dark">{item.organization || 'New Volunteer Role'}</h3>
+                    <h3 className="font-bold text-dark">{item.organization || t('volForm.newVolunteerRole', 'New Volunteer Role')}</h3>
                 </div>
                 <div className="flex items-center gap-4">
-                     <button type="button" className="text-gray-400 hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined">edit</span>
+                     <button type="button" className="text-gray-400 hover:text-primary transition-colors" aria-label={t('cardCommon.edit', 'Edit')}>
+                        <Pencil aria-hidden="true" />
                     </button>
-                    <button type="button" className={`transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
-                         <span className="material-symbols-outlined">expand_more</span>
+                    <button type="button" className={`transform transition-transform ${isExpanded ? 'rotate-180' : ''}`} aria-label={isExpanded ? t('cardCommon.collapse', 'Collapse') : t('cardCommon.expand', 'Expand')}>
+                         <ChevronDown aria-hidden="true" />
                     </button>
                 </div>
             </div>
             {isExpanded && (
                 <div className="p-6 border-t border-border bg-gray-50/50">
                     <div className="relative p-6 bg-white border border-border rounded-xl">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             className="absolute top-3 right-3 text-gray-400 hover:text-danger transition-colors"
                             onClick={() => onRemove(item.id)}
+                            aria-label={t('volForm.removeVolunteer', 'Remove volunteer entry')}
                         >
-                            <span className="material-symbols-outlined text-xl">close</span>
+                            <X className="w-5 h-5" aria-hidden="true" />
                         </button>
                         <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
                              <div>
-                                <label className="font-semibold mb-2 block text-sm text-gray-700">Organization</label>
-                                <input type="text" name="organization" value={item.organization} onChange={handleChange} placeholder="e.g. Red Cross" className="w-full p-3 border border-border rounded-lg" />
+                                <label className="font-semibold mb-2 block text-sm text-gray-700">{t('volunteer.organization', 'Organization')}</label>
+                                <input type="text" name="organization" value={item.organization} onChange={handleChange} placeholder={t('volForm.organizationPlaceholder', 'e.g. Red Cross')} className="w-full p-3 border border-border rounded-lg" />
                             </div>
                             <div>
-                                <label className="font-semibold mb-2 block text-sm text-gray-700">Role</label>
-                                <input type="text" name="role" value={item.role} onChange={handleChange} placeholder="e.g. Community Volunteer" className="w-full p-3 border border-border rounded-lg" />
+                                <label className="font-semibold mb-2 block text-sm text-gray-700">{t('volunteer.role', 'Role')}</label>
+                                <input type="text" name="role" value={item.role} onChange={handleChange} placeholder={t('volForm.rolePlaceholder', 'e.g. Community Volunteer')} className="w-full p-3 border border-border rounded-lg" />
                             </div>
                             <div>
-                                <label className="font-semibold mb-2 block text-sm text-gray-700">Start Date</label>
-                                <input type="text" name="startDate" value={item.startDate} onChange={handleChange} placeholder="e.g. Jan 2022" className="w-full p-3 border border-border rounded-lg" />
+                                <label className="font-semibold mb-2 block text-sm text-gray-700">{t('experience.startDate', 'Start Date')}</label>
+                                <input type="text" name="startDate" value={item.startDate} onChange={handleChange} placeholder={t('volForm.startDatePlaceholder', 'e.g. Jan 2022')} className="w-full p-3 border border-border rounded-lg" />
                             </div>
                             <div>
-                                <label className="font-semibold mb-2 block text-sm text-gray-700">End Date</label>
-                                <input type="text" name="endDate" value={item.endDate} onChange={handleChange} placeholder="e.g. Present" className="w-full p-3 border border-border rounded-lg" />
+                                <label className="font-semibold mb-2 block text-sm text-gray-700">{t('experience.endDate', 'End Date')}</label>
+                                <input type="text" name="endDate" value={item.endDate} onChange={handleChange} placeholder={t('itemCard.endDatePlaceholder', 'e.g. Present')} className="w-full p-3 border border-border rounded-lg" />
                             </div>
                              <div className="md:col-span-2">
-                                <label className="font-semibold mb-2 block text-sm text-gray-700">Location</label>
-                                <input type="text" name="location" value={item.location} onChange={handleChange} placeholder="e.g. London, UK" className="w-full p-3 border border-border rounded-lg" />
+                                <label className="font-semibold mb-2 block text-sm text-gray-700">{t('itemCard.locationLabel', 'Location')}</label>
+                                <input type="text" name="location" value={item.location} onChange={handleChange} placeholder={t('volForm.locationPlaceholder', 'e.g. London, UK')} className="w-full p-3 border border-border rounded-lg" />
                             </div>
                             <div className="md:col-span-2">
-                                <label className="font-semibold text-sm text-gray-700 mb-2 block">Description</label>
+                                <label className="font-semibold text-sm text-gray-700 mb-2 block">{t('cardCommon.description', 'Description')}</label>
                                 <textarea
                                     name="description"
                                     value={item.description}
                                     onChange={handleChange}
-                                    placeholder="Describe your responsibilities and impact..."
+                                    placeholder={t('volForm.descPlaceholder', 'Describe your responsibilities and impact...')}
                                     className="w-full p-3 border border-border rounded-lg min-h-[80px] resize-y"
                                 />
                             </div>
@@ -85,11 +88,12 @@ const VolunteerCard: React.FC<{ item: Volunteer; onChange: (id: string, e: React
 };
 
 const VolunteerForm: React.FC<VolunteerFormProps> = ({ data, onChange, onAdd, onRemove, onClear, onNext }) => {
+    const { t } = useTranslation();
     return (
         <>
             <ContentHeader
-                title="Volunteering"
-                description="Showcase your community involvement and volunteer work."
+                title={t('volunteer.title', 'Volunteering')}
+                description={t('volForm.headerDesc', 'Showcase your community involvement and volunteer work.')}
             />
             {data.map((item) => (
                 <VolunteerCard
@@ -97,6 +101,7 @@ const VolunteerForm: React.FC<VolunteerFormProps> = ({ data, onChange, onAdd, on
                     item={item}
                     onChange={onChange}
                     onRemove={onRemove}
+                    t={t}
                 />
             ))}
             <button
@@ -104,7 +109,7 @@ const VolunteerForm: React.FC<VolunteerFormProps> = ({ data, onChange, onAdd, on
                 className="w-full p-5 bg-white border-2 border-dashed border-border rounded-xl cursor-pointer text-gray-500 font-semibold transition-all text-base hover:border-primary hover:text-primary hover:bg-primary-light"
                 onClick={onAdd}
             >
-                + Add Volunteer Experience
+                {t('volForm.addBtn', '+ Add Volunteer Experience')}
             </button>
             <FormActions onClear={onClear} onNext={onNext} />
         </>

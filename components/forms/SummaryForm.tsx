@@ -5,8 +5,10 @@ import FormActions from '../common/FormActions';
 import RichTextEditor from '../common/RichTextEditor';
 import { generateSummarySuggestions, generateSuggestion } from '../../services/geminiService';
 import { SparklesIcon } from '../common/icons';
+import { Search } from 'lucide-react';
 import TipsCard from '../common/TipsCard';
 import AITipHelper from '../common/AITipHelper';
+import { useTranslation } from '../../services/translationService';
 
 
 interface SummaryFormProps {
@@ -17,6 +19,7 @@ interface SummaryFormProps {
 }
 
 const SummaryForm: React.FC<SummaryFormProps> = ({ data, onFormDataChange, onClear, onNext }) => {
+    const { t } = useTranslation();
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRegenerating, setIsRegenerating] = useState(false);
@@ -147,8 +150,8 @@ const SummaryForm: React.FC<SummaryFormProps> = ({ data, onFormDataChange, onCle
     return (
         <>
             <ContentHeader
-                title="Professional Summary"
-                description="This section will usually be one of the first things a hiring manager reads. It tells them, 'Here's who I am, and here's what I can do for your company'."
+                title={t('summary.title', 'Professional Summary')}
+                description={t('summaryForm.desc', "This section will usually be one of the first things a hiring manager reads. It tells them, 'Here's who I am, and here's what I can do for your company'.")}
             />
 
             <form onSubmit={e => e.preventDefault()}>
@@ -156,7 +159,7 @@ const SummaryForm: React.FC<SummaryFormProps> = ({ data, onFormDataChange, onCle
                     {/* Editor Column */}
                     <div className="lg:col-span-3">
                         <label htmlFor="professionalSummary" className="font-semibold text-sm text-gray-700 mb-2.5 flex items-center">
-                            <span>Your Summary</span>
+                            <span>{t('summaryForm.yourSummary', 'Your Summary')}</span>
                             <AITipHelper 
                                 section="summary" 
                                 fieldName="Professional Summary" 
@@ -180,37 +183,39 @@ const SummaryForm: React.FC<SummaryFormProps> = ({ data, onFormDataChange, onCle
                             ) : (
                                 <SparklesIcon />
                             )}
-                            {isRegenerating ? 'Regenerating...' : 'Regenerate Summary'}
+                            {isRegenerating ? t('summaryForm.regenerating', 'Regenerating...') : t('summaryForm.regenerateSummary', 'Regenerate Summary')}
                         </button>
                     </div>
 
                     {/* AI Suggestions Column */}
                     <div className="lg:col-span-2">
-                        <label className="font-semibold text-sm text-gray-700 mb-2.5 block">AI Suggestions</label>
+                        <label className="font-semibold text-sm text-gray-700 mb-2.5 block">{t('experienceForm.aiSuggestions', 'AI Suggestions')}</label>
                         <div className="bg-light p-4 rounded-lg border border-border h-full flex flex-col">
                             <div className="relative mb-4">
                                 <input
                                     type="text"
                                     value={searchTerm}
                                     onChange={e => setSearchTerm(e.target.value)}
-                                    placeholder="Search summaries..."
-                                    aria-label="Search AI suggestions"
+                                    placeholder={t('summaryForm.searchSummaries', 'Search summaries...')}
+                                    aria-label={t('summaryForm.searchAiSuggestions', 'Search AI suggestions')}
                                     className="w-full p-3 pl-10 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30"
                                 />
-                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl">
-                                    search
-                                </span>
+                                <Search className="w-[1em] h-[1em] text-xl absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
                             </div>
 
                             <p className="text-sm text-gray-600 mb-4 px-2">
                                 {isLoading
-                                    ? 'Loading suggestions...'
-                                    : `Showing ${filteredSuggestions.length} result${filteredSuggestions.length !== 1 ? 's' : ''} for "${jobTitle || 'your role'}"`}
+                                    ? t('summaryForm.loadingSuggestions', 'Loading suggestions...')
+                                    : (filteredSuggestions.length !== 1
+                                        ? t('summaryForm.showingResultsPlural', 'Showing {count} results for "{role}"')
+                                        : t('summaryForm.showingResultsSingular', 'Showing {count} result for "{role}"'))
+                                        .replace('{count}', String(filteredSuggestions.length))
+                                        .replace('{role}', jobTitle || t('summaryForm.yourRole', 'your role'))}
                             </p>
 
                             <div className="flex-1 space-y-3 max-h-[400px] overflow-y-auto pr-2">
                                 {isLoading ? (
-                                    <div className="text-center p-12 text-gray-500">Loading suggestions...</div>
+                                    <div className="text-center p-12 text-gray-500">{t('summaryForm.loadingSuggestions', 'Loading suggestions...')}</div>
                                 ) : filteredSuggestions.length > 0 ? (
                                     filteredSuggestions.map(suggestion => {
                                         const isActive = activeSuggestionSet.has(suggestion);
@@ -227,7 +232,7 @@ const SummaryForm: React.FC<SummaryFormProps> = ({ data, onFormDataChange, onCle
                                                             ? 'bg-danger hover:bg-red-600'
                                                             : 'bg-emerald-600 hover:bg-emerald-700'
                                                     }`}
-                                                    aria-label={isActive ? 'Remove suggestion' : 'Add suggestion'}
+                                                    aria-label={isActive ? t('summaryForm.removeSuggestion', 'Remove suggestion') : t('summaryForm.addSuggestion', 'Add suggestion')}
                                                 >
                                                     {isActive ? '−' : '+'}
                                                 </button>
@@ -237,11 +242,11 @@ const SummaryForm: React.FC<SummaryFormProps> = ({ data, onFormDataChange, onCle
                                     })
                                 ) : (
                                     <div className="text-center p-10 bg-white rounded-lg border border-border">
-                                        <p className="font-semibold text-gray-700">No suggestions found</p>
+                                        <p className="font-semibold text-gray-700">{t('summaryForm.noSuggestionsFound', 'No suggestions found')}</p>
                                         <p className="text-sm text-gray-500 mt-1">
                                             {jobTitle
-                                                ? 'Try adjusting the job title or search term.'
-                                                : "Enter a job title in 'Contact Details' to get AI suggestions."}
+                                                ? t('summaryForm.tryAdjusting', 'Try adjusting the job title or search term.')
+                                                : t('summaryForm.enterJobTitle', "Enter a job title in 'Contact Details' to get AI suggestions.")}
                                         </p>
                                     </div>
                                 )}

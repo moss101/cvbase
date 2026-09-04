@@ -1,164 +1,133 @@
-import React, { useEffect, useRef, useState } from 'react';
-import type { ResumeSettings, SectionId, TemplateId } from '../../types';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
+import type { ResumePreviewProps, ResumeSettings, SectionId, TemplateId } from '../../types';
 import { exampleData } from '../../exampleData';
-import GsbExecutiveTemplate from './GsbExecutiveTemplate';
-import IvyEliteTemplate from './IvyEliteTemplate';
-import VanguardClassicTemplate from './VanguardClassicTemplate';
-import EecsMitTemplate from './EecsMitTemplate';
-import CalBerkeleyTemplate from './CalBerkeleyTemplate';
-import LambdaTechTemplate from './LambdaTechTemplate';
-import StanfordDschoolTemplate from './StanfordDschoolTemplate';
-import SynergyStartupTemplate from './SynergyStartupTemplate';
-import MinimalistEdgeTemplate from './MinimalistEdgeTemplate';
-import ResumePreview from '../ResumePreview';
-import TealTemplate from './TealTemplate';
-import ProfessionalTemplate from './ProfessionalTemplate';
-import CreativeTemplate from './CreativeTemplate';
-import ExecutiveTemplate from './ExecutiveTemplate';
-import CorporateTemplate from './CorporateTemplate';
-import ModernTemplate from './ModernTemplate';
-import ProfessionalV2Template from './ProfessionalV2Template';
-import CreativeV2Template from './CreativeV2Template';
-import ExecutiveV2Template from './ExecutiveV2Template';
-import CorporateV2Template from './CorporateV2Template';
-import TechTemplate from './TechTemplate';
-import TechV2Template from './TechV2Template';
-import TechBlueTemplate from './TechBlueTemplate';
-import TecAtsTemplate from './TecAtsTemplate';
-import EscobarTemplate from './EscobarTemplate';
-import HarvardTemplate from './HarvardTemplate';
-import MidnightTemplate from './MidnightTemplate';
-import SwissTemplate from './SwissTemplate';
-import ErasmusTemplate from './ErasmusTemplate';
-import MinimalistTemplate from './MinimalistTemplate';
-import ImpactTemplate from './ImpactTemplate';
-import GlitchTemplate from './GlitchTemplate';
-import VogueTemplate from './VogueTemplate';
-import OnyxTemplate from './OnyxTemplate';
-import BloomTemplate from './BloomTemplate';
-import TimelineTemplate from './TimelineTemplate';
-import AmsterdamTemplate from './AmsterdamTemplate';
-import KyotoTemplate from './KyotoTemplate';
-import NeoMemphisTemplate from './NeoMemphisTemplate';
-import NordicTemplate from './NordicTemplate';
-import MetropolitanTemplate from './MetropolitanTemplate';
-import CyberGridTemplate from './CyberGridTemplate';
-import MelbourneTemplate from './MelbourneTemplate';
-import OakTemplate from './OakTemplate';
-import LeafyTemplate from './LeafyTemplate';
-import RedwoodTemplate from './RedwoodTemplate';
-import DesignerTemplate from './DesignerTemplate';
-import GoldenTemplate from './GoldenTemplate';
-import CobaltTemplate from './CobaltTemplate';
-import BerlinTemplate from './BerlinTemplate';
-import BerlinIITemplate from './BerlinIITemplate';
-import UrbanTemplate from './UrbanTemplate';
-import ClassicTemplate from './ClassicTemplate';
-import CleanTemplate from './CleanTemplate';
-import CompactTemplate from './CompactTemplate';
-import SimpleTemplate from './SimpleTemplate';
-import FunctionalTemplate from './FunctionalTemplate';
-import DirectTemplate from './DirectTemplate';
-import GlobalTemplate from './GlobalTemplate';
-import ModernIITemplate from './ModernIITemplate';
-import TokyoTemplate from './TokyoTemplate';
-import BarcelonaTemplate from './BarcelonaTemplate';
-import SubwayTemplate from './SubwayTemplate';
-import MonacoTemplate from './MonacoTemplate';
-import AustinTemplate from './AustinTemplate';
-import OxfordTemplate from './OxfordTemplate';
-import VancouverTemplate from './VancouverTemplate';
-import ChicagoTemplate from './ChicagoTemplate';
-import ReykjavikTemplate from './ReykjavikTemplate';
-import BerlinV3Template from './BerlinV3Template';
-import MilanTemplate from './MilanTemplate';
-import SiliconTemplate from './SiliconTemplate';
-import GenevaTemplate from './GenevaTemplate';
-import SaoPauloTemplate from './SaoPauloTemplate';
-import CasablancaTemplate from './CasablancaTemplate';
 
-/** Template component registry shared by the Dashboard gallery and the PRISM
- *  template picker. 'default' falls back to the base ResumePreview. */
+/** Template component registry shared by the Dashboard gallery, the PRISM
+ *  template picker, the builder and the headless preview. 'default' falls back
+ *  to the base ResumePreview.
+ *
+ *  Every template is code-split: `templateLoaders` holds the dynamic imports and
+ *  `templateMap` wraps each in React.lazy + Suspense so consumers keep using it
+ *  as a plain synchronous component (`const C = templateMap[id]; <C {...props} />`). */
+
+export type TemplateComponent = React.ComponentType<ResumePreviewProps>;
+export type TemplateLoader = () => Promise<{ default: TemplateComponent }>;
 
 // Typed against TemplateId so a template added to types.ts without a renderer
 // here is a compile error (same completeness guard as the other templateMaps).
-export const templateMap: Record<TemplateId | 'default', React.FC<any>> = {
-    'gsb-executive': GsbExecutiveTemplate,
-    'ivy-elite': IvyEliteTemplate,
-    'vanguard-classic': VanguardClassicTemplate,
-    'eecs-mit': EecsMitTemplate,
-    'cal-berkeley': CalBerkeleyTemplate,
-    'lambda-tech': LambdaTechTemplate,
-    'stanford-dschool': StanfordDschoolTemplate,
-    'synergy-startup': SynergyStartupTemplate,
-    'minimalist-edge': MinimalistEdgeTemplate,
-    default: ResumePreview,
-    classic: ClassicTemplate,
-    clean: CleanTemplate,
-    compact: CompactTemplate,
-    simple: SimpleTemplate,
-    functional: FunctionalTemplate,
-    direct: DirectTemplate,
-    global: GlobalTemplate,
-    urban: UrbanTemplate,
-    berlin: BerlinTemplate,
-    'berlin-ii': BerlinIITemplate,
-    cobalt: CobaltTemplate,
-    designer: DesignerTemplate,
-    golden: GoldenTemplate,
-    teal: TealTemplate,
-    professional: ProfessionalTemplate,
-    creative: CreativeTemplate,
-    executive: ExecutiveTemplate,
-    corporate: CorporateTemplate,
-    modern: ModernTemplate,
-    'professional-v2': ProfessionalV2Template,
-    'creative-v2': CreativeV2Template,
-    'executive-v2': ExecutiveV2Template,
-    'corporate-v2': CorporateV2Template,
-    tech: TechTemplate,
-    'tech-v2': TechV2Template,
-    'tech-blue': TechBlueTemplate,
-    'tec-ats': TecAtsTemplate,
-    escobar: EscobarTemplate,
-    harvard: HarvardTemplate,
-    midnight: MidnightTemplate,
-    swiss: SwissTemplate,
-    erasmus: ErasmusTemplate,
-    minimalist: MinimalistTemplate,
-    impact: ImpactTemplate,
-    glitch: GlitchTemplate,
-    vogue: VogueTemplate,
-    onyx: OnyxTemplate,
-    bloom: BloomTemplate,
-    timeline: TimelineTemplate,
-    amsterdam: AmsterdamTemplate,
-    kyoto: KyotoTemplate,
-    neomemphis: NeoMemphisTemplate,
-    nordic: NordicTemplate,
-    metropolitan: MetropolitanTemplate,
-    cybergrid: CyberGridTemplate,
-    melbourne: MelbourneTemplate,
-    oak: OakTemplate,
-    leafy: LeafyTemplate,
-    redwood: RedwoodTemplate,
-    'modern-ii': ModernIITemplate,
-    tokyo: TokyoTemplate,
-    barcelona: BarcelonaTemplate,
-    subway: SubwayTemplate,
-    monaco: MonacoTemplate,
-    austin: AustinTemplate,
-    oxford: OxfordTemplate,
-    vancouver: VancouverTemplate,
-    chicago: ChicagoTemplate,
-    reykjavik: ReykjavikTemplate,
-    'berlin-v3': BerlinV3Template,
-    milan: MilanTemplate,
-    silicon: SiliconTemplate,
-    geneva: GenevaTemplate,
-    'sao-paulo': SaoPauloTemplate,
-    casablanca: CasablancaTemplate,
+export const templateLoaders: Record<TemplateId | 'default', TemplateLoader> = {
+    'gsb-executive': () => import('./GsbExecutiveTemplate'),
+    'ivy-elite': () => import('./IvyEliteTemplate'),
+    'vanguard-classic': () => import('./VanguardClassicTemplate'),
+    'eecs-mit': () => import('./EecsMitTemplate'),
+    'cal-berkeley': () => import('./CalBerkeleyTemplate'),
+    'lambda-tech': () => import('./LambdaTechTemplate'),
+    'stanford-dschool': () => import('./StanfordDschoolTemplate'),
+    'synergy-startup': () => import('./SynergyStartupTemplate'),
+    'minimalist-edge': () => import('./MinimalistEdgeTemplate'),
+    default: () => import('../ResumePreview'),
+    classic: () => import('./ClassicTemplate'),
+    clean: () => import('./CleanTemplate'),
+    compact: () => import('./CompactTemplate'),
+    simple: () => import('./SimpleTemplate'),
+    functional: () => import('./FunctionalTemplate'),
+    direct: () => import('./DirectTemplate'),
+    global: () => import('./GlobalTemplate'),
+    urban: () => import('./UrbanTemplate'),
+    berlin: () => import('./BerlinTemplate'),
+    'berlin-ii': () => import('./BerlinIITemplate'),
+    cobalt: () => import('./CobaltTemplate'),
+    designer: () => import('./DesignerTemplate'),
+    golden: () => import('./GoldenTemplate'),
+    teal: () => import('./TealTemplate'),
+    professional: () => import('./ProfessionalTemplate'),
+    creative: () => import('./CreativeTemplate'),
+    executive: () => import('./ExecutiveTemplate'),
+    corporate: () => import('./CorporateTemplate'),
+    modern: () => import('./ModernTemplate'),
+    'professional-v2': () => import('./ProfessionalV2Template'),
+    'creative-v2': () => import('./CreativeV2Template'),
+    'executive-v2': () => import('./ExecutiveV2Template'),
+    'corporate-v2': () => import('./CorporateV2Template'),
+    tech: () => import('./TechTemplate'),
+    'tech-v2': () => import('./TechV2Template'),
+    'tech-blue': () => import('./TechBlueTemplate'),
+    'tec-ats': () => import('./TecAtsTemplate'),
+    escobar: () => import('./EscobarTemplate'),
+    harvard: () => import('./HarvardTemplate'),
+    midnight: () => import('./MidnightTemplate'),
+    swiss: () => import('./SwissTemplate'),
+    erasmus: () => import('./ErasmusTemplate'),
+    minimalist: () => import('./MinimalistTemplate'),
+    impact: () => import('./ImpactTemplate'),
+    glitch: () => import('./GlitchTemplate'),
+    vogue: () => import('./VogueTemplate'),
+    onyx: () => import('./OnyxTemplate'),
+    bloom: () => import('./BloomTemplate'),
+    timeline: () => import('./TimelineTemplate'),
+    amsterdam: () => import('./AmsterdamTemplate'),
+    kyoto: () => import('./KyotoTemplate'),
+    neomemphis: () => import('./NeoMemphisTemplate'),
+    nordic: () => import('./NordicTemplate'),
+    metropolitan: () => import('./MetropolitanTemplate'),
+    cybergrid: () => import('./CyberGridTemplate'),
+    melbourne: () => import('./MelbourneTemplate'),
+    oak: () => import('./OakTemplate'),
+    leafy: () => import('./LeafyTemplate'),
+    redwood: () => import('./RedwoodTemplate'),
+    'modern-ii': () => import('./ModernIITemplate'),
+    tokyo: () => import('./TokyoTemplate'),
+    barcelona: () => import('./BarcelonaTemplate'),
+    subway: () => import('./SubwayTemplate'),
+    monaco: () => import('./MonacoTemplate'),
+    austin: () => import('./AustinTemplate'),
+    oxford: () => import('./OxfordTemplate'),
+    vancouver: () => import('./VancouverTemplate'),
+    chicago: () => import('./ChicagoTemplate'),
+    reykjavik: () => import('./ReykjavikTemplate'),
+    'berlin-v3': () => import('./BerlinV3Template'),
+    milan: () => import('./MilanTemplate'),
+    silicon: () => import('./SiliconTemplate'),
+    geneva: () => import('./GenevaTemplate'),
+    'sao-paulo': () => import('./SaoPauloTemplate'),
+    casablanca: () => import('./CasablancaTemplate'),
 };
+
+/** Paper-shaped placeholder: an A4 sheet with greyed-out text bars. Used both
+ *  as the Suspense fallback while a template chunk loads and as the gallery
+ *  thumbnail placeholder before a card scrolls into view. */
+export const TemplateSkeleton: React.FC<{ className?: string }> = ({ className = 'w-[794px] min-h-[1123px]' }) => (
+    <div className={`${className} bg-white p-[6%] animate-pulse`} aria-hidden="true" data-template-skeleton="">
+        <div className="h-[3.5%] w-1/2 rounded bg-gray-200 mb-[1.5%]" />
+        <div className="h-[1.5%] w-1/3 rounded bg-gray-100 mb-[6%]" />
+        {[0, 1, 2, 3].map((block) => (
+            <div key={block} className="mb-[6%]">
+                <div className="h-[2%] w-1/4 rounded bg-gray-200 mb-[2%]" />
+                <div className="h-[1.2%] w-full rounded bg-gray-100 mb-[1.2%]" />
+                <div className="h-[1.2%] w-11/12 rounded bg-gray-100 mb-[1.2%]" />
+                <div className="h-[1.2%] w-4/5 rounded bg-gray-100" />
+            </div>
+        ))}
+    </div>
+);
+
+/** Wraps a lazy loader so the result is a synchronous FC: it renders the
+ *  paper skeleton until the chunk arrives, then the real template. React.lazy
+ *  caches the resolved module, so later mounts render without the fallback. */
+export function withSuspense(load: TemplateLoader, displayName: string): React.FC<ResumePreviewProps> {
+    const Lazy = React.lazy(load);
+    const Wrapped: React.FC<ResumePreviewProps> = (props) => (
+        <Suspense fallback={<TemplateSkeleton />}>
+            <Lazy {...props} />
+        </Suspense>
+    );
+    Wrapped.displayName = `Lazy(${displayName})`;
+    return Wrapped;
+}
+
+export const templateMap: Record<TemplateId | 'default', React.FC<any>> = Object.fromEntries(
+    (Object.entries(templateLoaders) as [TemplateId | 'default', TemplateLoader][]).map(([id, load]) => [id, withSuspense(load, id)]),
+) as Record<TemplateId | 'default', React.FC<any>>;
 
 const PREVIEW_SETTINGS: ResumeSettings = {
     themeColor: '#008080',
@@ -189,7 +158,7 @@ export const LazyTemplatePreview = React.memo<{ templateId: string; scale?: numb
         return () => observer.disconnect();
     }, []);
 
-    const Component = templateMap[templateId as TemplateId] || ResumePreview;
+    const Component = templateMap[templateId as TemplateId] || templateMap.default;
 
     return (
         <div ref={ref} className="w-full h-full bg-gray-100 relative overflow-hidden flex items-center justify-center group-hover:bg-gray-200 transition-colors">
@@ -214,7 +183,7 @@ export const LazyTemplatePreview = React.memo<{ templateId: string; scale?: numb
                 </div>
             ) : (
                 <div className="flex items-center justify-center w-full h-full">
-                    <span className="material-symbols-outlined text-gray-300 animate-pulse text-4xl">image</span>
+                    <TemplateSkeleton className="w-[62%] aspect-[794/1123] shadow-lg" />
                 </div>
             )}
         </div>

@@ -4,6 +4,8 @@ import { useAuth } from './AuthProvider';
 import { useFormValidation } from '../lib/useFormValidation';
 import { compose, describedBy, email as emailRule, required } from '../lib/validation';
 import FieldError from './common/FieldError';
+import { useDialog } from '../lib/useDialog';
+import { useTranslation } from '../services/translationService';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -37,6 +39,7 @@ const GoogleMark: React.FC = () => (
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const { sendEmailCode, verifyEmailCode, signInWithGoogle, loading, error, clearError } = useAuth();
+  const { t } = useTranslation();
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -47,13 +50,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const values = useMemo(() => ({ email, code }), [email, code]);
   const validators = useMemo(
     () => ({
-      email: compose(required('Email address'), emailRule),
+      email: compose(required(t('auth.emailAddress', 'Email address')), emailRule),
       code: step === 'code'
         ? (value: string) =>
-            /^\d{6}$/.test(value.trim()) ? null : 'Enter the 6-digit code from your email.'
+            /^\d{6}$/.test(value.trim()) ? null : t('auth.enterSixDigitCode', 'Enter the 6-digit code from your email.')
         : undefined,
     }),
-    [step],
+    [step, t],
   );
   const validation = useFormValidation(values, validators);
 
@@ -62,8 +65,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     if (step === 'code') codeRef.current?.focus();
   }, [step]);
 
-  if (!isOpen) return null;
-
   const reset = () => {
     setStep('email');
     setCode('');
@@ -71,6 +72,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     validation.reset();
     clearError();
   };
+
+  const close = () => { onClose(); reset(); };
+  const dialog = useDialog({ open: isOpen, onClose: close });
+
+  if (!isOpen) return null;
 
   const submitEmail = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -122,15 +128,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4 backdrop-blur-sm">
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="auth-title"
-        className="relative w-full max-w-md rounded-2xl bg-white p-7 shadow-2xl pt-[calc(1.75rem+env(safe-area-inset-top,0px))]"
+        {...dialog.panelProps}
+        className="relative w-full max-w-md rounded-2xl bg-white p-7 shadow-2xl outline-none pt-[calc(1.75rem+env(safe-area-inset-top,0px))]"
       >
         <button
           type="button"
-          onClick={() => { onClose(); reset(); }}
-          aria-label="Close"
+          onClick={close}
+          aria-label={t('btn.close', 'Close')}
           className="tap-target absolute right-3 top-3 grid place-items-center rounded-full text-slate-400 transition-colors hover:text-dark"
         >
           <X size={20} strokeWidth={1.75} />
@@ -138,11 +142,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
         {step === 'email' ? (
           <>
-            <h2 id="auth-title" className="font-display text-3xl font-medium tracking-tight text-dark">
-              Sign in
+            <h2 id={dialog.titleId} className="font-display text-3xl font-medium tracking-tight text-dark">
+              {t('auth.signIn', 'Sign in')}
             </h2>
             <p className="mt-2 text-[15px] text-slate-500">
-              We’ll email you a code — no password to remember.
+              {t('auth.emailCodeNoPassword', "We'll email you a code — no password to remember.")}
             </p>
 
             <button
@@ -152,18 +156,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               className="tap-target mt-6 flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-white py-3 text-[15px] font-semibold text-dark transition-colors hover:bg-slate-50 disabled:opacity-60"
             >
               <GoogleMark />
-              Continue with Google
+              {t('auth.continueWithGoogle', 'Continue with Google')}
             </button>
 
             <div className="my-5 flex items-center gap-3">
               <span className="h-px flex-1 bg-border" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">or</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t('auth.or', 'or')}</span>
               <span className="h-px flex-1 bg-border" />
             </div>
 
             <form onSubmit={submitEmail} noValidate>
               <label htmlFor="auth-email" className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-600">
-                Email address
+                {t('auth.emailAddress', 'Email address')}
               </label>
               <input
                 id="auth-email"
@@ -196,7 +200,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 className="tap-target mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-[15px] font-semibold text-white transition-colors disabled:opacity-60"
               >
                 {working ? <LoaderCircle size={17} className="animate-spin" aria-hidden="true" /> : <Mail size={17} aria-hidden="true" />}
-                Email me a code
+                {t('auth.emailMeACode', 'Email me a code')}
               </button>
             </form>
           </>
@@ -208,20 +212,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               className="tap-target -ml-1 mb-3 flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition-colors hover:text-dark"
             >
               <ArrowLeft size={16} strokeWidth={2} aria-hidden="true" />
-              Use a different email
+              {t('auth.useDifferentEmail', 'Use a different email')}
             </button>
 
-            <h2 id="auth-title" className="font-display text-3xl font-medium tracking-tight text-dark">
-              Check your email
+            <h2 id={dialog.titleId} className="font-display text-3xl font-medium tracking-tight text-dark">
+              {t('auth.checkYourEmail', 'Check your email')}
             </h2>
             <p className="mt-2 text-[15px] text-slate-500">
-              We sent a 6-digit code to <span className="font-semibold text-dark">{email}</span>.
-              That email also has a sign-in link, if you’d rather just tap it.
+              {t('auth.sentCodeTo', 'We sent a 6-digit code to')} <span className="font-semibold text-dark">{email}</span>.{' '}
+              {t('auth.magicLinkAlt', "That email also has a sign-in link, if you'd rather just tap it.")}
             </p>
 
             <form onSubmit={submitCode} noValidate className="mt-6">
               <label htmlFor="auth-code" className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-600">
-                6-digit code
+                {t('auth.sixDigitCode', '6-digit code')}
               </label>
               <input
                 ref={codeRef}
@@ -255,7 +259,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 className="tap-target mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-[15px] font-semibold text-white transition-colors disabled:opacity-60"
               >
                 {working && <LoaderCircle size={17} className="animate-spin" aria-hidden="true" />}
-                Sign in
+                {t('auth.signIn', 'Sign in')}
               </button>
 
               <button
@@ -264,7 +268,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 disabled={working}
                 className="tap-target mt-3 w-full text-sm font-semibold text-slate-500 transition-colors hover:text-primary disabled:opacity-60"
               >
-                {resentAt ? 'Code sent again' : 'Resend the code'}
+                {resentAt ? t('auth.codeSentAgain', 'Code sent again') : t('auth.resendCode', 'Resend the code')}
               </button>
             </form>
           </>

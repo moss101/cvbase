@@ -1,8 +1,12 @@
 import React from 'react';
 import { sanitizeHtml } from '../../lib/sanitizeHtml';
-import type { ResumePreviewProps } from '../../types';
+import type { ResumePreviewProps, SectionId } from '../../types';
+import { orderedSections, sectionLayout } from '../../lib/templates/sectionOrder';
 import { countries } from '../../data/locationData';
 import { OptionalSectionsRenderer } from './OptionalSectionsRenderer';
+
+/** Sections handed to the shared OptionalSectionsRenderer, in its default order. */
+const OPTIONAL_IDS: readonly SectionId[] = ['certifications', 'languages', 'awards', 'trainings', 'publications', 'volunteer', 'custom'];
 
 const CasablancaTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, visibleSections, settings }) => {
     const { contact, summary, experience, projects, education, skills, certifications, languages, awards, trainings, publications, volunteer, custom } = formData;
@@ -21,6 +25,111 @@ const CasablancaTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
             </h2>
         </div>
     );
+
+    const renderSection = (id: SectionId): React.ReactNode => {
+        switch (id) {
+            case 'summary':
+                return summary.professionalSummary ? (
+                    <section key="summary" data-section="summary" className="mb-4 px-2">
+                        <div className="text-stone-700 italic leading-relaxed text-justify px-4" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
+                    </section>
+                ) : null;
+            case 'experience':
+                return experience.length > 0 ? (
+                    <section key="experience" data-section="experience" className="mb-4">
+                        <div className="break-after-avoid">{renderHeader('experience')}</div>
+                        <div className="space-y-4">
+                            {experience.map(exp => (
+                                <div key={exp.id} className="pb-3 border-b last:border-0 break-inside-avoid" style={{ borderColor: 'rgba(140, 98, 57, 0.1)' }}>
+                                    <div className="flex justify-between items-baseline mb-1">
+                                        <h3 className="font-bold text-[11px] uppercase font-sans tracking-wider text-stone-900">{exp.jobTitle}</h3>
+                                        <span className="text-[9.5px] uppercase font-semibold font-sans tracking-widest text-[#8C6239]">
+                                            {exp.startDate} – {exp.endDate}
+                                        </span>
+                                    </div>
+                                    <p className="text-[10px] italic text-stone-500 mb-2 font-serif">
+                                        {exp.company} • {exp.location}
+                                    </p>
+                                    <div className="text-stone-600 text-[11px] text-justify font-sans leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'education':
+                return education.length > 0 ? (
+                    <section key="education" data-section="education">
+                        <div className="break-after-avoid">{renderHeader('education')}</div>
+                        <div className="space-y-3 font-serif">
+                            {education.map(edu => (
+                                <div key={edu.id} className="text-[10px] break-inside-avoid">
+                                    <p className="font-bold text-stone-90 uppercase text-[10px] font-sans tracking-wider">{edu.school}</p>
+                                    <p className="text-stone-650 italic">{edu.degree}</p>
+                                    <p className="text-[8.5px] text-stone-400 mt-0.5">{edu.startDate} – {edu.endDate} • {edu.location}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'skills':
+                return skills.length > 0 ? (
+                    <section key="skills" data-section="skills">
+                        <div className="break-after-avoid">{renderHeader('skills')}</div>
+                        <div className="flex flex-wrap gap-1 pt-1">
+                            {skills.map(skill => (
+                                <span 
+                                    key={skill} 
+                                    className="text-[9px] font-sans font-bold px-2.5 py-1 bg-[#8C6239]/10 text-[#4E3520] rounded border border-[#8C6239]/20"
+                                >
+                                    {skill}
+                                </span>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'projects':
+                return projects.length > 0 ? (
+                    <section key="projects" data-section="projects" className="mb-4">
+                        <div className="break-after-avoid">{renderHeader('projects')}</div>
+                        <div className="space-y-4">
+                            {projects.map(proj => (
+                                <div className="break-inside-avoid" key={proj.id}>
+                                    <div className="flex justify-between items-baseline mb-1">
+                                        <h3 className="font-bold font-sans text-stone-830 tracking-wider uppercase text-[11px]">{proj.name}</h3>
+                                        <span className="text-[9px] text-stone-400 font-sans">[{proj.startDate} – {proj.endDate}]</span>
+                                    </div>
+                                    {proj.technologies && (
+                                        <p className="text-[9.5px] uppercase tracking-widest font-sans font-bold text-stone-450 mb-1">
+                                            Frameworks: {proj.technologies}
+                                        </p>
+                                    )}
+                                    <div className="text-stone-600 text-xs text-justify font-sans" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            default:
+                return null;
+        }
+    };
+    const renderRun = (ids: readonly SectionId[]): React.ReactNode[] =>
+        sectionLayout(orderedSections(formData, visibleSections, ids), { runs: { optional: OPTIONAL_IDS } }).map((run) =>
+            run.kind === 'section' ? renderSection(run.id) : (
+                <OptionalSectionsRenderer
+                        key={`optional-${run.ids[0]}`}
+                        sections={run.ids}
+                        formData={formData}
+                        visibleSections={visibleSections}
+                        fontClass="font-sans"
+                        textClass="text-stone-705 text-xs font-sans leading-relaxed text-justify"
+                        titleClass="font-extrabold text-[#4E3520] text-xs uppercase"
+                        subtextClass="text-[9px] font-mono text-stone-400"
+                        accentColor="#8C6239"
+                        renderHeader={(title) => renderHeader(title.toLowerCase())}
+                />
+            ),
+        );
 
     return (
         <div 
@@ -52,110 +161,23 @@ const CasablancaTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrev
                 </header>
 
                 {/* Professional Statement */}
-                {summary.professionalSummary && (
-                    <section className="mb-4 px-2">
-                        <div className="text-stone-700 italic leading-relaxed text-justify px-4" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
-                    </section>
-                )}
-
-                {/* Performance History */}
-                {experience.length > 0 && (
-                    <section className="mb-4">
-                        {renderHeader('experience')}
-                        <div className="space-y-4">
-                            {experience.map(exp => (
-                                <div key={exp.id} className="pb-3 border-b last:border-0" style={{ borderColor: 'rgba(140, 98, 57, 0.1)' }}>
-                                    <div className="flex justify-between items-baseline mb-1">
-                                        <h3 className="font-bold text-[11px] uppercase font-sans tracking-wider text-stone-900">{exp.jobTitle}</h3>
-                                        <span className="text-[9.5px] uppercase font-semibold font-sans tracking-widest text-[#8C6239]">
-                                            {exp.startDate} – {exp.endDate}
-                                        </span>
-                                    </div>
-                                    <p className="text-[10px] italic text-stone-500 mb-2 font-serif">
-                                        {exp.company} • {exp.location}
-                                    </p>
-                                    <div className="text-stone-600 text-[11px] text-justify font-sans leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
-                {/* Portfolios */}
-                {visibleSections.includes('projects') && projects.length > 0 && (
-                    <section className="mb-4">
-                        {renderHeader('projects')}
-                        <div className="space-y-4">
-                            {projects.map(proj => (
-                                <div key={proj.id}>
-                                    <div className="flex justify-between items-baseline mb-1">
-                                        <h3 className="font-bold font-sans text-stone-830 tracking-wider uppercase text-[11px]">{proj.name}</h3>
-                                        <span className="text-[9px] text-stone-400 font-sans">[{proj.startDate} – {proj.endDate}]</span>
-                                    </div>
-                                    {proj.technologies && (
-                                        <p className="text-[9.5px] uppercase tracking-widest font-sans font-bold text-stone-450 mb-1">
-                                            Frameworks: {proj.technologies}
-                                        </p>
-                                    )}
-                                    <div className="text-stone-600 text-xs text-justify font-sans" dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
+                {renderRun(['summary', 'experience', 'projects'])}
 
                 {/* Column layout splits holding education and skills */}
                 <div className="grid grid-cols-2 gap-8 mt-6">
                     <div>
-                        {education.length > 0 && (
-                            <section>
-                                {renderHeader('education')}
-                                <div className="space-y-3 font-serif">
-                                    {education.map(edu => (
-                                        <div key={edu.id} className="text-[10px]">
-                                            <p className="font-bold text-stone-90 uppercase text-[10px] font-sans tracking-wider">{edu.school}</p>
-                                            <p className="text-stone-650 italic">{edu.degree}</p>
-                                            <p className="text-[8.5px] text-stone-400 mt-0.5">{edu.startDate} – {edu.endDate} • {edu.location}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
+                        {renderRun(['education'])}
                     </div>
 
                     <div>
-                        {skills.length > 0 && (
-                            <section>
-                                {renderHeader('skills')}
-                                <div className="flex flex-wrap gap-1 pt-1">
-                                    {skills.map(skill => (
-                                        <span 
-                                            key={skill} 
-                                            className="text-[9px] font-sans font-bold px-2.5 py-1 bg-[#8C6239]/10 text-[#4E3520] rounded border border-[#8C6239]/20"
-                                        >
-                                            {skill}
-                                        </span>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
+                        {renderRun(['skills'])}
                     </div>
                 </div>
 
-                <OptionalSectionsRenderer
-                    formData={formData}
-                    visibleSections={visibleSections}
-                    excludeSections={['projects']}
-                    fontClass="font-sans"
-                    textClass="text-stone-705 text-xs font-sans leading-relaxed text-justify"
-                    titleClass="font-extrabold text-[#4E3520] text-xs uppercase"
-                    subtextClass="text-[9px] font-mono text-stone-400"
-                    accentColor="#8C6239"
-                    renderHeader={(title) => renderHeader(title.toLowerCase())}
-                />
+                {renderRun(['certifications', 'languages', 'awards', 'trainings', 'publications', 'volunteer', 'custom'])}
             </div>
         </div>
     );
 };
 
-export default CasablancaTemplate;
+export default React.memo(CasablancaTemplate);

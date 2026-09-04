@@ -37,7 +37,7 @@ export default defineConfig(({ mode }) => {
   };
 
   // Resolve a client-safe var by either its VITE_-prefixed or bare name.
-  // SECURITY: only these three client-safe values are ever read into `define`.
+  // SECURITY: only these four client-safe values are ever read into `define`.
   // Server secrets (service role key, Stripe secret, Gemini key, DB password)
   // are never referenced here and therefore can never reach the browser bundle.
   const clientVar = (name: string): string => env[`VITE_${name}`] ?? env[name] ?? '';
@@ -54,6 +54,9 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY': JSON.stringify(
         clientVar('STRIPE_PUBLISHABLE_KEY'),
       ),
+      // Optional. A Sentry DSN is a public, write-only key; monitoring stays off
+      // entirely when it is blank (see lib/monitoring.ts).
+      'import.meta.env.VITE_SENTRY_DSN': JSON.stringify(clientVar('SENTRY_DSN')),
     },
     resolve: {
       alias: {
@@ -61,6 +64,9 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
+      // Source maps are emitted for symbolication (upload to Sentry) but not
+      // referenced from the bundle, so browsers never fetch them.
+      sourcemap: 'hidden',
       rollupOptions: {
         output: {
           /**
@@ -74,9 +80,23 @@ export default defineConfig(({ mode }) => {
             if (!id.includes('node_modules')) return undefined;
             if (id.includes('@tiptap') || id.includes('prosemirror')) return 'editor';
             if (id.includes('pdfjs-dist')) return 'pdfjs';
-            if (id.includes('docx') || id.includes('mammoth')) return 'documents';
+            // DOCX export and DOCX import are separate features with separate
+            // entry points, so they get separate chunks: neither preloads with
+            // the landing page, and Smart Studio's upload never pulls in `docx`.
+            if (id.includes('/node_modules/docx/')) return 'docx';
+            if (id.includes('/node_modules/mammoth/')) return 'mammoth';
             if (id.includes('@supabase')) return 'supabase';
-            if (id.includes('react-dom') || id.includes('scheduler')) return 'react';
+            // React itself (including jsx-runtime) must be pinned here: left
+            // unassigned, Rollup folds it into whichever manual chunk imports it
+            // first, and the entry ends up preloading the editor just for React.
+            if (
+              id.includes('/node_modules/react/') ||
+              id.includes('/node_modules/react-dom/') ||
+              id.includes('/node_modules/scheduler/') ||
+              id.includes('/node_modules/use-sync-external-store/')
+            ) {
+              return 'react';
+            }
             return undefined;
           },
         },

@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { sanitizeHtml } from '../../lib/sanitizeHtml';
-import type { ResumePreviewProps } from '../../types';
+import type { ResumePreviewProps, SectionId } from '../../types';
+import { orderedSections } from '../../lib/templates/sectionOrder';
 import { countries } from '../../data/locationData';
 
 const ExperienceProjects: React.FC<{ description: string }> = ({ description }) => {
@@ -55,6 +56,197 @@ const ExecutiveTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
     const formalEducation = education.filter(edu => !/certificate|course/i.test(edu.degree));
     const courses = education.filter(edu => /certificate|course/i.test(edu.degree));
 
+    const renderSection = (id: SectionId): React.ReactNode => {
+        switch (id) {
+            case 'summary':
+                return summary.professionalSummary ? (
+                    <section key="summary" data-section="summary">
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6 break-after-avoid">Summary</h2>
+                        <div className="text-sm leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
+                    </section>
+                ) : null;
+            case 'experience':
+                return experience.length > 0 ? (
+                    <section key="experience" data-section="experience">
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6 break-after-avoid">Experience</h2>
+                         {experience.map(exp => {
+                            const descriptionHtml = (exp.description || '').split('--- PROJECTS ---')[0];
+
+                            return (
+                                <div key={exp.id} className="mb-8 break-inside-avoid">
+                                    <h3 className="text-lg font-bold text-slate-800">{exp.jobTitle}</h3>
+                                    <div className="flex flex-wrap justify-between items-baseline mb-2">
+                                        <h4 className="text-md font-semibold" style={{ color: themeColor }}>{exp.company}</h4>
+                                        <p className="text-sm text-slate-500">
+                                            <span className="material-icons text-base align-middle mr-1">calendar_today</span> {exp.startDate} - {exp.endDate}
+                                            <span className="material-icons text-base align-middle ml-4 mr-1">location_on</span> {exp.location}
+                                        </p>
+                                    </div>
+                                    <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(descriptionHtml) }} />
+                                    <ExperienceProjects description={exp.description} />
+                                </div>
+                            );
+                        })}
+                    </section>
+                ) : null;
+            case 'skills':
+                return skills.length > 0 ? (
+                    <section key="skills" data-section="skills" className="mt-8">
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6 break-after-avoid">Skills</h2>
+                        <div className="flex flex-wrap gap-2">
+                            {skills.map((skill, i) => (
+                                 <span key={i} className="px-4 py-1.5 text-sm bg-slate-100 border border-slate-200 text-slate-800">{skill}</span>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'projects':
+                return projects.length > 0 ? (
+                    <section key="projects" data-section="projects">
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6 break-after-avoid">Projects</h2>
+                        {projects.map(item => (
+                            <div key={item.id} className="mb-8 break-inside-avoid">
+                                <h3 className="text-lg font-bold text-slate-800">{item.name}</h3>
+                                <div className="flex flex-wrap justify-between items-baseline mb-2">
+                                    <h4 className="text-md font-semibold" style={{ color: themeColor }}>{item.technologies}</h4>
+                                    <p className="text-sm text-slate-500">
+                                        <span className="material-icons text-base align-middle mr-1">calendar_today</span> {item.startDate} - {item.endDate}
+                                    </p>
+                                </div>
+                                <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
+                            </div>
+                        ))}
+                    </section>
+                ) : null;
+            case 'certifications':
+                return certifications.length > 0 ? (
+                    <section key="certifications" data-section="certifications" className="mt-8">
+                         <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6 break-after-avoid">Certifications</h2>
+                         <ul className="list-disc list-inside columns-2">
+                             {certifications.map(cert => (
+                                 <li key={cert.id} className="mb-1 text-sm break-inside-avoid">{cert.name}</li>
+                             ))}
+                         </ul>
+                    </section>
+                ) : null;
+            case 'languages':
+                return languages?.length > 0 ? (
+                    <section key="languages" data-section="languages" className="mt-8">
+                         <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6 break-after-avoid">Languages</h2>
+                         <ul className="list-disc list-inside columns-2">
+                             {languages.map(lang => (
+                                 <li key={lang.id} className="mb-1 text-sm break-inside-avoid">{lang.language} ({lang.proficiency})</li>
+                             ))}
+                         </ul>
+                    </section>
+                ) : null;
+            case 'awards':
+                return awards && awards.length > 0 ? (
+                    <section key="awards" data-section="awards" className="mt-8">
+                         <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6 break-after-avoid">Awards</h2>
+                         <ul className="list-disc list-inside">
+                             {awards.map(award => (
+                                 <li key={award.id} className="mb-1 text-sm break-inside-avoid">{award.title} - {award.issuer}</li>
+                             ))}
+                         </ul>
+                    </section>
+                ) : null;
+            case 'trainings':
+                return trainings && trainings.length > 0 ? (
+                    <section key="trainings" data-section="trainings">
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6 break-after-avoid">Trainings</h2>
+                        <div className="space-y-4">
+                            {trainings.map(item => (
+                                <div key={item.id} className="break-inside-avoid">
+                                    <h3 className="font-bold" style={{ color: themeColor }}>{item.course}</h3>
+                                    <p className="text-sm leading-relaxed">{item.institution}</p>
+                                    <p className="text-xs text-slate-500">{item.date}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'publications':
+                return publications && publications.length > 0 ? (
+                    <section key="publications" data-section="publications">
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6 break-after-avoid">Publications</h2>
+                        {publications.map(item => (
+                            <div key={item.id} className="mb-4 break-inside-avoid">
+                                <h3 className="text-lg font-bold text-slate-800">{item.title}</h3>
+                                <p className="text-md font-semibold" style={{ color: themeColor }}>{item.publisher}, {item.date}</p>
+                                {item.description && <p className="text-sm mt-1">{item.description}</p>}
+                            </div>
+                        ))}
+                    </section>
+                ) : null;
+            case 'volunteer':
+                return volunteer && volunteer.length > 0 ? (
+                    <section key="volunteer" data-section="volunteer">
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6 break-after-avoid">Volunteering</h2>
+                        {volunteer.map(item => (
+                            <div key={item.id} className="mb-4 break-inside-avoid">
+                                <h3 className="text-lg font-bold text-slate-800">{item.role}</h3>
+                                <p className="text-md font-semibold" style={{ color: themeColor }}>{item.organization}</p>
+                                <p className="text-sm text-slate-500 mb-1">{item.startDate} - {item.endDate}</p>
+                                <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
+                            </div>
+                        ))}
+                    </section>
+                ) : null;
+            case 'custom':
+                return custom && custom.length > 0 ? (
+                    <section key="custom" data-section="custom">
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6 break-after-avoid">Additional</h2>
+                        {custom.map(item => (
+                            <div key={item.id} className="mb-4 break-inside-avoid">
+                                <h3 className="text-lg font-bold text-slate-800">{item.title}</h3>
+                                <p className="text-md font-semibold" style={{ color: themeColor }}>{item.subtitle}</p>
+                                <p className="text-sm text-slate-500 mb-1">{item.date}</p>
+                                <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
+                            </div>
+                        ))}
+                    </section>
+                ) : null;
+            case 'education':
+                return education.length > 0 ? (
+                    <div key="education" data-section="education" className="space-y-8">
+                         {formalEducation.length > 0 && (
+                            <section>
+                                <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6 break-after-avoid">Education</h2>
+                                <div className="space-y-4">
+                                    {formalEducation.map(edu => (
+                                        <div key={edu.id} className="break-inside-avoid">
+                                            <h3 className="font-bold text-slate-800">{edu.degree}</h3>
+                                            <p className="font-semibold" style={{ color: themeColor }}>{edu.school}</p>
+                                            <p className="text-sm"><span className="material-icons text-base align-middle mr-1">calendar_today</span> {edu.startDate} - {edu.endDate}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+                         {courses.length > 0 && (
+                            <section>
+                                <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6 break-after-avoid">Courses</h2>
+                                <div className="space-y-4">
+                                    {courses.map(course => (
+                                        <div key={course.id} className="break-inside-avoid">
+                                            <h3 className="font-bold" style={{ color: themeColor }}>{course.degree}</h3>
+                                            <p className="text-sm leading-relaxed">{course.school}</p>
+                                            {course.description && <p className="text-xs italic mt-1 text-slate-500">{course.description}</p>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                         )}
+                    </div>
+                ) : null;
+            default:
+                return null;
+        }
+    };
+    const renderRun = (ids: readonly SectionId[]): React.ReactNode[] =>
+        orderedSections(formData, visibleSections, ids).map(renderSection);
+
     return (
         <div id={isCardPreview ? undefined : "resume-preview-executive"} className={`w-[794px] min-h-[1123px] h-auto bg-white ${fontSize} p-10 text-slate-600`} style={{ fontFamily: settings?.fontFamily || 'Arial, sans-serif' }}>
             <header className="text-center md:text-left mb-8">
@@ -69,179 +261,15 @@ const ExecutiveTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPrevi
             </header>
             <main className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 <div className="lg:col-span-2">
-                    {experience.length > 0 && (
-                        <section>
-                            <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6">Experience</h2>
-                             {experience.map(exp => {
-                                const descriptionHtml = (exp.description || '').split('--- PROJECTS ---')[0];
-
-                                return (
-                                    <div key={exp.id} className="mb-8 break-inside-avoid">
-                                        <h3 className="text-lg font-bold text-slate-800">{exp.jobTitle}</h3>
-                                        <div className="flex flex-wrap justify-between items-baseline mb-2">
-                                            <h4 className="text-md font-semibold" style={{ color: themeColor }}>{exp.company}</h4>
-                                            <p className="text-sm text-slate-500">
-                                                <span className="material-icons text-base align-middle mr-1">calendar_today</span> {exp.startDate} - {exp.endDate}
-                                                <span className="material-icons text-base align-middle ml-4 mr-1">location_on</span> {exp.location}
-                                            </p>
-                                        </div>
-                                        <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(descriptionHtml) }} />
-                                        <ExperienceProjects description={exp.description} />
-                                    </div>
-                                );
-                            })}
-                        </section>
-                    )}
-                    {visibleSections.includes('projects') && projects.length > 0 && (
-                        <section>
-                            <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6">Projects</h2>
-                            {projects.map(item => (
-                                <div key={item.id} className="mb-8 break-inside-avoid">
-                                    <h3 className="text-lg font-bold text-slate-800">{item.name}</h3>
-                                    <div className="flex flex-wrap justify-between items-baseline mb-2">
-                                        <h4 className="text-md font-semibold" style={{ color: themeColor }}>{item.technologies}</h4>
-                                        <p className="text-sm text-slate-500">
-                                            <span className="material-icons text-base align-middle mr-1">calendar_today</span> {item.startDate} - {item.endDate}
-                                        </p>
-                                    </div>
-                                    <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
-                                </div>
-                            ))}
-                        </section>
-                    )}
-                    {visibleSections.includes('publications') && publications && publications.length > 0 && (
-                        <section>
-                            <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6">Publications</h2>
-                            {publications.map(item => (
-                                <div key={item.id} className="mb-4 break-inside-avoid">
-                                    <h3 className="text-lg font-bold text-slate-800">{item.title}</h3>
-                                    <p className="text-md font-semibold" style={{ color: themeColor }}>{item.publisher}, {item.date}</p>
-                                    {item.description && <p className="text-sm mt-1">{item.description}</p>}
-                                </div>
-                            ))}
-                        </section>
-                    )}
-                    {visibleSections.includes('volunteer') && volunteer && volunteer.length > 0 && (
-                        <section>
-                            <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6">Volunteering</h2>
-                            {volunteer.map(item => (
-                                <div key={item.id} className="mb-4 break-inside-avoid">
-                                    <h3 className="text-lg font-bold text-slate-800">{item.role}</h3>
-                                    <p className="text-md font-semibold" style={{ color: themeColor }}>{item.organization}</p>
-                                    <p className="text-sm text-slate-500 mb-1">{item.startDate} - {item.endDate}</p>
-                                    <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
-                                </div>
-                            ))}
-                        </section>
-                    )}
-                    {visibleSections.includes('custom') && custom && custom.length > 0 && (
-                        <section>
-                            <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6">Additional</h2>
-                            {custom.map(item => (
-                                <div key={item.id} className="mb-4 break-inside-avoid">
-                                    <h3 className="text-lg font-bold text-slate-800">{item.title}</h3>
-                                    <p className="text-md font-semibold" style={{ color: themeColor }}>{item.subtitle}</p>
-                                    <p className="text-sm text-slate-500 mb-1">{item.date}</p>
-                                    <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
-                                </div>
-                            ))}
-                        </section>
-                    )}
-                     {skills.length > 0 && (
-                        <section className="mt-8">
-                            <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6">Skills</h2>
-                            <div className="flex flex-wrap gap-2">
-                                {skills.map((skill, i) => (
-                                     <span key={i} className="px-4 py-1.5 text-sm bg-slate-100 border border-slate-200 text-slate-800">{skill}</span>
-                                ))}
-                            </div>
-                        </section>
-                    )}
+                    {renderRun(['experience', 'projects', 'publications', 'volunteer', 'custom', 'skills'])}
                 </div>
 
                 <div className="lg:col-span-1 space-y-8">
-                    {summary.professionalSummary && (
-                        <section>
-                            <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6">Summary</h2>
-                            <div className="text-sm leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
-                        </section>
-                    )}
-                     {formalEducation.length > 0 && (
-                        <section>
-                            <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6">Education</h2>
-                            <div className="space-y-4">
-                                {formalEducation.map(edu => (
-                                    <div key={edu.id} className="break-inside-avoid">
-                                        <h3 className="font-bold text-slate-800">{edu.degree}</h3>
-                                        <p className="font-semibold" style={{ color: themeColor }}>{edu.school}</p>
-                                        <p className="text-sm"><span className="material-icons text-base align-middle mr-1">calendar_today</span> {edu.startDate} - {edu.endDate}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-                    )}
-                     {courses.length > 0 && (
-                        <section>
-                            <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6">Courses</h2>
-                            <div className="space-y-4">
-                                {courses.map(course => (
-                                    <div key={course.id} className="break-inside-avoid">
-                                        <h3 className="font-bold" style={{ color: themeColor }}>{course.degree}</h3>
-                                        <p className="text-sm leading-relaxed">{course.school}</p>
-                                        {course.description && <p className="text-xs italic mt-1 text-slate-500">{course.description}</p>}
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-                     )}
-                    {visibleSections.includes('trainings') && trainings && trainings.length > 0 && (
-                        <section>
-                            <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6">Trainings</h2>
-                            <div className="space-y-4">
-                                {trainings.map(item => (
-                                    <div key={item.id} className="break-inside-avoid">
-                                        <h3 className="font-bold" style={{ color: themeColor }}>{item.course}</h3>
-                                        <p className="text-sm leading-relaxed">{item.institution}</p>
-                                        <p className="text-xs text-slate-500">{item.date}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-                    )}
-                    {visibleSections.includes('certifications') && certifications.length > 0 && (
-                        <section className="mt-8">
-                             <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6">Certifications</h2>
-                             <ul className="list-disc list-inside columns-2">
-                                 {certifications.map(cert => (
-                                     <li key={cert.id} className="mb-1 text-sm break-inside-avoid">{cert.name}</li>
-                                 ))}
-                             </ul>
-                        </section>
-                     )}
-                     {visibleSections.includes('languages') && languages?.length > 0 && (
-                        <section className="mt-8">
-                             <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6">Languages</h2>
-                             <ul className="list-disc list-inside columns-2">
-                                 {languages.map(lang => (
-                                     <li key={lang.id} className="mb-1 text-sm break-inside-avoid">{lang.language} ({lang.proficiency})</li>
-                                 ))}
-                             </ul>
-                        </section>
-                     )}
-                     {visibleSections.includes('awards') && awards && awards.length > 0 && (
-                        <section className="mt-8">
-                             <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-1 mb-6">Awards</h2>
-                             <ul className="list-disc list-inside">
-                                 {awards.map(award => (
-                                     <li key={award.id} className="mb-1 text-sm break-inside-avoid">{award.title} - {award.issuer}</li>
-                                 ))}
-                             </ul>
-                        </section>
-                     )}
+                    {renderRun(['summary', 'education', 'trainings', 'certifications', 'languages', 'awards'])}
                 </div>
             </main>
         </div>
     );
 };
 
-export default ExecutiveTemplate;
+export default React.memo(ExecutiveTemplate);

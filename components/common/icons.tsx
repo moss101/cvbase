@@ -1,5 +1,61 @@
 
 import React from 'react';
+import {
+    Link2Off, CircleCheck, CircleAlert, TriangleAlert, CircleX, LayoutDashboard, KeyRound,
+    Waypoints, Rows3, ListChecks, Wand2, CloudCheck, FileUp, ClipboardPaste, Radar, Sparkles,
+    IdCard, Building2, MapPin, Calendar, CalendarDays, Sun, Moon, Contrast,
+    Globe, CircleUserRound, Palette, Database,
+} from 'lucide-react';
+
+// lucide-react doesn't export its shared props type, so mirror the bits we use.
+type LucideProps = React.SVGProps<SVGSVGElement> & { size?: string | number; strokeWidth?: string | number };
+
+// Name -> component map for glyph names that arrive as data (config arrays,
+// computed fields) rather than literal JSX. Keys are the original Material
+// Symbols glyph names so call sites didn't need to change their data shape.
+const ICON_MAP = {
+    link_off: Link2Off,
+    check_circle: CircleCheck,
+    error: CircleAlert,
+    warning: TriangleAlert,
+    cancel: CircleX,
+    dashboard: LayoutDashboard,
+    key: KeyRound,
+    conversion_path: Waypoints,
+    segment: Rows3,
+    rule: ListChecks,
+    auto_fix_high: Wand2,
+    cloud_done: CloudCheck,
+    upload_file: FileUp,
+    content_paste: ClipboardPaste,
+    radar: Radar,
+    auto_awesome: Sparkles,
+    badge: IdCard,
+    business: Building2,
+    location_on: MapPin,
+    calendar_today: Calendar,
+    event: CalendarDays,
+    light_mode: Sun,
+    dark_mode: Moon,
+    contrast: Contrast,
+    language: Globe,
+    account_circle: CircleUserRound,
+    palette: Palette,
+    database: Database,
+} as const satisfies Record<string, React.ComponentType<LucideProps>>;
+
+export type IconName = keyof typeof ICON_MAP;
+
+/**
+ * Renders a lucide icon looked up by name. Use this only where the glyph
+ * name comes from data (a config array, a computed field) — literal icon
+ * usages should import the lucide component directly instead.
+ */
+export const Icon: React.FC<{ name: string } & LucideProps> = ({ name, ...props }) => {
+    const Cmp = (ICON_MAP as Record<string, React.ComponentType<LucideProps>>)[name];
+    if (!Cmp) return null;
+    return <Cmp {...props} />;
+};
 
 const iconProps = {
     xmlns: "http://www.w3.org/2000/svg",

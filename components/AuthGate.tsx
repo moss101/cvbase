@@ -4,6 +4,7 @@ import { useAuth } from './AuthProvider';
 import { useFormValidation } from '../lib/useFormValidation';
 import { compose, describedBy, email as emailRule, required } from '../lib/validation';
 import FieldError from './common/FieldError';
+import { useTranslation } from '../services/translationService';
 
 /**
  * Sign in for the packaged apps.
@@ -46,6 +47,7 @@ const GoogleMark: React.FC = () => (
 
 const AuthGate: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     const { sendEmailCode, verifyEmailCode, signInWithGoogle, loading, error, clearError } = useAuth();
+    const { t } = useTranslation();
 
     const [step, setStep] = useState<'email' | 'code'>('email');
     const [email, setEmail] = useState('');
@@ -57,16 +59,16 @@ const AuthGate: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     const values = useMemo(() => ({ email, code }), [email, code]);
     const validators = useMemo(
         () => ({
-            email: compose(required('Email address'), emailRule),
+            email: compose(required(t('auth.emailAddress', 'Email address')), emailRule),
             code:
                 step === 'code'
                     ? (value: string) =>
                           /^\d{6}$/.test(value.trim())
                               ? null
-                              : 'Enter the 6-digit code from your email.'
+                              : t('auth.enterSixDigitCode', 'Enter the 6-digit code from your email.')
                     : undefined,
         }),
-        [step],
+        [step, t],
     );
     const validation = useFormValidation(values, validators);
 
@@ -113,7 +115,7 @@ const AuthGate: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         clearError();
         try {
             await sendEmailCode(email);
-            setNotice('We sent another code.');
+            setNotice(t('auth.sentAnotherCode', 'We sent another code.'));
         } catch {
             /* surfaced via the context error */
         } finally {
@@ -140,16 +142,16 @@ const AuthGate: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                     className="tap-target -ml-2 flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-semibold text-slate-500 transition-colors hover:text-dark"
                 >
                     <ArrowLeft size={17} strokeWidth={2} aria-hidden="true" />
-                    {step === 'code' ? 'Use a different email' : 'Back'}
+                    {step === 'code' ? t('auth.useDifferentEmail', 'Use a different email') : t('btn.back', 'Back')}
                 </button>
 
                 {step === 'email' ? (
                     <>
                         <h1 className="mt-6 font-display text-[2.5rem] font-medium leading-[1.05] tracking-tight text-dark">
-                            Sign in
+                            {t('auth.signIn', 'Sign in')}
                         </h1>
                         <p className="mt-3 text-[15px] leading-relaxed text-slate-500">
-                            We’ll email you a code. No password to create or remember.
+                            {t('auth.emailCodeNoPasswordLong', "We'll email you a code. No password to create or remember.")}
                         </p>
 
                         <button
@@ -159,20 +161,20 @@ const AuthGate: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                             className="tap-target mt-8 flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-white py-3.5 text-[15px] font-semibold text-dark transition-colors disabled:opacity-60"
                         >
                             <GoogleMark />
-                            Continue with Google
+                            {t('auth.continueWithGoogle', 'Continue with Google')}
                         </button>
 
                         <div className="my-6 flex items-center gap-3">
                             <span className="h-px flex-1 bg-border" />
                             <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                                or
+                                {t('auth.or', 'or')}
                             </span>
                             <span className="h-px flex-1 bg-border" />
                         </div>
 
                         <form onSubmit={submitEmail} noValidate>
                             <label htmlFor="gate-email" className={labelClass}>
-                                Email address
+                                {t('auth.emailAddress', 'Email address')}
                             </label>
                             <input
                                 id="gate-email"
@@ -207,24 +209,23 @@ const AuthGate: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                                 ) : (
                                     <Mail size={18} strokeWidth={1.75} aria-hidden="true" />
                                 )}
-                                Email me a code
+                                {t('auth.emailMeACode', 'Email me a code')}
                             </button>
                         </form>
                     </>
                 ) : (
                     <>
                         <h1 className="mt-6 font-display text-[2.5rem] font-medium leading-[1.05] tracking-tight text-dark">
-                            Check your email
+                            {t('auth.checkYourEmail', 'Check your email')}
                         </h1>
                         <p className="mt-3 text-[15px] leading-relaxed text-slate-500">
-                            We sent a 6-digit code to{' '}
-                            <span className="font-semibold text-dark">{email}</span>. That email also
-                            has a sign-in link if you’d rather just tap it.
+                            {t('auth.sentCodeTo', 'We sent a 6-digit code to')}{' '}
+                            <span className="font-semibold text-dark">{email}</span>. {t('auth.magicLinkAlt', "That email also has a sign-in link, if you'd rather just tap it.")}
                         </p>
 
                         <form onSubmit={submitCode} noValidate className="mt-8">
                             <label htmlFor="gate-code" className={labelClass}>
-                                6-digit code
+                                {t('auth.sixDigitCode', '6-digit code')}
                             </label>
                             <input
                                 ref={codeRef}
@@ -261,7 +262,7 @@ const AuthGate: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                                 {working && (
                                     <LoaderCircle size={18} className="animate-spin" aria-hidden="true" />
                                 )}
-                                Sign in
+                                {t('auth.signIn', 'Sign in')}
                             </button>
 
                             <button
@@ -270,7 +271,7 @@ const AuthGate: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                                 disabled={working}
                                 className="tap-target mt-4 w-full text-sm font-semibold text-slate-500 transition-colors hover:text-primary disabled:opacity-60"
                             >
-                                Resend the code
+                                {t('auth.resendCode', 'Resend the code')}
                             </button>
                         </form>
                     </>
@@ -283,7 +284,7 @@ const AuthGate: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                         className="mt-0.5 shrink-0"
                         aria-hidden="true"
                     />
-                    Your CV data stays on your device until you choose to sync it.
+                    {t('auth.dataStaysOnDevice', 'Your CV data stays on your device until you choose to sync it.')}
                 </p>
             </div>
         </div>

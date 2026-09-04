@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { sanitizeHtml } from '../../lib/sanitizeHtml';
-import type { ResumePreviewProps } from '../../types';
+import type { ResumePreviewProps, SectionId } from '../../types';
+import { orderedSections } from '../../lib/templates/sectionOrder';
 import { countries } from '../../data/locationData';
 
 const BerlinTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview, visibleSections, settings }) => {
@@ -20,6 +21,187 @@ const BerlinTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
     const fadedText = 'rgba(33, 33, 33, 0.6)';
     
     const fontSizeClass = settings?.fontSize === 'small' ? 'text-[9px]' : settings?.fontSize === 'large' ? 'text-[11px]' : 'text-[10px]';
+
+    const renderSection = (id: SectionId): React.ReactNode => {
+        switch (id) {
+            case 'summary':
+                return summary.professionalSummary ? (
+                    <section key="summary" data-section="summary">
+                        <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-3 break-after-avoid" style={{ color: black }}>Profile</h2>
+                        <div className="leading-[1.7] text-justify" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
+                    </section>
+                ) : null;
+            case 'experience':
+                return experience.length > 0 ? (
+                    <section key="experience" data-section="experience">
+                        <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-5 break-after-avoid" style={{ color: black }}>Experience</h2>
+                        <div className="flex flex-col gap-6">
+                            {experience.map(exp => (
+                                <div className="break-inside-avoid" key={exp.id}>
+                                    <div className="flex justify-between items-baseline mb-1">
+                                        <h3 className="text-[11px] font-bold text-[#212121]">{exp.company}</h3>
+                                        <span className="text-[10px]" style={{ color: fadedText }}>{exp.startDate} — {exp.endDate}</span>
+                                    </div>
+                                    <p className="text-[11px] font-bold mb-2" style={{ color: fadedText }}>{exp.jobTitle}</p>
+                                    <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'education':
+                return education.length > 0 ? (
+                    <section key="education" data-section="education">
+                         <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-3 break-after-avoid" style={{ color: black }}>Education</h2>
+                         <div className="flex flex-col gap-5">
+                            {education.map(edu => (
+                                <div className="break-inside-avoid" key={edu.id}>
+                                    <div className="flex flex-col mb-1">
+                                        <h3 className="text-[11px] font-bold">{edu.school}</h3>
+                                        <p className="text-[10px]" style={{ color: fadedText }}>{edu.startDate} - {edu.endDate}</p>
+                                    </div>
+                                    <p className="leading-[1.7]" style={{ color: fadedText }}>{edu.degree}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'skills':
+                return skills.length > 0 ? (
+                    <section key="skills" data-section="skills">
+                        <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-3 break-after-avoid" style={{ color: black }}>Skills</h2>
+                        <div className="flex flex-wrap gap-2">
+                            {skills.map((skill, i) => (
+                                <span key={i} className="block w-full border-b border-gray-200 pb-1 mb-1 leading-[1.6]" style={{ color: fadedText }}>
+                                    {skill}
+                                </span>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'projects':
+                return projects.length > 0 ? (
+                    <section key="projects" data-section="projects">
+                        <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-5 break-after-avoid" style={{ color: black }}>Projects</h2>
+                        <div className="flex flex-col gap-6">
+                            {projects.map(item => (
+                                <div className="break-inside-avoid" key={item.id}>
+                                    <div className="flex justify-between items-baseline mb-1">
+                                        <h3 className="text-[11px] font-bold text-[#212121]">{item.name}</h3>
+                                        <span className="text-[10px]" style={{ color: fadedText }}>{item.startDate} — {item.endDate}</span>
+                                    </div>
+                                    <p className="text-[11px] font-bold mb-2" style={{ color: fadedText }}>{item.technologies}</p>
+                                    <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'certifications':
+                return certifications.length > 0 ? (
+                    <section key="certifications" data-section="certifications">
+                        <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-5 break-after-avoid" style={{ color: black }}>Certifications</h2>
+                        <div className="flex flex-col gap-3">
+                            {certifications.map((cert, i) => (
+                                <div className="break-inside-avoid" key={i}>
+                                    <p className="text-[11px] font-bold text-[#212121]">{cert.name}</p>
+                                    {cert.expiryDate && <p className="text-[10px] mt-0.5" style={{ color: fadedText }}>Expires: {cert.expiryDate}</p>}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'languages':
+                return languages.length > 0 ? (
+                    <section key="languages" data-section="languages">
+                         <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-3 break-after-avoid" style={{ color: black }}>Languages</h2>
+                         <ul className="flex flex-col gap-2">
+                            {languages.map((lang, i) => (
+                                <li key={i} className="flex justify-between break-inside-avoid">
+                                    <span className="font-medium">{lang.language}</span>
+                                    <span style={{ color: fadedText }}>{lang.proficiency}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                ) : null;
+            case 'awards':
+                return awards.length > 0 ? (
+                    <section key="awards" data-section="awards">
+                        <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-5 break-after-avoid" style={{ color: black }}>Awards</h2>
+                        <div className="flex flex-col gap-3">
+                            {awards.map((award, i) => (
+                                <div className="break-inside-avoid" key={i}>
+                                    <div className="flex justify-between items-baseline">
+                                        <p className="text-[11px] font-bold text-[#212121]">{award.title}</p>
+                                        <span className="text-[10px]" style={{ color: fadedText }}>{award.date}</span>
+                                    </div>
+                                    <p className="text-[10px] mt-0.5" style={{ color: fadedText }}>{award.issuer}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'publications':
+                return publications.length > 0 ? (
+                    <section key="publications" data-section="publications">
+                        <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-5 break-after-avoid" style={{ color: black }}>Publications</h2>
+                        <div className="flex flex-col gap-4">
+                            {publications.map((pub, i) => (
+                                <div className="break-inside-avoid" key={i}>
+                                    <div className="flex justify-between items-baseline mb-1">
+                                        <h3 className="text-[11px] font-bold text-[#212121]">{pub.title}</h3>
+                                        <span className="text-[10px]" style={{ color: fadedText }}>{pub.date}</span>
+                                    </div>
+                                    <p className="text-[11px] mb-1" style={{ color: fadedText }}>{pub.publisher}</p>
+                                    {pub.description && <div className="leading-[1.7]" style={{ color: fadedText }}>{pub.description}</div>}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'volunteer':
+                return volunteer.length > 0 ? (
+                    <section key="volunteer" data-section="volunteer">
+                        <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-5 break-after-avoid" style={{ color: black }}>Volunteering</h2>
+                        <div className="flex flex-col gap-4">
+                            {volunteer.map((vol, i) => (
+                                <div className="break-inside-avoid" key={i}>
+                                    <div className="flex justify-between items-baseline mb-1">
+                                        <h3 className="text-[11px] font-bold text-[#212121]">{vol.role}</h3>
+                                        <span className="text-[10px]" style={{ color: fadedText }}>{vol.startDate} - {vol.endDate}</span>
+                                    </div>
+                                    <p className="text-[11px] mb-2" style={{ color: fadedText }}>{vol.organization}</p>
+                                    <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(vol.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            case 'custom':
+                return custom.length > 0 ? (
+                    <section key="custom" data-section="custom">
+                        <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-5 break-after-avoid" style={{ color: black }}>Additional</h2>
+                        <div className="flex flex-col gap-4">
+                            {custom.map((item, i) => (
+                                <div className="break-inside-avoid" key={i}>
+                                    <div className="flex justify-between items-baseline mb-1">
+                                        <h3 className="text-[11px] font-bold text-[#212121]">{item.title}</h3>
+                                        <span className="text-[10px]" style={{ color: fadedText }}>{item.date}</span>
+                                    </div>
+                                    <p className="text-[11px] mb-2" style={{ color: fadedText }}>{item.subtitle}</p>
+                                    <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null;
+            default:
+                return null;
+        }
+    };
+    const renderRun = (ids: readonly SectionId[]): React.ReactNode[] =>
+        orderedSections(formData, visibleSections, ids).map(renderSection);
 
     return (
         <div id={isCardPreview ? undefined : "resume-preview-berlin"} className={`w-[794px] min-h-[1123px] h-auto bg-white relative ${fontSizeClass}`} style={{ fontFamily: mainFont, color: black }}>
@@ -41,26 +223,7 @@ const BerlinTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                     )}
 
                     {/* Profile / Summary */}
-                    {summary.professionalSummary && (
-                        <section>
-                            <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-3" style={{ color: black }}>Profile</h2>
-                            <div className="leading-[1.7] text-justify" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.professionalSummary) }} />
-                        </section>
-                    )}
-
-                    {/* Skills */}
-                    {skills.length > 0 && (
-                        <section>
-                            <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-3" style={{ color: black }}>Skills</h2>
-                            <div className="flex flex-wrap gap-2">
-                                {skills.map((skill, i) => (
-                                    <span key={i} className="block w-full border-b border-gray-200 pb-1 mb-1 leading-[1.6]" style={{ color: fadedText }}>
-                                        {skill}
-                                    </span>
-                                ))}
-                            </div>
-                        </section>
-                    )}
+                    {renderRun(['summary', 'skills'])}
 
                     {/* Contact Info */}
                     <section>
@@ -95,37 +258,7 @@ const BerlinTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
                     </section>
 
                     {/* Education */}
-                    {education.length > 0 && (
-                        <section>
-                             <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-3" style={{ color: black }}>Education</h2>
-                             <div className="flex flex-col gap-5">
-                                {education.map(edu => (
-                                    <div key={edu.id}>
-                                        <div className="flex flex-col mb-1">
-                                            <h3 className="text-[11px] font-bold">{edu.school}</h3>
-                                            <p className="text-[10px]" style={{ color: fadedText }}>{edu.startDate} - {edu.endDate}</p>
-                                        </div>
-                                        <p className="leading-[1.7]" style={{ color: fadedText }}>{edu.degree}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-                    )}
-
-                    {/* Languages */}
-                     {visibleSections.includes('languages') && languages.length > 0 && (
-                        <section>
-                             <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-3" style={{ color: black }}>Languages</h2>
-                             <ul className="flex flex-col gap-2">
-                                {languages.map((lang, i) => (
-                                    <li key={i} className="flex justify-between">
-                                        <span className="font-medium">{lang.language}</span>
-                                        <span style={{ color: fadedText }}>{lang.proficiency}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
-                    )}
+                    {renderRun(['education', 'languages'])}
 
                 </aside>
 
@@ -144,126 +277,7 @@ const BerlinTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
 
                     <div className="flex flex-col gap-8">
                         
-                        {experience.length > 0 && (
-                            <section>
-                                <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-5" style={{ color: black }}>Experience</h2>
-                                <div className="flex flex-col gap-6">
-                                    {experience.map(exp => (
-                                        <div key={exp.id}>
-                                            <div className="flex justify-between items-baseline mb-1">
-                                                <h3 className="text-[11px] font-bold text-[#212121]">{exp.company}</h3>
-                                                <span className="text-[10px]" style={{ color: fadedText }}>{exp.startDate} — {exp.endDate}</span>
-                                            </div>
-                                            <p className="text-[11px] font-bold mb-2" style={{ color: fadedText }}>{exp.jobTitle}</p>
-                                            <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }} />
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {visibleSections.includes('projects') && projects.length > 0 && (
-                             <section>
-                                <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-5" style={{ color: black }}>Projects</h2>
-                                <div className="flex flex-col gap-6">
-                                    {projects.map(item => (
-                                        <div key={item.id}>
-                                            <div className="flex justify-between items-baseline mb-1">
-                                                <h3 className="text-[11px] font-bold text-[#212121]">{item.name}</h3>
-                                                <span className="text-[10px]" style={{ color: fadedText }}>{item.startDate} — {item.endDate}</span>
-                                            </div>
-                                            <p className="text-[11px] font-bold mb-2" style={{ color: fadedText }}>{item.technologies}</p>
-                                            <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {visibleSections.includes('certifications') && certifications.length > 0 && (
-                             <section>
-                                <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-5" style={{ color: black }}>Certifications</h2>
-                                <div className="flex flex-col gap-3">
-                                    {certifications.map((cert, i) => (
-                                        <div key={i}>
-                                            <p className="text-[11px] font-bold text-[#212121]">{cert.name}</p>
-                                            {cert.expiryDate && <p className="text-[10px] mt-0.5" style={{ color: fadedText }}>Expires: {cert.expiryDate}</p>}
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-                        
-                        {visibleSections.includes('publications') && publications.length > 0 && (
-                             <section>
-                                <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-5" style={{ color: black }}>Publications</h2>
-                                <div className="flex flex-col gap-4">
-                                    {publications.map((pub, i) => (
-                                        <div key={i}>
-                                            <div className="flex justify-between items-baseline mb-1">
-                                                <h3 className="text-[11px] font-bold text-[#212121]">{pub.title}</h3>
-                                                <span className="text-[10px]" style={{ color: fadedText }}>{pub.date}</span>
-                                            </div>
-                                            <p className="text-[11px] mb-1" style={{ color: fadedText }}>{pub.publisher}</p>
-                                            {pub.description && <div className="leading-[1.7]" style={{ color: fadedText }}>{pub.description}</div>}
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {visibleSections.includes('volunteer') && volunteer.length > 0 && (
-                             <section>
-                                <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-5" style={{ color: black }}>Volunteering</h2>
-                                <div className="flex flex-col gap-4">
-                                    {volunteer.map((vol, i) => (
-                                        <div key={i}>
-                                            <div className="flex justify-between items-baseline mb-1">
-                                                <h3 className="text-[11px] font-bold text-[#212121]">{vol.role}</h3>
-                                                <span className="text-[10px]" style={{ color: fadedText }}>{vol.startDate} - {vol.endDate}</span>
-                                            </div>
-                                            <p className="text-[11px] mb-2" style={{ color: fadedText }}>{vol.organization}</p>
-                                            <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(vol.description) }} />
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {visibleSections.includes('awards') && awards.length > 0 && (
-                             <section>
-                                <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-5" style={{ color: black }}>Awards</h2>
-                                <div className="flex flex-col gap-3">
-                                    {awards.map((award, i) => (
-                                        <div key={i}>
-                                            <div className="flex justify-between items-baseline">
-                                                <p className="text-[11px] font-bold text-[#212121]">{award.title}</p>
-                                                <span className="text-[10px]" style={{ color: fadedText }}>{award.date}</span>
-                                            </div>
-                                            <p className="text-[10px] mt-0.5" style={{ color: fadedText }}>{award.issuer}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {visibleSections.includes('custom') && custom.length > 0 && (
-                             <section>
-                                <h2 className="text-[13px] font-bold uppercase tracking-[0.2px] mb-5" style={{ color: black }}>Additional</h2>
-                                <div className="flex flex-col gap-4">
-                                    {custom.map((item, i) => (
-                                        <div key={i}>
-                                            <div className="flex justify-between items-baseline mb-1">
-                                                <h3 className="text-[11px] font-bold text-[#212121]">{item.title}</h3>
-                                                <span className="text-[10px]" style={{ color: fadedText }}>{item.date}</span>
-                                            </div>
-                                            <p className="text-[11px] mb-2" style={{ color: fadedText }}>{item.subtitle}</p>
-                                            <div className="leading-[1.7]" style={{ color: fadedText }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
+                        {renderRun(['experience', 'projects', 'certifications', 'publications', 'volunteer', 'awards', 'custom'])}
 
                     </div>
                 </main>
@@ -272,4 +286,4 @@ const BerlinTemplate: React.FC<ResumePreviewProps> = ({ formData, isCardPreview,
     );
 };
 
-export default BerlinTemplate;
+export default React.memo(BerlinTemplate);

@@ -61,6 +61,17 @@ jobs:
       # --allow-net is not needed.
       - name: Deno test (Edge Function helpers)
         run: deno test --allow-env --node-modules-dir=none supabase/functions/_shared/
+      # The admin API and the health probe have no browser-side coverage, so
+      # they are typechecked here and the admin's pure modules (route parsing,
+      # provider-id validation, key masking, LLM roll-ups) are unit-tested.
+      - name: Deno check (admin + health)
+        run: deno check --node-modules-dir=none supabase/functions/admin/index.ts supabase/functions/health/index.ts
+      - name: Deno test (admin + health)
+        run: deno test --allow-env --node-modules-dir=none supabase/functions/admin/ supabase/functions/health/
+      # Billing and AI-suggest functions carry pure modules with their own tests
+      # (webhook dedupe/ordering/user resolution, checkout shaping, prompts).
+      - name: Deno test (billing + ai-suggest)
+        run: deno test --allow-env --node-modules-dir=none supabase/functions/stripe-webhook/ supabase/functions/stripe-checkout/ supabase/functions/ai-suggest/
       # PRISM pipeline tests drive the real LangGraph with a scripted model.
       # --node-modules-dir=none: resolve npm: specifiers from Deno's own cache
       # (the repo package.json would otherwise switch Deno into byonm mode),

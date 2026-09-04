@@ -15,6 +15,8 @@ import {
   analyzeGaps, finalizeRun, generateResume,
   type PrismAnswer, type PrismGenerateResult, type PrismQuestion, type PrismStageUpdate,
 } from '../../services/prismService';
+import { Sparkles, Briefcase, FileText, LayoutDashboard, Check, Flag, CircleCheck } from 'lucide-react';
+import { useTranslation, type Translate } from '../../services/translationService';
 
 // PRISM — the agentic resume-tailoring wizard. Flow: JD + template + CV →
 // phase 1 (gap analysis → dynamic questionnaire, skipped entirely on zero
@@ -45,9 +47,9 @@ function visibleSectionsFor(d: ResumeData): SectionId[] {
 }
 
 /** Reviewable lines of the generated resume (summary, bullets, skills). */
-function reviewLines(resume: ResumeData): { key: string; section: string; text: string }[] {
+function reviewLines(resume: ResumeData, t: Translate): { key: string; section: string; text: string }[] {
   const lines: { key: string; section: string; text: string }[] = [
-    { key: 'summary', section: 'Summary', text: resume.summary.professionalSummary },
+    { key: 'summary', section: t('summary.title', 'Summary'), text: resume.summary.professionalSummary },
   ];
   resume.experience.forEach((exp, i) => {
     const bullets = exp.description.match(/<p>(.*?)<\/p>/g) ?? [];
@@ -60,24 +62,26 @@ function reviewLines(resume: ResumeData): { key: string; section: string; text: 
     });
   });
   if (resume.skills.length) {
-    lines.push({ key: 'skills', section: 'Skills', text: resume.skills.join(', ') });
+    lines.push({ key: 'skills', section: t('skills.title', 'Skills'), text: resume.skills.join(', ') });
   }
   return lines;
 }
 
 const MIN_TEXT = 80;
 
-const ERROR_MESSAGES: Record<string, string> = {
-  bad_ai_output: 'The AI returned an unusable result. Please try again.',
-  feature_disabled: "PRISM isn't available on your account yet.",
-  rate_limited: 'You have reached the hourly limit for PRISM runs. Please try again later.',
-  run_in_progress: 'Another PRISM run is still working — give it a moment, then continue it from the banner.',
-  cost_cap_exceeded: 'This run hit its processing budget. Try again with a shorter job description or CV.',
-  run_expired: 'That run expired, so its data was removed. Please start again.',
-  model_refused: 'The AI could not process this content. Please review your inputs and try again.',
-};
+const buildErrorMessages = (t: Translate): Record<string, string> => ({
+  bad_ai_output: t('prism.err.badAiOutput', 'The AI returned an unusable result. Please try again.'),
+  feature_disabled: t('prism.err.featureDisabled', "PRISM isn't available on your account yet."),
+  rate_limited: t('prism.err.rateLimited', 'You have reached the hourly limit for PRISM runs. Please try again later.'),
+  run_in_progress: t('prism.err.runInProgress', 'Another PRISM run is still working — give it a moment, then continue it from the banner.'),
+  cost_cap_exceeded: t('prism.err.costCapExceeded', 'This run hit its processing budget. Try again with a shorter job description or CV.'),
+  run_expired: t('prism.err.runExpired', 'That run expired, so its data was removed. Please start again.'),
+  model_refused: t('prism.err.modelRefused', 'The AI could not process this content. Please review your inputs and try again.'),
+});
 
 const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) => {
+  const { t } = useTranslation();
+  const ERROR_MESSAGES = useMemo(() => buildErrorMessages(t), [t]);
   const { user } = useAuth();
   const { plan } = useSubscription();
   const [step, setStep] = useState<Step>('input');
@@ -136,9 +140,9 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
     const code = (e as FnError)?.code ?? '';
     if (code === 'limit_reached' || code === 'feature_locked') {
       setLimitHit(true);
-      setError('You have used all AI actions on your current plan.');
+      setError(t('prism.err.usedAllActions', 'You have used all AI actions on your current plan.'));
     } else {
-      setError(ERROR_MESSAGES[code] ?? 'Something went wrong while tailoring your resume. Please try again.');
+      setError(ERROR_MESSAGES[code] ?? t('prism.err.somethingWentWrong', 'Something went wrong while tailoring your resume. Please try again.'));
     }
   };
 
@@ -162,12 +166,12 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
         // Image-only PDF: server-side extraction (same fallback SmartStudio uses).
         finalText = await parsePdfFileWithAi(arrayBufferToBase64(await file.arrayBuffer()));
         if (finalText.replace(/\s/g, '').length < MIN_TEXT) {
-          setError(`We couldn't read any text from "${file.name}" — the PDF appears to contain only images. Try exporting it as a text PDF or paste the text instead.`);
+          setError(t('prism.err.noTextInPdf', 'We couldn\'t read any text from "{name}" — the PDF appears to contain only images. Try exporting it as a text PDF or paste the text instead.').replace('{name}', file.name));
           return;
         }
       }
       if (finalText.replace(/\s/g, '').length < MIN_TEXT) {
-        setError(`"${file.name}" contains almost no text. Please upload a complete ${target === 'jd' ? 'job description' : 'CV'} or paste the text instead.`);
+        setError(t('prism.err.almostNoText', '"{name}" contains almost no text. Please upload a complete {kind} or paste the text instead.').replace('{name}', file.name).replace('{kind}', target === 'jd' ? t('prism.jobDescriptionLower', 'job description') : t('prism.cvLower', 'CV')));
         return;
       }
       if (target === 'jd') setJdText(finalText.trim());
@@ -194,14 +198,14 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
     try {
       const primary = await resumeRepo.getPrimary(user.id);
       if (!primary) {
-        setError('No saved resume found — upload your CV instead.');
+        setError(t('prism.err.noSavedResume', 'No saved resume found — upload your CV instead.'));
         return;
       }
       // Same ResumeData→text flattening the ATS analyzer uses.
       setCvText(parseFromResumeData(primary.data as ResumeData).rawText);
-      setCvFileName('My saved resume');
+      setCvFileName(t('prism.mySavedResume', 'My saved resume'));
     } catch {
-      setError('Could not load your saved resume. Upload your CV instead.');
+      setError(t('prism.err.couldNotLoadResume', 'Could not load your saved resume. Upload your CV instead.'));
     } finally {
       setParsing(null);
     }
@@ -216,7 +220,7 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
       const count = await resumeRepo.count(user.id);
       if (!canCreateResume(count, plan.limits.resumes)) {
         setLimitHit(true);
-        setError('You have reached the resume limit on your current plan.');
+        setError(t('prism.err.resumeLimitReached', 'You have reached the resume limit on your current plan.'));
         return;
       }
     } catch { /* count unavailable — let the attempt proceed */ }
@@ -318,7 +322,7 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
     setError(null);
     try {
       const created = await resumeRepo.create(user.id, {
-        title: `${result.resume.contact.jobTitle || 'Tailored resume'} — PRISM`,
+        title: `${result.resume.contact.jobTitle || t('prism.tailoredResume', 'Tailored resume')} — PRISM`,
         data: result.resume,
         templateId,
         visibleSections: visibleSectionsFor(result.resume),
@@ -354,7 +358,7 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
       setResumable(null);
       setError(null);
     } catch {
-      setError('Could not delete your PRISM data. Please try again.');
+      setError(t('prism.err.couldNotDeleteData', 'Could not delete your PRISM data. Please try again.'));
     }
   }
 
@@ -364,9 +368,9 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
   if (!user) {
     return (
       <div className="glass-card rounded-3xl p-10 text-center max-w-xl mx-auto">
-        <span className="material-symbols-outlined text-4xl text-primary mb-3">auto_awesome</span>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">PRISM Resume Tailor</h2>
-        <p className="text-gray-500">Sign in to tailor your resume to a job description with AI.</p>
+        <Sparkles className="w-10 h-10 text-primary mb-3" aria-hidden="true" />
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('prism.title', 'PRISM Resume Tailor')}</h2>
+        <p className="text-gray-500">{t('prism.signInDesc', 'Sign in to tailor your resume to a job description with AI.')}</p>
       </div>
     );
   }
@@ -374,31 +378,31 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
   return (
     <div className="animate-fade-in max-w-5xl mx-auto">
       <header className="mb-8">
-        <p className="dashboard-eyebrow mb-3">Role-specific tailoring</p>
+        <p className="dashboard-eyebrow mb-3">{t('prism.eyebrow', 'Role-specific tailoring')}</p>
         <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-          <span className="material-symbols-outlined text-primary text-3xl">auto_awesome</span>
-          PRISM Resume Tailor
+          <Sparkles className="w-8 h-8 text-primary" aria-hidden="true" />
+          {t('prism.title', 'PRISM Resume Tailor')}
         </h1>
         <p className="text-gray-500">
-          Paste a job description, answer a few questions, and get an ATS-optimized resume in your chosen template.
+          {t('prism.headerDesc', 'Paste a job description, answer a few questions, and get an ATS-optimized resume in your chosen template.')}
         </p>
       </header>
 
       {resumable && step === 'input' && (
         <div className="mb-6 rounded-2xl border border-primary/30 bg-primary/5 px-5 py-4 flex items-center justify-between gap-4">
           <p className="text-sm text-gray-700">
-            <span className="font-bold">You have an unfinished tailoring run.</span>{' '}
+            <span className="font-bold">{t('prism.unfinishedRun', 'You have an unfinished tailoring run.')}</span>{' '}
             {resumable.status === 'review'
-              ? 'Your resume is ready to review.'
+              ? t('prism.readyToReview', 'Your resume is ready to review.')
               : resumable.status === 'failed'
-              ? 'It stopped partway — you can pick up where it left off.'
-              : 'Your questions are waiting for answers.'}
+              ? t('prism.stoppedPartway', 'It stopped partway — you can pick up where it left off.')
+              : t('prism.questionsWaiting', 'Your questions are waiting for answers.')}
           </p>
           <button
             onClick={() => continueRun(resumable)}
             className="shrink-0 px-5 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:opacity-90 transition"
           >
-            Continue
+            {t('prism.continue', 'Continue')}
           </button>
         </div>
       )}
@@ -411,7 +415,7 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
               onClick={onUpgrade}
               className="shrink-0 px-4 py-2 rounded-xl bg-dark text-white text-xs font-bold hover:opacity-90 transition"
             >
-              Upgrade
+              {t('dash.upgrade', 'Upgrade')}
             </button>
           )}
         </div>
@@ -424,15 +428,15 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
             <div className="glass-card rounded-3xl p-6">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-bold text-gray-800 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">work</span>
-                  Job description
+                  <Briefcase className="w-[1em] h-[1em] text-primary" aria-hidden="true" />
+                  {t('prism.jobDescription', 'Job description')}
                 </h2>
                 <button
                   onClick={() => jdFileInput.current?.click()}
                   disabled={parsing !== null}
                   className="text-xs font-bold text-primary hover:underline disabled:opacity-50"
                 >
-                  {parsing === 'jd' ? 'Reading…' : 'Upload PDF/DOCX'}
+                  {parsing === 'jd' ? t('prism.reading', 'Reading…') : t('prism.uploadPdfDocx', 'Upload PDF/DOCX')}
                 </button>
                 <input
                   ref={jdFileInput} type="file" className="hidden" accept={SUPPORTED_EXTENSIONS.join(',')}
@@ -442,7 +446,7 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
               <textarea
                 value={jdText}
                 onChange={(e) => setJdText(e.target.value)}
-                placeholder="Paste the full job description here…"
+                placeholder={t('prism.pasteJdPlaceholder', 'Paste the full job description here…')}
                 className="w-full h-52 rounded-2xl border border-gray-200 bg-white/70 p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
               />
             </div>
@@ -450,8 +454,8 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
             {/* CV */}
             <div className="glass-card rounded-3xl p-6">
               <h2 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
-                <span className="material-symbols-outlined text-primary">description</span>
-                Your CV
+                <FileText className="w-[1em] h-[1em] text-primary" aria-hidden="true" />
+                {t('prism.yourCv', 'Your CV')}
               </h2>
               <div className="flex flex-col sm:flex-row gap-3 mb-4">
                 <button
@@ -459,7 +463,7 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
                   disabled={parsing !== null}
                   className="tap-target flex-1 rounded-2xl border-2 border-dashed border-gray-300 py-6 text-sm font-semibold text-gray-600 hover:border-primary hover:text-primary transition disabled:opacity-50"
                 >
-                  {parsing === 'cv' ? 'Reading…' : cvFileName ?? `Upload (${SUPPORTED_EXTENSIONS.join(', ')})`}
+                  {parsing === 'cv' ? t('prism.reading', 'Reading…') : cvFileName ?? t('prism.uploadTypes', 'Upload ({types})').replace('{types}', SUPPORTED_EXTENSIONS.join(', '))}
                 </button>
                 <input
                   ref={cvFileInput} type="file" className="hidden" accept={SUPPORTED_EXTENSIONS.join(',')}
@@ -470,13 +474,13 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
                   disabled={parsing !== null}
                   className="tap-target flex items-center justify-center rounded-2xl bg-white/60 border border-gray-200 px-4 text-xs font-bold text-gray-600 hover:bg-white transition disabled:opacity-50"
                 >
-                  Use my saved resume
+                  {t('prism.useMySavedResume', 'Use my saved resume')}
                 </button>
               </div>
               <textarea
                 value={cvText}
                 onChange={(e) => { setCvText(e.target.value); setCvFileName(null); }}
-                placeholder="…or paste your CV text here."
+                placeholder={t('prism.pasteCvPlaceholder', '…or paste your CV text here.')}
                 className="w-full h-28 rounded-2xl border border-gray-200 bg-white/70 p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
               />
             </div>
@@ -485,8 +489,8 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
           {/* Template picker */}
           <div className="glass-card rounded-3xl p-6">
             <h2 className="font-bold text-gray-800 flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-primary">dashboard_customize</span>
-              Choose a template
+              <LayoutDashboard className="w-[1em] h-[1em] text-primary" aria-hidden="true" />
+              {t('prism.chooseTemplate', 'Choose a template')}
             </h2>
             <div className="flex flex-wrap gap-2 mb-4">
               {categories.map((cat) => (
@@ -499,7 +503,7 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
                       : 'bg-white/50 text-gray-600 border border-white/40 hover:bg-white'
                   }`}
                 >
-                  {cat}
+                  {cat === 'All' ? t('dash.allCategory', 'All') : cat}
                 </button>
               ))}
             </div>
@@ -518,7 +522,7 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
                     <LazyTemplatePreview templateId={t.id} scale={0.16} />
                     {templateId === t.id && (
                       <div className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow">
-                        <span className="material-symbols-outlined text-sm leading-none">check</span>
+                        <Check className="w-[1em] h-[1em] text-sm leading-none" aria-hidden="true" />
                       </div>
                     )}
                   </div>
@@ -535,21 +539,21 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
             <button
               onClick={deleteMyData}
               className="text-xs text-gray-400 hover:text-red-500 underline transition text-center sm:text-left"
-              title="Removes all PRISM pipeline runs: uploaded text, checkpoints, drafts and results."
+              title={t('prism.deleteDataTitle', 'Removes all PRISM pipeline runs: uploaded text, checkpoints, drafts and results.')}
             >
-              Delete my PRISM data
+              {t('prism.deleteMyData', 'Delete my PRISM data')}
             </button>
             <button
               onClick={startAnalyze}
               disabled={!inputsReady || parsing !== null}
               className="tap-target w-full sm:w-auto px-8 py-3 rounded-2xl bg-gradient-to-r from-primary to-secondary text-white font-bold shadow-lg shadow-primary/30 hover:opacity-90 active:scale-95 transition disabled:opacity-40 disabled:pointer-events-none"
             >
-              Tailor my resume
+              {t('prism.tailorMyResume', 'Tailor my resume')}
             </button>
           </div>
           {!inputsReady && (
             <p className="text-right text-xs text-gray-400 -mt-4">
-              Add a job description and your CV (at least a few sentences each) to start.
+              {t('prism.addJdAndCv', 'Add a job description and your CV (at least a few sentences each) to start.')}
             </p>
           )}
         </div>
@@ -561,10 +565,9 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
 
       {step === 'questions' && (
         <div className="glass-card rounded-3xl p-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-1">A few quick questions</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-1">{t('prism.quickQuestions', 'A few quick questions')}</h2>
           <p className="text-sm text-gray-500 mb-6">
-            Your answers fill the gaps between your CV and this job — one or two sentences each is plenty.
-            Leave blank anything that doesn't apply.
+            {t('prism.questionsDesc', "Your answers fill the gaps between your CV and this job — one or two sentences each is plenty. Leave blank anything that doesn't apply.")}
           </p>
           <div className="space-y-5">
             {questions.map((q, i) => (
@@ -583,12 +586,12 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
             ))}
           </div>
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-gray-400">{answeredCount}/{questions.length} answered</p>
+            <p className="text-xs text-gray-400">{t('prism.answeredCount', '{answered}/{total} answered').replace('{answered}', String(answeredCount)).replace('{total}', String(questions.length))}</p>
             <button
               onClick={startGenerate}
               className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-gradient-to-r from-primary to-secondary text-white font-bold shadow-lg shadow-primary/30 hover:opacity-90 active:scale-95 transition"
             >
-              Generate my resume
+              {t('prism.generateMyResume', 'Generate my resume')}
             </button>
           </div>
         </div>
@@ -596,19 +599,17 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
 
       {step === 'review' && result && (
         <div className="glass-card rounded-3xl p-8 max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-800 mb-1">Review your tailored resume</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-1">{t('prism.reviewTitle', 'Review your tailored resume')}</h2>
           <p className="text-sm text-gray-500 mb-2">
-            ATS alignment score: <span className="font-bold text-gray-800">{result.atsScore}/100</span>
+            {t('prism.atsAlignmentScore', 'ATS alignment score:')} <span className="font-bold text-gray-800">{result.atsScore}/100</span>
           </p>
           <p className="text-sm text-gray-500 mb-6">
-            This resume goes out under <span className="font-semibold">your</span> name — read every line.
-            Use <span className="material-symbols-outlined text-sm align-middle">flag</span> to report anything
-            that wasn't in your CV or answers; you can edit every line in the editor after approving.
+            {t('prism.reviewDescPart1', 'This resume goes out under')} <span className="font-semibold">{t('prism.your', 'your')}</span> {t('prism.reviewDescPart2', 'name — read every line. Use')} <Flag className="w-[1em] h-[1em] text-sm align-middle inline" aria-hidden="true" /> {t('prism.reviewDescPart3', "to report anything that wasn't in your CV or answers; you can edit every line in the editor after approving.")}
           </p>
 
           {result.unresolvedIssues.length > 0 && (
             <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm font-bold text-amber-800 mb-2">The ATS check left these for you to resolve by hand:</p>
+              <p className="text-sm font-bold text-amber-800 mb-2">{t('prism.atsLeftIssues', 'The ATS check left these for you to resolve by hand:')}</p>
               <ul className="list-disc pl-5 space-y-1 text-sm text-amber-700">
                 {result.unresolvedIssues.map((issue, i) => <li key={i}>{issue}</li>)}
               </ul>
@@ -616,7 +617,7 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
           )}
 
           <ul className="space-y-2 mb-8 max-h-96 overflow-y-auto pr-1">
-            {reviewLines(result.resume).map((line) => (
+            {reviewLines(result.resume, t).map((line) => (
               <li key={line.key} className="flex items-start gap-3 rounded-xl border border-gray-100 bg-white/70 px-4 py-2.5">
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">{line.section}</p>
@@ -625,15 +626,15 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
                 <button
                   onClick={() => toggleFlag(line)}
                   disabled={flagged.has(line.key)}
-                  title={flagged.has(line.key) ? 'Reported — thank you' : "Report: this wasn't in my CV and I didn't say this"}
+                  title={flagged.has(line.key) ? t('prism.reportedThankYou', 'Reported — thank you') : t('prism.reportNotMine', "Report: this wasn't in my CV and I didn't say this")}
                   className={`shrink-0 mt-1 flex items-center gap-1 text-xs font-bold rounded-lg px-2 py-1 transition ${
                     flagged.has(line.key)
                       ? 'text-amber-600 bg-amber-50 cursor-default'
                       : 'text-gray-400 hover:text-amber-600 hover:bg-amber-50'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-sm leading-none">flag</span>
-                  {flagged.has(line.key) ? 'Reported' : 'Not mine'}
+                  <Flag className="w-[1em] h-[1em] text-sm leading-none" aria-hidden="true" />
+                  {flagged.has(line.key) ? t('prism.reported', 'Reported') : t('prism.notMine', 'Not mine')}
                 </button>
               </li>
             ))}
@@ -641,14 +642,14 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-gray-400 max-w-xs">
-              Nothing is saved or exportable until you approve. Approving opens the editor where every line stays editable.
+              {t('prism.nothingSavedUntilApprove', 'Nothing is saved or exportable until you approve. Approving opens the editor where every line stays editable.')}
             </p>
             <button
               onClick={approveAndSave}
               disabled={approving}
               className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-gradient-to-r from-primary to-secondary text-white font-bold shadow-lg shadow-primary/30 hover:opacity-90 active:scale-95 transition disabled:opacity-50"
             >
-              {approving ? 'Saving…' : 'I reviewed it — save & edit'}
+              {approving ? t('prism.savingEllipsis', 'Saving…') : t('prism.reviewedSaveEdit', 'I reviewed it — save & edit')}
             </button>
           </div>
         </div>
@@ -659,17 +660,19 @@ const PrismWizard: React.FC<PrismWizardProps> = ({ onEditResume, onUpgrade }) =>
 
 /** Live agent-status feed: one line per pipeline stage, spinner on the active
  *  one. Renders only the fixed labels streamed by the server. */
-const StageFeed: React.FC<{ stages: StageItem[] }> = ({ stages }) => (
+const StageFeed: React.FC<{ stages: StageItem[] }> = ({ stages }) => {
+  const { t } = useTranslation();
+  return (
   <div className="glass-card rounded-3xl p-8 max-w-2xl mx-auto">
     <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-      <span className="material-symbols-outlined text-primary animate-pulse">auto_awesome</span>
-      PRISM is working…
+      <Sparkles className="w-[1em] h-[1em] text-primary animate-pulse" aria-hidden="true" />
+      {t('prism.working', 'PRISM is working…')}
     </h2>
     <ol className="space-y-4">
       {stages.map((s, i) => (
         <li key={`${s.stage}-${i}`} className="flex items-center gap-3">
           {s.done ? (
-            <span className="material-symbols-outlined text-emerald-500 text-xl">check_circle</span>
+            <CircleCheck className="w-[1em] h-[1em] text-emerald-500 text-xl" aria-hidden="true" />
           ) : (
             <span className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin shrink-0" />
           )}
@@ -681,11 +684,12 @@ const StageFeed: React.FC<{ stages: StageItem[] }> = ({ stages }) => (
       {stages.length === 0 && (
         <li className="flex items-center gap-3">
           <span className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin shrink-0" />
-          <span className="text-sm text-gray-800 font-semibold">Starting the agents…</span>
+          <span className="text-sm text-gray-800 font-semibold">{t('prism.startingAgents', 'Starting the agents…')}</span>
         </li>
       )}
     </ol>
   </div>
-);
+  );
+};
 
 export default PrismWizard;
