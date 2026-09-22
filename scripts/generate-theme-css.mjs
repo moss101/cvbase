@@ -14,6 +14,11 @@
  * Resume templates are the deliberate exception: a CV is always ink-on-white,
  * so the template roots re-declare the light values and are immune to the flip.
  *
+ * On top of the raw ramps and brand colours sits a small semantic layer
+ * (`SEMANTIC` below) — surface/text/border/action/status/focus/evidence roles
+ * that alias existing values, so Career OS screens can name what a colour is
+ * *for* without inventing page-local palettes.
+ *
  * Run: node scripts/generate-theme-css.mjs
  */
 import fs from 'fs';
@@ -196,6 +201,96 @@ const GLASS = {
   'glass-highlight': ['255 255 255 / 0.9',  '38 42 51 / 0.9'],
 };
 
+// ---------------------------------------------------------------------------
+// Semantic aliases (docs/career-os/DESIGN_SYSTEM.md). Career OS screens name
+// a *role* — the panel, secondary copy, a warning, inferred evidence — and the
+// role points at an existing brand or ramp value. Nothing here is a new colour:
+// a role either aliases a BRAND key (inheriting its light/darkText/darkSurface
+// split) or a neutral ramp step (inheriting the TEXT_MAP/SURFACE_MAP split),
+// so the semantic layer flips with the theme exactly as the rest of the app.
+//
+// Emitted as `--ct-sem-<role>` / `--cb-sem-<role>` and mapped in
+// tailwind.config.js as surface.canvas/panel/elevated, content.primary/
+// secondary/muted, border.default/strong, action.primary/secondary,
+// status.success/warning/danger/info, focus.ring and evidence.verified/
+// confirmed/inferred/incomplete.
+// ---------------------------------------------------------------------------
+/**
+ * A role is one of:
+ *   { brand: key }              — alias of a BRAND entry
+ *   { ramp, step }              — alias of a neutral ramp step (both roles)
+ *   { light, dark }             — a mark: one value per theme in *both* roles,
+ *                                 for lines and rings that are drawn as
+ *                                 elements yet must read as foreground
+ */
+const SEMANTIC = {
+  'surface-canvas':      { brand: 'ui-light' },
+  'surface-panel':       { brand: 'surface' },
+  'surface-elevated':    { brand: 'surface-raised' },
+  /**
+   * Body copy on the app chrome. `ui-dark` is the existing body colour; the
+   * secondary and muted steps come from the slate ramp that the chrome is
+   * built on rather than the editorial ink palette, so a career screen reads
+   * as one neutral family. slate-500 rather than ink-faint for muted copy:
+   * ink-faint sits at 3.55:1 (parity-gated) whereas slate-500 clears AA on
+   * every semantic surface in both themes.
+   */
+  'text-primary':        { brand: 'ui-dark' },
+  'text-secondary':      { ramp: 'slate', step: 600 },
+  'text-muted':          { ramp: 'slate', step: 500 },
+  'border-default':      { brand: 'ui-border' },
+  /**
+   * The border that identifies a control (inputs, selected cards). Held to
+   * 3:1 against the canvas and the panel in both themes (WCAG 1.4.11), which
+   * is why the dark value is the *lighter* slate step.
+   */
+  'border-strong':       { light: palette.slate[500], dark: palette.slate[400] },
+  'action-primary':      { brand: 'primary' },
+  'action-secondary':    { brand: 'secondary' },
+  'status-success':      { brand: 'success' },
+  'status-warning':      { brand: 'warning' },
+  'status-danger':       { brand: 'danger' },
+  /**
+   * Informational status is the indigo end of the secondary family: plain
+   * `secondary` is a 3.1:1 periwinkle as text on white, `secondary-dark`
+   * clears AA as text and keeps white labels legible as a surface.
+   */
+  'status-info':         { brand: 'secondary-dark' },
+  /**
+   * Focus rings are drawn as elements but read as foreground, so the ring
+   * takes the *text* value of primary in both roles — the surface value would
+   * be a 2.3:1 ring on the dark canvas.
+   */
+  'focus-ring':          { light: BRAND.primary[0], dark: BRAND.primary[1] },
+  // Evidence states (ConfirmationState). Labels and icons carry the meaning;
+  // these only reinforce it.
+  'evidence-verified':   { brand: 'success' },
+  'evidence-confirmed':  { brand: 'primary-dark' },
+  'evidence-inferred':   { brand: 'warning' },
+  'evidence-incomplete': { ramp: 'slate', step: 500 },
+};
+
+/** Resolves a semantic role to [light, darkText, darkSurface]. */
+const resolveSemantic = (name, role) => {
+  if (role.brand) {
+    const entry = BRAND[role.brand];
+    if (!entry) throw new Error(`Semantic ${name} aliases unknown brand colour ${role.brand}`);
+    return entry;
+  }
+  if (role.ramp) {
+    const ramp = palette[role.ramp];
+    if (!ramp || !ramp[role.step]) throw new Error(`Semantic ${name} aliases unknown step ${role.ramp}-${role.step}`);
+    return [ramp[role.step], stepColor(ramp, TEXT_MAP[role.step]), stepColor(ramp, SURFACE_MAP[role.step])];
+  }
+  if (role.light && role.dark) return [role.light, role.dark, role.dark];
+  throw new Error(`Semantic ${name} has no source`);
+};
+
+/** name -> [light, darkText, darkSurface], the same shape as BRAND. */
+const SEM = Object.fromEntries(
+  Object.entries(SEMANTIC).map(([name, role]) => [name, resolveSemantic(name, role)]),
+);
+
 /** The base page surface in dark mode — what most text is read against. */
 const DARK_SURFACE = BRAND.surface[2];
 
@@ -224,6 +319,13 @@ for (const [name, [l, darkText, darkSurface]] of Object.entries(BRAND)) {
   dark.push(`  --cb-${name}: ${triplet(darkSurface)};`);
 }
 
+for (const [name, [l, darkText, darkSurface]] of Object.entries(SEM)) {
+  light.push(`  --ct-sem-${name}: ${triplet(l)};`);
+  light.push(`  --cb-sem-${name}: ${triplet(l)};`);
+  dark.push(`  --ct-sem-${name}: ${triplet(darkText)};`);
+  dark.push(`  --cb-sem-${name}: ${triplet(darkSurface)};`);
+}
+
 for (const [name, [l, d]] of Object.entries(GLASS)) {
   light.push(`  --cb-${name}: ${l};`);
   dark.push(`  --cb-${name}: ${d};`);
@@ -241,7 +343,7 @@ const assertContrast = (label, fg, bg, floor = 4.5) => {
   const ratio = contrast(hexToRgb(fg), hexToRgb(bg));
   const ok = ratio >= floor;
   if (!ok) failures++;
-  report.push(`${ok ? 'PASS' : 'FAIL'}  ${label.padEnd(34)} ${ratio.toFixed(2)}:1`);
+  report.push(`${ok ? 'PASS' : 'FAIL'}  ${label.padEnd(44)} ${ratio.toFixed(2)}:1`);
 };
 
 /**
@@ -257,7 +359,7 @@ const assertNoRegression = (label, darkFg, darkBg, lightFg, lightBg) => {
   const ok = darkRatio >= lightRatio;
   if (!ok) failures++;
   report.push(
-    `${ok ? 'PASS' : 'FAIL'}  ${label.padEnd(34)} ` +
+    `${ok ? 'PASS' : 'FAIL'}  ${label.padEnd(44)} ` +
       `${darkRatio.toFixed(2)}:1 vs light ${lightRatio.toFixed(2)}:1`,
   );
 };
@@ -355,6 +457,52 @@ for (const name of ['primary', 'primary-dark', 'ember', 'ember-deep', 'danger'])
     BRAND[name][1], DARK_SURFACE,
     BRAND[name][0], '#FFFFFF',
   );
+}
+
+// ---------------------------------------------------------------------------
+// Semantic pairs. These are the combinations the Career OS primitives are
+// built from, so every one is held to AA (or 3:1 for non-text marks) in both
+// themes rather than parity — a new surface has no legacy contrast to inherit.
+// ---------------------------------------------------------------------------
+const SEM_SURFACES = ['surface-canvas', 'surface-panel', 'surface-elevated'];
+const SEM_TEXT = ['text-primary', 'text-secondary', 'text-muted'];
+const SEM_TONES = [
+  'status-success', 'status-warning', 'status-danger', 'status-info',
+  'evidence-verified', 'evidence-confirmed', 'evidence-inferred', 'evidence-incomplete',
+];
+
+/** Text role of `fg` on the surface role of `bg`, both themes. */
+const assertSemanticText = (fg, bg, floor = 4.5) => {
+  assertContrast(`light sem ${fg} on ${bg}`, SEM[fg][0], SEM[bg][0], floor);
+  assertContrast(`dark sem ${fg} on ${bg}`, SEM[fg][1], SEM[bg][2], floor);
+};
+
+for (const bg of SEM_SURFACES) {
+  for (const fg of SEM_TEXT) assertSemanticText(fg, bg);
+}
+// Status and evidence tones as text or icons on the panel they sit in.
+for (const fg of SEM_TONES) assertSemanticText(fg, 'surface-panel');
+
+// White labels on solid action and status surfaces. The primary action is
+// held to AA; the rest mirror the existing brand gate (no regression), since
+// `secondary` already carries white labels at its current ratio elsewhere.
+assertContrast('light white on sem action-primary', '#FFFFFF', SEM['action-primary'][0]);
+assertContrast('dark white on sem action-primary', '#FFFFFF', SEM['action-primary'][2]);
+for (const name of ['action-secondary', 'status-success', 'status-warning', 'status-danger', 'status-info']) {
+  assertNoRegression(
+    `white on sem ${name}`,
+    '#FFFFFF', SEM[name][2],
+    '#FFFFFF', SEM[name][0],
+  );
+}
+
+// Non-text marks (WCAG 1.4.11): the focus ring and the strong border must be
+// visible against the canvas and the panel in both themes.
+for (const mark of ['focus-ring', 'border-strong']) {
+  for (const bg of ['surface-canvas', 'surface-panel']) {
+    assertContrast(`light sem ${mark} vs ${bg}`, SEM[mark][0], SEM[bg][0], 3);
+    assertContrast(`dark sem ${mark} vs ${bg}`, SEM[mark][2], SEM[bg][2], 3);
+  }
 }
 
 const header = `/**

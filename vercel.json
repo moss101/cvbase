@@ -1,7 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "comment": "SPA rewrite + security response headers for Vercel. Mirrors public/_headers (Netlify/Cloudflare) and the index.html <meta> CSP. No third-party origins: Tailwind, fonts, icons and html2pdf are all bundled, so nothing is fetched cross-origin at runtime. Supabase is the only remote the app talks to. The localhost:54321 dev entries from the meta CSP are intentionally omitted here.",
-  "rewrites": [{ "source": "/((?!.*\\.).*)", "destination": "/index.html" }],
+  "comment": "SPA rewrite + security response headers for Vercel. Mirrors public/_headers (Netlify/Cloudflare) and the index.html <meta> CSP. No third-party origins: Tailwind, fonts, icons and html2pdf are all bundled, so nothing is fetched cross-origin at runtime. Supabase is the only remote the app talks to. The localhost:54321 dev entries from the meta CSP are intentionally omitted here. The explicit /app/* rewrite exists because the catch-all skips paths containing a dot, and Career OS record ids in nested routes (/app/applications/:id/:section) may contain one.",
+  "rewrites": [
+    { "source": "/app/(.*)", "destination": "/index.html" },
+    { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

@@ -31,9 +31,12 @@ function parseEnvFile(file: string): Record<string, string> {
 
 export default defineConfig(({ mode }) => {
   // Standard files (.env, .env.local, …) then the canonical secret file on top.
+  // CVBASE_ENV_FILE selects an alternative file (e.g. `.env.cvbase.localstack`
+  // pointing at the local Supabase stack for Career OS qualification runs)
+  // without touching the canonical secrets file.
   const env = {
     ...loadEnv(mode, '.', ''),
-    ...parseEnvFile(path.resolve('.env.cvbase.local')),
+    ...parseEnvFile(path.resolve(process.env.CVBASE_ENV_FILE ?? '.env.cvbase.local')),
   };
 
   // Resolve a client-safe var by either its VITE_-prefixed or bare name.

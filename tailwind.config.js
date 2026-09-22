@@ -59,12 +59,52 @@ const brand = (v) => ({
   // `dark` is a text colour and `light` a surface colour in this design system.
   dark: v('ui-dark'),
   light: v('ui-light'),
-  border: v('ui-border'),
+  // `border-border` keeps its hairline; `default`/`strong` are the semantic roles.
+  border: { DEFAULT: v('ui-border'), default: v('sem-border-default'), strong: v('sem-border-strong') },
   // Editorial landing palette — ink on paper with one vermilion accent.
   paper: { DEFAULT: v('paper'), deep: v('paper-deep'), bright: v('paper-bright') },
   ink: { DEFAULT: v('ink'), soft: v('ink-soft'), faint: v('ink-faint') },
   ember: { DEFAULT: v('ember'), deep: v('ember-deep'), tint: v('ember-tint') },
-  surface: { DEFAULT: v('surface'), raised: v('surface-raised') },
+  surface: {
+    DEFAULT: v('surface'),
+    raised: v('surface-raised'),
+    // Semantic surfaces: the page, a card on it, a sheet or popover above that.
+    canvas: v('sem-surface-canvas'),
+    panel: v('sem-surface-panel'),
+    elevated: v('sem-surface-elevated'),
+  },
+});
+
+/**
+ * Semantic roles (docs/career-os/DESIGN_SYSTEM.md), generated as `--ct-sem-*`
+ * / `--cb-sem-*` aliases of existing values. The text roles are named
+ * `content` rather than `text` so the utilities read as `text-content-secondary`
+ * instead of colliding with Tailwind's own `text-*` prefix. `surface.*` and
+ * `border.*` live in `brand()` above so they merge with the existing keys.
+ *
+ *   text-content-primary   bg-surface-panel      border-border-strong
+ *   text-evidence-inferred bg-status-warning/10  ring-focus-ring
+ */
+const semantic = (v) => ({
+  content: {
+    primary: v('sem-text-primary'),
+    secondary: v('sem-text-secondary'),
+    muted: v('sem-text-muted'),
+  },
+  action: { primary: v('sem-action-primary'), secondary: v('sem-action-secondary') },
+  status: {
+    success: v('sem-status-success'),
+    warning: v('sem-status-warning'),
+    danger: v('sem-status-danger'),
+    info: v('sem-status-info'),
+  },
+  focus: { ring: v('sem-focus-ring') },
+  evidence: {
+    verified: v('sem-evidence-verified'),
+    confirmed: v('sem-evidence-confirmed'),
+    inferred: v('sem-evidence-inferred'),
+    incomplete: v('sem-evidence-incomplete'),
+  },
 });
 
 export default {
@@ -91,6 +131,7 @@ export default {
       colors: {
         ...surfaceRamps,
         ...brand(surface),
+        ...semantic(surface),
         /**
          * Gradient stops, rings and divides all read from this scale, so `white`
          * has to be the themed surface here — `to-white/90` on a card must not
@@ -108,17 +149,20 @@ export default {
       textColor: {
         ...textRamps,
         ...brand(text),
+        ...semantic(text),
         // Labels on solid accent buttons stay white in both themes.
         white: '#ffffff',
       },
       placeholderColor: {
         ...textRamps,
         ...brand(text),
+        ...semantic(text),
         white: '#ffffff',
       },
       textDecorationColor: {
         ...textRamps,
         ...brand(text),
+        ...semantic(text),
         white: '#ffffff',
       },
       /**
