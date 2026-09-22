@@ -1,0 +1,43 @@
+flowchart LR
+  subgraph Client["Existing React and Capacitor application"]
+    Shell["PROPOSED: Six-space shell"]
+    Context["PROPOSED: Canonical context and actions"]
+    ExistingUI["REUSE: CV editor, previews, forms and mobile shell"]
+    Coach["NEW: Persistent Coach interface"]
+    Shell --> Context
+    Coach --> Context
+    Context --> ExistingUI
+  end
+  subgraph Service["Existing Supabase service boundary"]
+    Repo["REUSE: Repositories and API transport"]
+    Gateway["NEW: Typed action gateway and receipts"]
+    PRISM["REUSE: PRISM specialist graph"]
+    AI["REUSE: ATS and AI functions"]
+    Auth["REUSE: Auth, RLS, entitlements and metering"]
+    Router["REUSE: LLM routing and telemetry"]
+    Gateway --> PRISM
+    Gateway --> AI
+    Gateway --> Auth
+    PRISM --> Router
+    AI --> Router
+  end
+  subgraph Data["Existing Postgres and private Storage"]
+    Legacy["KEEP: profiles, resumes, versions, applications"]
+    Extensions["PROPOSED: facts, goals, opportunities, campaigns"]
+    Work["PROPOSED: artifacts, conversations, events, actions"]
+    Ops["KEEP: PRISM runs, usage, flags and ops logs"]
+  end
+  Context --> Repo
+  Coach --> Gateway
+  Repo --> Legacy
+  Repo --> Extensions
+  Repo --> Work
+  Gateway --> Work
+  PRISM --> Ops
+  PRISM --> Legacy
+  Auth --> Legacy
+  Learn["LATER: Outcome projections and opted-in schedules"]
+  Work --> Learn
+  Learn --> Gateway
+  External["OPTIONAL: Permitted read-only connectors"]
+  External -. "owned, attributed signals" .-> Extensions

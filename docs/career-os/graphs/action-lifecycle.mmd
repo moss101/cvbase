@@ -1,0 +1,21 @@
+stateDiagram-v2
+  [*] --> PROPOSED
+  PROPOSED --> READY: Prerequisites valid
+  PROPOSED --> DISMISSED: User declines
+  PROPOSED --> EXPIRED: Inputs no longer apply
+  READY --> IN_PROGRESS: Durable run starts
+  READY --> DISMISSED: User declines
+  READY --> EXPIRED: Context invalidated
+  IN_PROGRESS --> WAITING_FOR_USER: Review or confirmation needed
+  WAITING_FOR_USER --> IN_PROGRESS: Valid reviewed input
+  WAITING_FOR_USER --> DISMISSED: User cancels remaining work
+  WAITING_FOR_USER --> EXPIRED: Proposal no longer valid
+  IN_PROGRESS --> COMPLETED: Durable result receipt
+  IN_PROGRESS --> FAILED: Recoverable or terminal failure recorded
+  IN_PROGRESS --> DISMISSED: Cancel reconciled
+  FAILED --> READY: Retry after revalidation
+  FAILED --> DISMISSED: User stops
+  FAILED --> EXPIRED: No longer actionable
+  COMPLETED --> [*]
+  DISMISSED --> [*]
+  EXPIRED --> [*]

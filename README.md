@@ -4,6 +4,8 @@
 
 # Run and deploy your AI Studio app
 
+Career OS planning: start with [PRD.md](PRD.md), [tasks.md](tasks.md), and the [architecture and dependency graphs](docs/career-os/GRAPHS.md). The [current product map](docs/career-os/CURRENT_PRODUCT_MAP.md) records what already exists and what still needs implementation.
+
 This contains everything you need to run your app locally.
 
 View your app in AI Studio: https://ai.studio/apps/63b9cb4c-bbb8-4598-be41-accea93091f9

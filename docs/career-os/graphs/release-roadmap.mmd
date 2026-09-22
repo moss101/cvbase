@@ -1,0 +1,24 @@
+flowchart TD
+  Audit["COS-000: Audit and planning verified"]
+  Reliable["COS-001 to 007: Runtime evidence, data reliability, contracts"]
+  Shell["COS-008: Six-space shell"]
+  Slice["COS-009 to 017: Goal, role, application, PRISM, Today, events"]
+  R1{"COS-018: Connected slice qualifies?"}
+  Core["COS-019 to 025: Evidence, fit, campaigns, artifacts, interview, outcomes"]
+  Coach["COS-026 to 030: Gateway, Coach, Library, search, onboarding"]
+  Quality["COS-031 to 033: Migration, mobile, a11y, performance, cost"]
+  R2{"COS-034: Complete Career OS qualifies?"}
+  Intelligence["COS-035 to 038: Outcome learning, scenarios, proactivity, source assessment"]
+  Optional["COS-039: Optional read-only connector"]
+  R3{"COS-040: Frontier evaluation qualifies?"}
+  Retire["COS-041: Retire legacy after observation and rollback proof"]
+  Audit --> Reliable --> Shell
+  Reliable --> Slice
+  Shell --> Slice --> R1
+  R1 -->|yes| Core --> Coach --> Quality --> R2
+  R1 -->|no| Slice
+  R2 -->|yes| Intelligence --> R3
+  R2 -->|no| Quality
+  Intelligence -.-> Optional
+  R2 -->|observation complete| Retire
+  R3 -->|no| Intelligence

@@ -1,0 +1,21 @@
+flowchart TD
+  Start["Read tasks.md and parent PRD requirements"]
+  Choose["Select dependency-eligible task from plan.json"]
+  Discover["Inspect sources, close unknowns, record write scope"]
+  Ready{"Contracts and dependencies sufficient?"}
+  Parent["Revise parent plan and dependency edges"]
+  Build["Reuse, recompose, extend verified gaps"]
+  Verify["Check task acceptance and legacy behavior"]
+  Passed{"Evidence supports completion?"}
+  Record["Record implementation, tests and evidence"]
+  Generate["Update manifest and regenerate tasks, ledger and DAG"]
+  Gate{"Release gate evidence complete?"}
+  Release["Record qualification verdict and rollout constraints"]
+  Start --> Choose --> Discover --> Ready
+  Ready -->|no| Parent --> Choose
+  Ready -->|yes| Build --> Verify --> Passed
+  Passed -->|defect| Build
+  Passed -->|parent assumption wrong| Parent
+  Passed -->|yes| Record --> Generate --> Gate
+  Gate -->|not yet| Choose
+  Gate -->|yes| Release --> Choose
