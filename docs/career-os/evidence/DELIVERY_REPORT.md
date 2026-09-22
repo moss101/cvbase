@@ -22,7 +22,7 @@
 
 **Localization:** 1 411 new `careeros.*` keys in en/es/fr/de with a parity test.
 
-**Pre-existing modules (22 Sep follow-up):** every module the old dashboard rendered now lives in the shell — Smart Studio at `/app/library/studio`, the resume manager's create/duplicate/rename/delete on Library CV cards (shared hook), the dashboard home cards as Today's "Documents & tools" panel, Career resources linked to `/resources` — and a pre-existing crash where any toast took the app down was fixed. See [LEGACY-INTEGRATION.md](LEGACY-INTEGRATION.md).
+**Pre-existing modules (22 Sep follow-up):** every module the old dashboard rendered now lives in the shell — Smart Studio at `/app/library/studio`, the resume manager's create/duplicate/rename/delete on Library CV cards (shared hook), the dashboard home cards as Today's "Documents & tools" panel, Career resources linked to `/resources`, builder CVs usable for applications without PRISM — and a pre-existing crash where any toast took the app down was fixed. See [LEGACY-INTEGRATION.md](LEGACY-INTEGRATION.md).
 
 ## 2. Verification results
 
@@ -31,7 +31,7 @@ Final run on the current tree ([final-verification.log](final-verification.log))
 | Check | Result |
 | --- | --- |
 | `npm run typecheck` | clean |
-| `npx vitest run` | 63 files / 666 tests pass (after the legacy-module integration) |
+| `npx vitest run` | 63 files / 667 tests pass (after the legacy-module integration) |
 | `deno test` (11 function/shared suites) | 272 pass; `deno check` on all 18 function entries |
 | `node scripts/generate-theme-css.mjs` | 181/181 contrast gates, 575 tokens per theme |
 | `career-os-migration-smoke.sh` | ALL PASS (migrate ×3 no duplicates, idempotent start, reapply, two-owner RLS, flag-off legacy reads, rollback keeps post-switch writes) |

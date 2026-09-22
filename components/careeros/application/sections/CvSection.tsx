@@ -11,6 +11,7 @@ import type { ApplicationArtifact, CareerFact, StaleReference } from '../../../.
 import type { PrismAnswer } from '../../../../services/prismService';
 import type { StoredResume } from '../../../../services/repos/mappers';
 import { careerPath, useNavigation } from '../../../NavigationProvider';
+import { isResumeLimitError } from '../../../resumes/useResumeActions';
 import { useOwnedQuery } from '../../data/useOwnedQuery';
 import { useCareerOs } from '../../shell/CareerOsProvider';
 import { Button, DocumentCard, StatePanel } from '../../primitives';
@@ -50,6 +51,49 @@ export const CvSection: React.FC<{ workspace: Workspace }> = ({ workspace }) => 
         return list.find((r) => r.id === sourceId) ?? list.find((r) => r.isPrimary) ?? list[0] ?? null;
     }, [resumes.data, sourceId]);
     useEffect(() => { if (source?.id && !sourceId) setSourceId(source.id); }, [source, sourceId]);
+
+    // A CV made in the builder can back this application without PRISM:
+    // a separate copy for this application (edits stay out of the source) or
+    // the saved CV itself, linked as-is.
+    const [linkId, setLinkId] = useState<string>('');
+    const linkable = useMemo(() => (resumes.data ?? []).filter((r) => r.id && r.id !== app?.currentResumeId), [resumes.data, app?.currentResumeId]);
+    const linkSource = useMemo<StoredResume | null>(
+        () => linkable.find((r) => r.id === linkId) ?? linkable.find((r) => r.isPrimary) ?? linkable[0] ?? null,
+        [linkable, linkId],
+    );
+    const [linkCv, linkState] = useAsyncAction(async (mode: 'copy' | 'link') => {
+        if (!userId || !data || !linkSource?.id) return;
+        const application = data.application;
+        let resumeId = linkSource.id;
+        if (mode === 'copy') {
+            try {
+                const copy = await resumeRepo.create(userId, {
+                    title: `${linkSource.title} · ${application.company || application.jobTitle}`.slice(0, 120),
+                    data: linkSource.data,
+                    settings: linkSource.settings,
+                    templateId: linkSource.templateId,
+                    visibleSections: linkSource.visibleSections,
+                    isPrimary: false,
+                    applicationId: application.id,
+                    origin: { kind: 'manual', source: 'application_copy', sourceResumeId: linkSource.id, sourceRevision: linkSource.revision ?? null },
+                });
+                if (!copy.id) return;
+                resumeId = copy.id;
+            } catch (err) {
+                if (isResumeLimitError(err)) { navigate({ view: 'pricing' }); return; }
+                throw err;
+            }
+        }
+        const fresh = await applicationRepo.get(userId, application.id);
+        await applicationRepo.update(userId, fresh.id, { currentResumeId: resumeId }, fresh.revision);
+        invalidate('applications:');
+        invalidate('resumes:');
+        invalidate('library');
+        await workspace.refresh();
+        void resumes.refresh();
+        setLinkId('');
+        await track(userId, 'application_cv_linked', { subjectRefs: { application: application.id, resume: resumeId }, payload: { mode, replaced: Boolean(fresh.currentResumeId) } });
+    });
 
     // Stale facts behind this application's drafts and CV (COS-023).
     const stale = useOwnedQuery(userId, app ? `stale:application:${app.id}:${app.currentResumeId ?? ''}` : null, async (): Promise<StaleFactRow[]> => {
@@ -180,9 +224,29 @@ export const CvSection: React.FC<{ workspace: Workspace }> = ({ workspace }) => 
                             secondaryAction={{ label: t('careeros.cv.exportDocx', 'Export DOCX'), onClick: () => { void exportDocx(); }, loading: exportState.pending }}
                         />
                     ) : (
-                        <StatePanel kind="empty" compact title={t('careeros.cv.noneTitle', 'No CV linked yet')} description={t('careeros.cv.noneDescription', 'Tailor one with PRISM from a source CV, or open a CV in the Library and link it here from the editor.')} />
+                        <StatePanel kind="empty" compact title={t('careeros.cv.noneTitle', 'No CV linked yet')} description={t('careeros.cv.noneDescriptionLink', 'Tailor one with PRISM below, or use a CV you already made in the builder.')} />
                     )}
                     {exportState.error ? <FailureNotice error={exportState.error} onDismiss={exportState.reset} className="mt-3" /> : null}
+                    {linkable.length > 0 && (
+                        <div className="mt-4 border-t border-border-default pt-4">
+                            <p className="text-sm font-medium text-content-primary">{data.resume ? t('careeros.cv.useAnotherTitle', 'Use a different saved CV') : t('careeros.cv.useSavedTitle', 'Use a saved CV')}</p>
+                            <p className="mt-0.5 text-[13px] text-content-secondary">{t('careeros.cv.useSavedDescription', 'A copy keeps edits for this application out of the original. Linking uses the CV itself, so edits show up everywhere it is used.')}</p>
+                            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
+                                <Select
+                                    className="sm:max-w-xs sm:flex-1"
+                                    label={t('careeros.cv.savedCv', 'Saved CV')}
+                                    options={linkable.map((r) => ({ value: r.id ?? '', label: `${r.title}${r.isPrimary ? ` · ${t('careeros.cv.primary', 'primary')}` : ''}` }))}
+                                    value={linkSource?.id ?? ''}
+                                    onChange={(event) => setLinkId(event.target.value)}
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                    <Button variant="secondary" size="sm" loading={linkState.pending} onClick={() => { void linkCv('copy'); }}>{t('careeros.cv.useCopy', 'Use a copy')}</Button>
+                                    <Button variant="quiet" size="sm" disabled={linkState.pending} onClick={() => { void linkCv('link'); }}>{t('careeros.cv.linkAsIs', 'Link as-is')}</Button>
+                                </div>
+                            </div>
+                            {linkState.error ? <FailureNotice error={linkState.error} onDismiss={linkState.reset} className="mt-3" /> : null}
+                        </div>
+                    )}
                     {submittedSnapshot && (
                         <p className="mt-3 text-xs text-content-muted">
                             {t('careeros.cv.submittedSnapshot', 'Submitted {date} with CV {id}{version}. That snapshot is read-only.').replace('{date}', formatDate(submittedSnapshot.confirmedAt)).replace('{id}', submittedSnapshot.resumeId ? submittedSnapshot.resumeId.slice(0, 8) : t('careeros.common.none', 'none')).replace('{version}', submittedSnapshot.resumeRevision !== null ? ` rev ${submittedSnapshot.resumeRevision}` : '')}

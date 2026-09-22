@@ -39,7 +39,7 @@ vi.mock('../../../services/careerOs/factRepo', () => ({ list: vi.fn(), create: v
 vi.mock('../../../services/careerOs/eventRepo', () => ({ listRecent: vi.fn() }));
 vi.mock('../../../services/careerOs/interviewApi', () => ({ generatePracticeQuestions: vi.fn(), requestPracticeFeedback: vi.fn() }));
 vi.mock('../../../services/smartStudioService', () => ({ optimizeCoverLetter: vi.fn(), optimizeLinkedInProfile: vi.fn() }));
-vi.mock('../../../services/repos/resumeRepo', () => ({ get: vi.fn(), list: vi.fn(), getPrimary: vi.fn() }));
+vi.mock('../../../services/repos/resumeRepo', () => ({ get: vi.fn(), list: vi.fn(), getPrimary: vi.fn(), create: vi.fn() }));
 vi.mock('../../../services/repos/prismRepo', () => ({ getResumableForApplication: vi.fn() }));
 vi.mock('../../../services/repos/versionRepo', () => ({ listForResume: vi.fn() }));
 
@@ -172,6 +172,42 @@ describe('ApplicationWorkspace', () => {
         expect(document.querySelector('[role="alert"]')?.textContent).toContain('Could not generate a draft right now');
         expect((byLabel('Letter text') as HTMLTextAreaElement).value).toBe('Dear hiring manager, I am a nurse.');
         expect(vi.mocked(artifactRepo.save)).toHaveBeenCalledTimes(1);
+    });
+
+    it('cv: a CV made in the builder backs the application as a separate copy or as-is; the plan limit sends the person to pricing', async () => {
+        const saved = (id: string, title: string, isPrimary: boolean) => ({ id, title, isPrimary, data: { contact: { firstName: 'Ana' } }, settings: {}, templateId: 'modern', visibleSections: [], revision: 4, applicationId: null, origin: null }) as never;
+        vi.mocked(resumeRepo.list).mockResolvedValue([saved('r1', 'Main CV', true), saved('r2', 'Short CV', false)]);
+        vi.mocked(resumeRepo.create).mockResolvedValue({ id: 'r-copy', title: 'Main CV · Acme' } as never);
+        const flush = async () => { await act(async () => { await new Promise((r) => setTimeout(r, 0)); }); };
+        await mount('cv');
+        await flush();
+        expect(document.body.textContent).toContain('Use a saved CV');
+
+        await act(async () => { buttonByText('Use a copy').click(); });
+        await flush();
+        expect(vi.mocked(resumeRepo.create)).toHaveBeenCalledWith('u1', expect.objectContaining({
+            isPrimary: false, applicationId: 'a1', templateId: 'modern', data: { contact: { firstName: 'Ana' } },
+            origin: expect.objectContaining({ source: 'application_copy', sourceResumeId: 'r1', sourceRevision: 4 }),
+        }));
+        expect(vi.mocked(applicationRepo.update)).toHaveBeenCalledWith('u1', 'a1', { currentResumeId: 'r-copy' }, 2);
+        expect(vi.mocked(track)).toHaveBeenCalledWith('u1', 'application_cv_linked', expect.objectContaining({ payload: { mode: 'copy', replaced: false } }));
+
+        // Linking as-is uses the chosen CV itself — no copy is made.
+        vi.mocked(resumeRepo.create).mockClear();
+        vi.mocked(applicationRepo.update).mockClear();
+        await act(async () => { setValue(byLabel('Saved CV') as HTMLSelectElement, 'r2'); });
+        await act(async () => { buttonByText('Link as-is').click(); });
+        await flush();
+        expect(vi.mocked(resumeRepo.create)).not.toHaveBeenCalled();
+        expect(vi.mocked(applicationRepo.update)).toHaveBeenCalledWith('u1', 'a1', { currentResumeId: 'r2' }, 2);
+
+        // At the plan's resume limit a copy is refused server-side: upgrade, never a half-linked state.
+        vi.mocked(applicationRepo.update).mockClear();
+        vi.mocked(resumeRepo.create).mockRejectedValue(new Error('resume_limit_reached'));
+        await act(async () => { buttonByText('Use a copy').click(); });
+        await flush();
+        expect(navigate).toHaveBeenCalledWith({ view: 'pricing' });
+        expect(vi.mocked(applicationRepo.update)).not.toHaveBeenCalled();
     });
 
     it('interview: creating a session stores the scheduled instant with its IANA zone and emits interview_preparation_started', async () => {

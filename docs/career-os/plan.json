@@ -1311,11 +1311,13 @@
       "evidence": [
         "docs/career-os/evidence/COS-R2-surfaces.md",
         "docs/career-os/evidence/COS-018-r1-qualification.md",
-        "docs/career-os/evidence/final-verification.log"
+        "docs/career-os/evidence/final-verification.log",
+        "docs/career-os/evidence/LEGACY-INTEGRATION.md"
       ],
       "blocker": null,
       "work_notes": [
-        "2026-09-21: Verified: J04 slice through the workspace with the existing builder/PRISM; rails stack below 1280 px."
+        "2026-09-21: Verified: J04 slice through the workspace with the existing builder/PRISM; rails stack below 1280 px.",
+        "2026-09-22: Application CV tab can use a saved builder CV (copy or as-is) without PRISM; builder and PRISM verified inside the shell."
       ]
     },
     {

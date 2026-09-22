@@ -38,6 +38,7 @@ export const EVENT_DICTIONARY: Record<ProductEventName, EventDefinition> = {
   application_artifact_saved: { description: 'Preparation artifact saved', subjects: ['application', 'artifact'], activity: false, meaningful: true },
   cv_tailoring_started: { description: 'PRISM tailoring started', subjects: ['application', 'run'], activity: false, meaningful: false },
   cv_tailored: { description: 'Tailored CV accepted', subjects: ['application', 'resume', 'run'], activity: true, meaningful: true },
+  application_cv_linked: { description: 'Saved CV linked to an application', subjects: ['application', 'resume'], activity: true, meaningful: true },
   recommendation_opened: { description: 'Action opened', subjects: ['action'], activity: false, meaningful: false },
   recommendation_accepted: { description: 'Action started', subjects: ['action'], activity: false, meaningful: false },
   recommendation_dismissed: { description: 'Action dismissed', subjects: ['action'], activity: false, meaningful: false },

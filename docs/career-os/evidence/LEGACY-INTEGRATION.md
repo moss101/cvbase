@@ -19,3 +19,22 @@
 * Library "New CV" opened the primary CV (legacy `/builder` behaviour) instead of creating one → now creates an untitled CV with the plan limit, as the old resume manager did.
 * Live rule actions kept the wording they were first stored with, so the interview-time formatting fix never reached existing rows → `upsertByDedupeKey` refreshes title/reason/evidence labels on live (READY/PROPOSED) rows only; finished rows are history and untouched (`repos.queue.test.ts`). Verified live: "Interview recorded for 25 Sept 2026, 10:30 (Europe/Berlin)".
 * Smart Studio pipeline notice button was squeezed by its text → fixed width.
+
+## CV builder and PRISM (follow-up, same day)
+
+Both pre-date the Career OS and run unchanged inside it:
+
+* **CV builder (`ResumeBuilder`)** opens full-screen for `/app/library/cvs/:id/edit` (Library "Open in editor", Today "Recent document", an application's CV tab) and `/app/library/cvs/new`; legacy `/builder` and `/builder/:id` still work. It opens the exact CV id asked for (never the primary as a substitute), autosaves with revision checks, and its back control returns to where it was opened from. Live: opened an application's linked CV from the application, edited the target job title, autosave wrote revision 3 of that CV only (primary unchanged), back returned to the application's CV tab.
+* **PRISM** runs standalone at `/app/library/tailor` (`/app/prism` redirects there; the full wizard renders) and bound to an application from its CV tab (bound runs, idempotent start, charge/release — see COS-013). Live: redirect and wizard render checked.
+
+### Gap found and fixed: builder CVs could not be used for an application without PRISM
+
+The application's CV tab said "open a CV in the Library and link it here from the editor" and readiness said "link a CV manually", but no linking existed — a successful PRISM run was the only way to attach a CV, so free-plan users, the flag-off cohort and anyone without an AI provider could never use a CV made in the builder. The CV tab now has **Use a saved CV**:
+
+* **Use a copy** (default): creates a non-primary copy tied to the application (`resumes.application_id`, `origin {kind:'manual', source:'application_copy', sourceResumeId, sourceRevision}`) and sets `job_applications.current_resume_id`; edits for this application stay out of the original. The plan's resume limit applies (upgrade prompt, nothing half-linked).
+* **Link as-is**: points the application at the saved CV itself.
+* Available after submission as well; the submission snapshot is never changed. Event `application_cv_linked {mode, replaced}` (ids only).
+
+Live: on the QA account's Northwind application (PRISM run had failed, no CV) "Use a copy" created "Quinn — primary · Northwind Traders" linked both ways, readiness moved from "blocked" to "Complete: Application CV", primary untouched. Tests: `application.test.tsx` (copy, as-is, limit), `careerEvents.test.ts`.
+
+Noted, not changed: the builder sidebar's back control is a clickable `div`, so it is not reachable by keyboard (pre-existing; the header and mobile top bar back buttons are real buttons).

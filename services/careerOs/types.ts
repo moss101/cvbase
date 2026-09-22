@@ -670,7 +670,7 @@ export type ProductEventName =
   | 'interview_preparation_started' | 'interview_practice_completed' | 'application_response_recorded' | 'offer_recorded'
   | 'career_outcome_recorded' | 'coach_conversation_started' | 'coach_action_executed' | 'library_asset_opened'
   | 'career_search_used' | 'notification_action_opened' | 'career_onboarding_completed' | 'career_insight_reviewed'
-  | 'career_scenario_compared' | 'career_reminder_opened';
+  | 'career_scenario_compared' | 'career_reminder_opened' | 'application_cv_linked';
 
 export interface ProductEvent {
   id: string;

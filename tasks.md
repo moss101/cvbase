@@ -662,7 +662,7 @@ Every task inherits all five fields below from its named profile; its specific a
 
 **Legacy impact:** Keep general builder behavior and all supported sections.
 
-**Recorded evidence:** [docs/career-os/evidence/COS-R2-surfaces.md](docs/career-os/evidence/COS-R2-surfaces.md), [docs/career-os/evidence/COS-018-r1-qualification.md](docs/career-os/evidence/COS-018-r1-qualification.md), [docs/career-os/evidence/final-verification.log](docs/career-os/evidence/final-verification.log)
+**Recorded evidence:** [docs/career-os/evidence/COS-R2-surfaces.md](docs/career-os/evidence/COS-R2-surfaces.md), [docs/career-os/evidence/COS-018-r1-qualification.md](docs/career-os/evidence/COS-018-r1-qualification.md), [docs/career-os/evidence/final-verification.log](docs/career-os/evidence/final-verification.log), [docs/career-os/evidence/LEGACY-INTEGRATION.md](docs/career-os/evidence/LEGACY-INTEGRATION.md)
 
 <a id="cos-017"></a>
 ### COS-017 — Add product events and privacy-safe measurements

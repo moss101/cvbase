@@ -18,9 +18,10 @@ afterEach(() => configureEvents({ strict: null }));
 describe('event dictionary', () => {
   it('covers every ProductEventName with subjects and feed/meaningful flags', () => {
     const names = Object.keys(EVENT_DICTIONARY) as ProductEventName[];
-    expect(names).toHaveLength(38);
+    expect(names).toHaveLength(39);
     for (const n of names) expect(EVENT_DICTIONARY[n].description.length).toBeGreaterThan(0);
     expect(ACTIVITY_FEED_EVENTS).toContain('application_submitted');
+    expect(ACTIVITY_FEED_EVENTS).toContain('application_cv_linked');
     expect(ACTIVITY_FEED_EVENTS).not.toContain('career_os_opened');
     expect(ACTIVITY_FEED_EVENTS).not.toContain('recommendation_opened');
     expect(MEANINGFUL_ACTION_EVENTS).toContain('career_action_completed');
