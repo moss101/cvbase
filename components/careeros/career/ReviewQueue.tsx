@@ -118,7 +118,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ userId, facts, mutatio
                             {conflictGroups.map(([groupId, members]) => (
                                 <div key={groupId} className="rounded-2xl border border-status-warning/30 bg-surface-panel p-4">
                                     <p className="text-sm font-semibold text-content-primary">{factTitle(members[0])}</p>
-                                    <div className="mt-3 grid gap-3 md:grid-cols-2">
+                                    <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
                                         {members.map((member) => (
                                             <div key={member.id} className="flex flex-col rounded-xl border border-border-default bg-surface-canvas p-3">
                                                 <div className="flex flex-wrap items-center gap-1.5">

@@ -111,7 +111,7 @@ export const ApplicationWorkspace: React.FC<{ id: string; route: CareerRoute }> 
                 <Skeleton variant="text" width="6rem" className="h-2.5" />
                 <Skeleton variant="title" width="50%" className="mt-3" />
                 <Skeleton variant="text" lines={2} className="mt-4" />
-                <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]"><Skeleton variant="block" className="h-64" /><Skeleton variant="block" className="h-64" /></div>
+                <div className="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_300px]"><Skeleton variant="block" className="h-64" /><Skeleton variant="block" className="h-64" /></div>
             </div>
         );
     }
@@ -218,7 +218,7 @@ export const ApplicationWorkspace: React.FC<{ id: string; route: CareerRoute }> 
                 </ul>
             </nav>
 
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
                 <div className="min-w-0">
                     {section === 'analysis' && <AnalysisSection workspace={workspace} />}
                     {section === 'cv' && <CvSection workspace={workspace} />}

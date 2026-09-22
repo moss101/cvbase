@@ -191,7 +191,7 @@ export const CvSection: React.FC<{ workspace: Workspace }> = ({ workspace }) => 
                                     {' '}{row.reference.artifactKind === 'resume' ? t('careeros.cv.inCv', 'Referenced by the linked CV.') : t('careeros.cv.inArtifact', 'Referenced by {title}.').replace('{title}', row.artifact?.title || row.reference.artifactId)}
                                 </p>
                                 {row.fact && (
-                                    <dl className="mt-1 grid gap-x-3 sm:grid-cols-[auto_1fr]">
+                                    <dl className="mt-1 grid grid-cols-1 gap-x-3 sm:grid-cols-[auto_1fr]">
                                         <dt className="text-content-muted">{t('careeros.cv.nowTitle', 'Now')}</dt>
                                         <dd className="text-content-primary">{row.fact.title}{row.fact.narrative ? ` — ${row.fact.narrative.replace(/<[^>]+>/g, '').slice(0, 200)}` : ''}{row.fact.status !== 'active' ? ` (${row.fact.status})` : ''}</dd>
                                         <dt className="text-content-muted">{t('careeros.cv.thenTitle', 'Then')}</dt>

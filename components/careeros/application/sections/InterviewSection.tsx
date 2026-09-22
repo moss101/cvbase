@@ -51,7 +51,7 @@ const SessionForm: React.FC<{ initial?: InterviewSession; pending: boolean; onSu
     };
     const zoneOptions = zones.includes(timeZone) ? zones : [timeZone, ...zones];
     return (
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <TextInput label={t('careeros.interview.when', 'Scheduled time')} optional={t('careeros.common.optional', 'optional')} type="datetime-local" value={wall} onChange={(event) => setWall(event.target.value)} />
             <Select label={t('careeros.interview.timeZone', 'Time zone')} options={zoneOptions.map((z) => ({ value: z, label: z }))} value={timeZone} onChange={(event) => setTimeZone(event.target.value)} />
             <Select label={t('careeros.interview.typeLabel', 'Interview type')} options={TYPES.map((v) => ({ value: v, label: typeLabels[v] }))} value={type} onChange={(event) => setType(event.target.value as InterviewType)} />
@@ -162,7 +162,7 @@ const SessionPanel: React.FC<{ session: InterviewSession; workspace: Workspace; 
             {editing && <div className="mt-4"><SessionForm initial={session} pending={detailsState.pending} onSubmit={(v) => { void saveDetails(v); }} onCancel={() => setEditing(false)} /></div>}
             {anyError ? <FailureNotice error={anyError} onReload={() => { void workspace.refresh(); }} onDismiss={() => { updateState.reset(); detailsState.reset(); answerState.reset(); }} className="mt-3" /> : null}
 
-            <div className="mt-5 grid gap-4 2xl:grid-cols-[minmax(0,1fr)_280px]">
+            <div className="mt-5 grid grid-cols-1 gap-4 2xl:grid-cols-[minmax(0,1fr)_280px]">
                 <div className="space-y-5">
                     <div>
                         <PaneHeading level={3} title={t('careeros.interview.themes', 'Role themes')} description={t('careeros.interview.themesHint', 'One theme per requirement from the listing. Tick a theme once you have a story ready for it.')} action={opportunity && opportunity.requirements.length > 0 ? <Button size="sm" variant="secondary" icon={<Plus size={14} />} onClick={addThemesFromRequirements} loading={updateState.pending}>{t('careeros.interview.addThemes', 'Add from requirements')}</Button> : undefined} />
@@ -243,7 +243,7 @@ const SessionPanel: React.FC<{ session: InterviewSession; workspace: Workspace; 
 
                     <div>
                         <PaneHeading level={3} title={t('careeros.interview.results', 'Results')} description={t('careeros.interview.resultsHint', 'What you think went well or badly, and what the recruiter actually said — kept apart.')} />
-                        <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                        <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <TextArea label={t('careeros.interview.selfReported', 'Self-reported result')} rows={3} value={selfReported} onChange={(event) => setSelfReported(event.target.value)} />
                             <TextArea label={t('careeros.interview.recruiterFeedback', 'Recruiter feedback')} rows={3} value={recruiter} onChange={(event) => setRecruiter(event.target.value)} />
                         </div>

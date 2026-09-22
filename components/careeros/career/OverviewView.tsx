@@ -107,7 +107,7 @@ export const OverviewView: React.FC = () => {
                 />
             )}
 
-            <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
                 <section aria-labelledby="overview-progression" className="rounded-2xl border border-border-default bg-surface-panel p-5">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                         <h2 id="overview-progression" className="text-base font-semibold text-content-primary">{t('careeros.career.progression', 'Progression')}</h2>

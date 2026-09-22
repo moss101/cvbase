@@ -180,7 +180,7 @@ export const ProactiveSettings: React.FC = () => {
             </label>
             {prefs.consentAt && <p className="mt-1 text-xs text-content-muted">{t('careeros.proactive.consentedAt', 'Consent recorded {date}').replace('{date}', new Date(prefs.consentAt).toLocaleString())}</p>}
 
-            <fieldset disabled={off} className="mt-4 grid gap-4 sm:grid-cols-2" aria-describedby={off ? `${ids}-off` : undefined}>
+            <fieldset disabled={off} className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2" aria-describedby={off ? `${ids}-off` : undefined}>
                 <legend className="sr-only">{t('careeros.proactive.settings', 'Reminder settings')}</legend>
                 {off && <p id={`${ids}-off`} className="text-[13px] text-content-muted sm:col-span-2">{t('careeros.proactive.disabledHint', 'Turn reminders on to edit these settings. Today stays fully usable without them.')}</p>}
                 <div>
@@ -212,7 +212,7 @@ export const ProactiveSettings: React.FC = () => {
                 </div>
                 <div className="sm:col-span-2">
                     <p className="text-[13px] font-semibold text-content-primary">{t('careeros.proactive.triggers', 'Remind me about')}</p>
-                    <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+                    <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                         {TRIGGER_KEYS.map((key) => (
                             <li key={key}>
                                 <label className="flex items-center gap-3">

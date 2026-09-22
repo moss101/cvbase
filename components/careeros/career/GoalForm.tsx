@@ -146,7 +146,7 @@ export const GoalForm: React.FC<GoalFormProps> = ({ initial, onSubmit, onCancel,
 
     return (
         <form onSubmit={(event) => void submit(event)} className="space-y-4" noValidate>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                     <label htmlFor={`${id}-role`} className={LABEL_CLASS}>{t('careeros.goal.form.role', 'Target role')}</label>
                     <input id={`${id}-role`} value={values.role} onChange={(e) => set('role', e.target.value)} className={`${FIELD_CLASS} mt-1`} disabled={saving} aria-invalid={errors.role ? true : undefined} aria-describedby={errors.role ? `${id}-role-error` : undefined} placeholder={t('careeros.goal.form.rolePlaceholder', 'e.g. Senior product designer')} />

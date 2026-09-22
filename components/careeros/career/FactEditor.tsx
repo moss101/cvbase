@@ -87,7 +87,7 @@ export const FactEditor: React.FC<FactEditorProps> = ({ fact, experienceOptions 
                 {titleError && <p id={`${id}-title-error`} className="mt-1 text-xs text-status-danger">{titleError}</p>}
             </div>
             {hasOrganization(fact.kind) && (
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
                         <label htmlFor={`${id}-org`} className={LABEL_CLASS}>{fact.kind === 'education' ? t('careeros.career.editor.school', 'School') : t('careeros.career.editor.organization', 'Organisation')}</label>
                         <input id={`${id}-org`} value={organization} onChange={(e) => setOrganization(e.target.value)} className={`${FIELD_CLASS} mt-1`} disabled={saving} />
@@ -99,7 +99,7 @@ export const FactEditor: React.FC<FactEditorProps> = ({ fact, experienceOptions 
                 </div>
             )}
             {hasDates(fact.kind) && (
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
                         <label htmlFor={`${id}-start`} className={LABEL_CLASS}>{t('careeros.career.editor.startDate', 'Start (YYYY-MM)')}</label>
                         <input id={`${id}-start`} value={startDate} onChange={(e) => setStartDate(e.target.value)} className={`${FIELD_CLASS} mt-1`} disabled={saving} inputMode="numeric" placeholder="2021-03" />
@@ -118,7 +118,7 @@ export const FactEditor: React.FC<FactEditorProps> = ({ fact, experienceOptions 
             )}
             {isAchievement && (
                 <>
-                    <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                         <div>
                             <label htmlFor={`${id}-metric`} className={LABEL_CLASS}>{t('careeros.career.editor.metric', 'Metric (optional)')}</label>
                             <input id={`${id}-metric`} value={metric} onChange={(e) => setMetric(e.target.value)} className={`${FIELD_CLASS} mt-1`} disabled={saving} placeholder="32" />

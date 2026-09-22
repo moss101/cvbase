@@ -160,7 +160,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ userId, profile,
 
                 {step === 'objective' && (
                     <div>
-                        <ul className="grid gap-3 sm:grid-cols-2">
+                        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             {objectives.map(({ key, title, description, Icon }) => (
                                 <li key={key}>
                                     <button

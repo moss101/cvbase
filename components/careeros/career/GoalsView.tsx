@@ -230,7 +230,7 @@ const GoalDetail: React.FC<{ goalId: string }> = ({ goalId }) => {
                             <Button variant="primary" size="sm" onClick={() => setEditing(true)} disabled={!online || goal.status === 'archived'}>{t('careeros.goal.edit', 'Edit goal')}</Button>
                         </div>
                     </div>
-                    <dl className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+                    <dl className="mt-4 grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
                         <div><dt className="text-xs text-content-muted">{t('careeros.goal.form.compensation', 'Compensation range (optional)')}</dt><dd className="text-content-primary">{comp ?? t('careeros.goal.unknown', 'Not recorded')}</dd></div>
                         <div><dt className="text-xs text-content-muted">{t('careeros.goal.form.targetDate', 'Target date')}</dt><dd className="text-content-primary">{goal.targetDate ? formatDate(goal.targetDate) : t('careeros.goal.unknown', 'Not recorded')}</dd></div>
                         <div><dt className="text-xs text-content-muted">{t('careeros.goal.form.employers', 'Target employers (comma separated)')}</dt><dd className="text-content-primary">{goal.targetEmployers.length ? goal.targetEmployers.join(', ') : t('careeros.goal.unknown', 'Not recorded')}</dd></div>

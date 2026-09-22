@@ -41,7 +41,7 @@ export const MilestoneEditor: React.FC<{ milestones: CampaignMilestone[]; onChan
             <ul className="space-y-3">
                 {milestones.map((m, index) => (
                     <li key={m.id} className="rounded-xl border border-border-default p-3">
-                        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_140px_150px]">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_140px_150px]">
                             <TextInput label={t('careeros.milestone.title', 'Milestone {n}').replace('{n}', String(index + 1))} value={m.title} onChange={(event) => update(m.id, { title: event.target.value })} />
                             <Select label={t('careeros.milestone.state', 'State')} options={stateOptions} value={m.state} onChange={(event) => update(m.id, { state: event.target.value as CampaignMilestone['state'] })} />
                             <TextInput label={t('careeros.milestone.due', 'Due')} optional={t('careeros.common.optional', 'optional')} type="date" value={m.dueDate ?? ''} onChange={(event) => update(m.id, { dueDate: event.target.value || undefined })} />

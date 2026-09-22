@@ -149,7 +149,7 @@ export const LibraryList: React.FC<LibraryListProps> = ({ type }) => {
             {library.error !== null ? (
                 <StatePanel kind={online ? 'error' : 'offline'} onRetry={() => { void library.refresh(); }} />
             ) : data === null ? (
-                <div className="grid gap-3 sm:grid-cols-2" role="status" aria-live="polite" aria-busy="true">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" role="status" aria-live="polite" aria-busy="true">
                     <span className="sr-only">{t('label.loading', 'Loading')}</span>
                     <SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard />
                 </div>
@@ -173,7 +173,7 @@ export const LibraryList: React.FC<LibraryListProps> = ({ type }) => {
                     ) : (
                         <>
                             <p className="mb-2 text-xs text-content-muted" role="status">{t('careeros.library.showing', 'Showing {shown} of {total}').replace('{shown}', String(page.items.length)).replace('{total}', String(filtered.length))}</p>
-                            <ul className="grid gap-3 sm:grid-cols-2" aria-label={t('careeros.space.library', 'Library')}>
+                            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2" aria-label={t('careeros.space.library', 'Library')}>
                                 {page.items.map((asset) => {
                                     const { action, secondary } = actionFor(asset);
                                     const app = asset.applicationId ? appById.get(asset.applicationId) : undefined;

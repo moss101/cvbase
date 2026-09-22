@@ -287,7 +287,7 @@ export const CampaignDetail: React.FC<{ id: string; route: CareerRoute }> = ({ i
             {anyError ? <FailureNotice error={anyError} onReload={() => { void refresh(); }} onDismiss={resetErrors} className="mb-4" /> : null}
             {data.partial && <StatePanel kind="partial" compact className="mb-4" onRetry={() => { void query.refresh(); }} />}
 
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
                 <div className="min-w-0 space-y-4">
                     <Panel as="section" aria-labelledby="campaign-board">
                         <PaneHeading

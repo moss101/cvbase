@@ -162,8 +162,9 @@ const TodaySpace: React.FC<SpaceProps> = (_props) => {
                         )}
                     </div>
 
-                    <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-                        <div className="space-y-6">
+                    {/* grid-cols-1 is minmax(0,1fr): on phones the stacked column must never grow to a truncated line's full width. */}
+                    <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+                        <div className="min-w-0 space-y-6">
                             <ActionQueue
                                 userId={userId}
                                 actions={data?.actions ?? []}
@@ -175,7 +176,7 @@ const TodaySpace: React.FC<SpaceProps> = (_props) => {
                             />
                             <ActiveCampaigns campaigns={data?.campaigns ?? []} loading={loading} failed={failed('campaigns')} onRetry={() => void today.refresh()} />
                         </div>
-                        <div className="space-y-6">
+                        <div className="min-w-0 space-y-6">
                             <CareerPulse data={data} loading={loading} />
                             <WorkspaceShortcuts userId={userId} />
                             <InsightsPanel

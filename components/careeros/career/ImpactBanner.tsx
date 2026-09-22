@@ -101,7 +101,7 @@ export const ImpactBanner: React.FC<ImpactBannerProps> = ({ impact, userId, onDi
             {changed.length > 0 && (
                 <dl className="mt-3 space-y-1.5 rounded-xl bg-surface-panel p-3 text-[13px]">
                     {changed.map((field) => (
-                        <div key={field} className="grid gap-x-3 sm:grid-cols-[8rem_1fr]">
+                        <div key={field} className="grid grid-cols-1 gap-x-3 sm:grid-cols-[8rem_1fr]">
                             <dt className="font-semibold text-content-secondary">{fieldLabel[field]}</dt>
                             <dd className="min-w-0">
                                 <del className="block break-words text-content-muted">{stripHtml(impact.before[field]) || t('careeros.career.impact.empty', '(empty)')}</del>

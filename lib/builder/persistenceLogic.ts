@@ -56,10 +56,28 @@ export interface DocumentSnapshot {
     templateId: TemplateId | string | undefined;
 }
 
+/** JSON with object keys sorted, so equal content always serialises the same
+ *  way. The editor rebuilds objects after loading (defaults merged in, fields
+ *  re-spread) and Postgres jsonb stores keys in its own order, so plain
+ *  JSON.stringify would call identical content "changed". Array order is
+ *  kept — it is meaningful (entries, section order). Undefined values are
+ *  dropped, as JSON.stringify does. */
+export function stableStringify(value: unknown): string {
+    return JSON.stringify(value, (_key, v: unknown) => {
+        if (v && typeof v === 'object' && !Array.isArray(v)) {
+            const sorted: Record<string, unknown> = {};
+            for (const k of Object.keys(v as Record<string, unknown>).sort()) sorted[k] = (v as Record<string, unknown>)[k];
+            return sorted;
+        }
+        return v;
+    });
+}
+
 /** Stable serialisation used to tell "changed since last persisted" apart
- *  from "re-rendered with the same content". */
+ *  from "re-rendered with the same content" — so merely opening a CV never
+ *  writes a new revision. */
 export function serializeSnapshot(s: DocumentSnapshot): string {
-    return JSON.stringify([s.formData, s.visibleSections, s.settings, s.templateId ?? null]);
+    return stableStringify([s.formData, s.visibleSections, s.settings, s.templateId ?? null]);
 }
 
 export type HydrationDecision = 'hydrate' | 'conflict';

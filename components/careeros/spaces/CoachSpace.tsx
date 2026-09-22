@@ -154,7 +154,7 @@ const CoachSpace: React.FC<SpaceProps> = ({ route }) => {
                     </BottomSheet>
                 </>
             ) : (
-                <div className="grid min-h-0 flex-1 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)]">
+                <div className="grid grid-cols-1 min-h-0 flex-1 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)]">
                     <aside className="min-h-0 rounded-2xl border border-border-default bg-surface-panel p-3">{list}</aside>
                     <section aria-label={t('careeros.coach.threadLabel', 'Conversation')} className="flex min-h-0 flex-col">{thread}</section>
                 </div>

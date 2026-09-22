@@ -34,6 +34,16 @@ describe('decideHydration (two-device rule)', () => {
 });
 
 describe('snapshot + payload helpers', () => {
+    it('serializeSnapshot ignores key order (the editor re-spreads objects; jsonb reorders keys) but not array order', () => {
+        const settings = { fontSize: 11, lineHeight: 1.4, accent: '#123456' } as never;
+        const reordered = { accent: '#123456', lineHeight: 1.4, fontSize: 11 } as never;
+        const a = { formData: { contact: { firstName: 'Ana', lastName: 'Lee' }, experience: [] } as never, visibleSections: ['summary', 'experience'] as never, settings, templateId: 'modern' };
+        const b = { formData: { experience: [], contact: { lastName: 'Lee', firstName: 'Ana' } } as never, visibleSections: ['summary', 'experience'] as never, settings: reordered, templateId: 'modern' };
+        expect(serializeSnapshot(a)).toBe(serializeSnapshot(b));
+        expect(serializeSnapshot(a)).not.toBe(serializeSnapshot({ ...a, visibleSections: ['experience', 'summary'] as never }));
+        expect(serializeSnapshot(a)).not.toBe(serializeSnapshot({ ...a, settings: { ...(settings as object), fontSize: 12 } as never }));
+    });
+
     it('serializeSnapshot is stable for equal content and sensitive to each part', () => {
         const base = { formData: cv('A'), visibleSections: ['skills' as const], settings: { fontSize: 'medium' } as ResumeSettings, templateId: 'default' };
         expect(serializeSnapshot(base)).toBe(serializeSnapshot({ ...base, formData: cv('A') }));

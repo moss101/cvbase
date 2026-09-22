@@ -127,7 +127,7 @@ export const FactsView: React.FC<FactsViewProps> = ({ kind }) => {
                 <form onSubmit={add} className="rounded-2xl border border-border-default bg-surface-panel p-4" aria-labelledby={`${addId}-legend`}>
                     <p id={`${addId}-legend`} className="text-sm font-semibold text-content-primary">{t('careeros.career.addTitle', 'New {kind}').replace('{kind}', label.toLowerCase())}</p>
                     <p className="mt-0.5 text-xs text-content-secondary">{t('careeros.career.addHint', 'Recorded as confirmed by you. You can add dates and details after saving.')}</p>
-                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div>
                             <label htmlFor={`${addId}-title`} className={LABEL_CLASS}>{kind === 'education' ? t('careeros.career.editor.degree', 'Degree or qualification') : kind === 'skill' ? t('careeros.career.editor.skill', 'Skill') : t('careeros.career.editor.jobTitle', 'Job title')}</label>
                             <input id={`${addId}-title`} value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className={`${FIELD_CLASS} mt-1`} required disabled={busy === 'new'} />

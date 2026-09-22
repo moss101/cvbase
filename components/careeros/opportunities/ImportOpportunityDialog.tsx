@@ -185,7 +185,7 @@ export const ImportOpportunityDialog: React.FC<ImportOpportunityDialogProps> = (
                     />
                 )}
 
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <TextInput label={t('careeros.opportunity.import.jobTitle', 'Job title')} value={title} onChange={(event) => { setTitle(event.target.value); setTouched((s) => ({ ...s, title: true })); setDuplicates(null); }} required />
                     <TextInput label={t('careeros.opportunity.import.company', 'Company')} value={company} onChange={(event) => { setCompany(event.target.value); setTouched((s) => ({ ...s, company: true })); setDuplicates(null); }} required />
                     <TextInput label={t('careeros.opportunity.import.location', 'Location')} optional={t('careeros.common.optional', 'optional')} value={location} onChange={(event) => setLocation(event.target.value)} />

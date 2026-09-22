@@ -117,7 +117,7 @@ export const FitBreakdown: React.FC<FitBreakdownProps> = ({ qualification, direc
                     {t('careeros.fit.stale', 'This analysis is out of date — your facts, goal or the listing changed since it ran.')}
                 </p>
             )}
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <Region
                     id={qualId}
                     title={t('careeros.fit.qualification', 'Qualification fit')}
@@ -157,8 +157,8 @@ export const FitBreakdown: React.FC<FitBreakdownProps> = ({ qualification, direc
                                                         {requirement.evidence.length > 0 && (
                                                             <ul className="mt-1 flex flex-wrap gap-1.5">
                                                                 {requirement.evidence.map((item) => (
-                                                                    <li key={item.factId} className="inline-flex items-center gap-1 text-xs text-content-secondary">
-                                                                        <span className="truncate">{item.label}</span>
+                                                                    <li key={item.factId} className="inline-flex min-w-0 max-w-full flex-wrap items-center gap-1 text-xs text-content-secondary">
+                                                                        <span className="min-w-0 break-words">{item.label}</span>
                                                                         <EvidenceBadge state={item.confirmationState} />
                                                                     </li>
                                                                 ))}

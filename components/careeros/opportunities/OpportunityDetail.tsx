@@ -179,11 +179,11 @@ export const OpportunityDetail: React.FC<{ id: string }> = ({ id }) => {
                 />
             )}
 
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
                 <div className="min-w-0 space-y-4">
                     <section aria-labelledby="opp-facts" className="rounded-2xl border border-border-default bg-surface-panel p-5">
                         <h2 id="opp-facts" className="text-sm font-semibold text-content-primary">{t('careeros.opportunity.listingFacts', 'Listing details')}</h2>
-                        <dl className="mt-3 grid gap-x-6 gap-y-2 text-[13px] sm:grid-cols-2">
+                        <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 text-[13px] sm:grid-cols-2">
                             <div><dt className="text-content-muted">{t('careeros.opportunity.captured', 'Captured')}</dt><dd className="text-content-primary">{formatDate(opportunity.capturedAt)}</dd></div>
                             <div><dt className="text-content-muted">{t('careeros.opportunity.listingDate', 'Listing date')}</dt><dd className="text-content-primary">{opportunity.sourceDate ? formatDate(opportunity.sourceDate) : t('careeros.common.unknown', 'Unknown')}</dd></div>
                             <div><dt className="text-content-muted">{t('careeros.opportunity.listingStatus', 'Listing status')}</dt><dd className="text-content-primary">{{ open: t('careeros.opportunity.listingOpen', 'Open'), closed: t('careeros.opportunity.listingClosed', 'Closed'), unknown: t('careeros.common.unknown', 'Unknown') }[opportunity.listingStatus]}</dd></div>

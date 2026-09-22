@@ -59,7 +59,7 @@ const NoteCard: React.FC<{ artifact: ApplicationArtifact; workspace: Workspace; 
                 <StatusChip label={artifact.status === 'reviewed' ? t('careeros.networking.reviewedDraft', 'Reviewed draft — you send it yourself') : { draft: t('careeros.document.status.draft', 'Draft'), snapshot: t('careeros.document.status.snapshot', 'Submitted snapshot'), reviewed: '' }[artifact.status]} tone={artifact.status === 'reviewed' ? 'success' : 'neutral'} />
                 {!locked && <Button size="sm" variant="quiet" icon={<Trash2 size={14} />} onClick={() => onDelete(artifact)}>{t('careeros.common.delete', 'Delete')}</Button>}
             </div>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <TextInput label={t('careeros.networking.contact', 'Contact name')} optional={t('careeros.common.optional', 'optional')} {...field('contactName')} />
                 <TextInput label={t('careeros.networking.relationship', 'Relationship')} placeholder={t('careeros.networking.relationshipPlaceholder', 'e.g. former colleague, recruiter')} {...field('relationship')} />
                 <TextInput label={t('careeros.networking.followUp', 'Follow up on')} type="date" hint={t('careeros.networking.followUpHint', 'Also sets the application\'s follow-up date for Today.')} {...field('followUpAt')} />
