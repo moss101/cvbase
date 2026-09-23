@@ -124,7 +124,7 @@ export const OpportunityList: React.FC<{ route: CareerRoute }> = ({ route }) => 
     );
 
     return (
-        <div className="mx-auto w-full max-w-5xl">
+        <div className="mx-auto w-full max-w-[1240px]">
             <SpaceHeader
                 eyebrow={t('careeros.shell.eyebrow', 'Career OS')}
                 title={t('careeros.space.opportunities', 'Opportunities')}
@@ -171,7 +171,9 @@ export const OpportunityList: React.FC<{ route: CareerRoute }> = ({ route }) => 
             {view === 'for-you' && query.data && (
                 <p role="status" className="mb-3 flex items-center gap-1.5 text-[13px] text-content-muted">
                     <Info size={14} strokeWidth={1.9} className="shrink-0" aria-hidden="true" />
-                    {t('careeros.opportunity.coverage', 'Ranking your {count} imported opportunities. CVBase does not search job boards yet.').replace('{count}', String(query.data.opportunities.length))}
+                    {query.data.opportunities.length === 1
+                        ? t('careeros.opportunity.coverageOne', 'Ranking your 1 imported opportunity. CVBase does not search job boards yet.')
+                        : t('careeros.opportunity.coverage', 'Ranking your {count} imported opportunities. CVBase does not search job boards yet.').replace('{count}', String(query.data.opportunities.length))}
                 </p>
             )}
 

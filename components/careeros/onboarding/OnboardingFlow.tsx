@@ -134,7 +134,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ userId, profile,
     const stepIndex = STEPS.indexOf(step);
 
     return (
-        <div className="mx-auto w-full max-w-3xl">
+        <div className="mx-auto w-full max-w-[1240px] [&>*]:max-w-3xl">
             <SpaceHeader
                 eyebrow={t('careeros.onboarding.eyebrow', 'Set up your Career OS')}
                 title={stepTitles[step]}

@@ -53,7 +53,7 @@ export const ApplicationList: React.FC = () => {
     ];
 
     return (
-        <div className="mx-auto w-full max-w-5xl">
+        <div className="mx-auto w-full max-w-[1240px]">
             <SpaceHeader
                 eyebrow={t('careeros.shell.eyebrow', 'Career OS')}
                 title={t('careeros.space.applications', 'Applications')}

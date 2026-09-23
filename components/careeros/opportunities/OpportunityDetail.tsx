@@ -106,7 +106,7 @@ export const OpportunityDetail: React.FC<{ id: string }> = ({ id }) => {
 
     if (query.error) {
         return (
-            <div className="mx-auto w-full max-w-4xl">
+            <div className="mx-auto w-full max-w-[1240px] [&>*]:max-w-4xl">
                 <SpaceHeader eyebrow={t('careeros.space.opportunities', 'Opportunities')} title={t('careeros.opportunity.unavailableTitle', 'Opportunity unavailable')} compact />
                 <FailureNotice error={query.error} onRetry={() => { void query.refresh(); }} onReload={() => { void query.refresh(); }} />
                 <Button variant="quiet" className="mt-4" onClick={onBack}>{t('careeros.common.back', 'Back')}</Button>
@@ -115,7 +115,7 @@ export const OpportunityDetail: React.FC<{ id: string }> = ({ id }) => {
     }
     if (!opportunity) {
         return (
-            <div className="mx-auto w-full max-w-4xl" aria-busy="true">
+            <div className="mx-auto w-full max-w-[1240px] [&>*]:max-w-4xl" aria-busy="true">
                 <Skeleton variant="text" width="6rem" className="h-2.5" />
                 <Skeleton variant="title" width="60%" className="mt-3" />
                 <Skeleton variant="text" lines={3} className="mt-4" />
@@ -141,7 +141,7 @@ export const OpportunityDetail: React.FC<{ id: string }> = ({ id }) => {
     );
 
     return (
-        <div className="mx-auto w-full max-w-4xl">
+        <div className="mx-auto w-full max-w-[1240px] [&>*]:max-w-4xl">
             <SpaceHeader
                 eyebrow={t('careeros.space.opportunities', 'Opportunities')}
                 title={opportunity.title}

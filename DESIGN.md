@@ -270,6 +270,24 @@ Confident but few.
 - **Border:** 1px Hairline.
 - **Internal Padding:** 24px phone, 28px desktop; list panels run edge to edge with 24px row padding.
 
+### Record lists and rows
+- **One surface per list.** A list of records is a `.cos-list` panel (1px hairline, 16px radius) whose rows are divided by hairlines; a card placed in it (`.cos-entity`) sheds its own frame. Never a stack of separate cards.
+- **Row anatomy (EntityCard).** A 36px canvas icon tile for the kind (the kind is spoken in the heading, never printed above it), the title with its status chips on the same line, a secondary meta line, then the way in: a secondary "Open →" at the right on wide rows, beneath on compact rows. Less frequent actions (duplicate, rename, delete, versions) sit behind a quiet RowMenu (⋯). A record inside a panel is `flush` (no frame of its own).
+- **Board.** Campaign lanes are unframed columns split by vertical hairlines; cards are borderless canvas tiles. Below 768px the lanes stack.
+
+### Notices
+A hairline row on the panel surface: a toned icon (warning, info in emerald, success), a 14px semibold title, 13.5px secondary text and the one action at the right. Tone never becomes a tinted slab. `StatePanel` covers loading, empty and failure states; its "partial" state has the notice shape. Inside a panel, use the inline form (canvas tint, no border).
+
+### Filters and section tabs
+- **Filters and view toggles** use one control: quiet tabs whose selection is a 10% emerald tint; counts sit muted beside the label.
+- **Section navigation** (Career sections, application workspace) uses underline tabs: 2px emerald underline on the current tab over a hairline.
+
+### Page frame
+Every space sits in the same 1240px container, so page titles start at the same x. Reading-width pages (Inbox, Settings, Search) keep their measure with a left-aligned child max-width rather than a narrower centred frame. The page intro lives in the SpaceHeader description.
+
+### Dates
+One style everywhere: "Sep 21, 2026" and "Sep 21, 2026, 8:45 AM"; scheduled times add the recorded zone ("Fri, Sep 25, 10:30 AM (Europe/Berlin)").
+
 ### Inputs / Fields
 - **Style:** 12px radius, Strong Hairline border, panel fill, 15px text, leading 16px muted search icon.
 - **Focus:** 2px `focus-ring` ring, no outline.
@@ -289,7 +307,7 @@ The Today lead: a panel with a 21-23px title and a 15px reason, the single emera
 One panel split by vertical hairlines into Goal → Opportunities → Applications → Interviews → Offers, each with a 13px icon label, a 22px tabular count and a 12.5px sub-line; small round chevron joints sit on the dividers. Scrolls horizontally below 1024px.
 
 ### Builder top band
-Inside the CV editor the classic builder keeps its toolbar but speaks the same language: 10px-radius controls at 13px semibold, one emerald Save, less frequent actions behind a quiet More menu, the Master Profile sync as a single 16px-radius row (emerald 5% tint when linked), and the ATS compliance meter in a hairline panel.
+Inside the CV editor the classic builder keeps its toolbar but speaks the same language: 10px-radius controls at 13px semibold in sentence case, one emerald Save, less frequent actions (load example, JSON backup) behind a quiet More menu. The profile offer is a borderless canvas row that appears only when the profile would add something and names what it would fill. "CV completeness" and "ATS parser match" form one band inside the editor panel, split by hairlines: ink numerals, status carried by a small toned icon, no level names, gauge rings or emoji.
 
 ## Do's and Don'ts
 

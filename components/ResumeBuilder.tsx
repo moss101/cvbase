@@ -750,23 +750,29 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId, 
                                 onHydrate={() => setIsHydrated(true)}
                                 onResync={() => setIsHydrated(false)}
                                 onApply={setFormData}
+                                current={formData}
                             />
                         )}
 
-                        {/* Interactive Gamified Progress Tracker */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-6">
-                            <GamifiedProgressTracker
-                                formData={formData}
-                                visibleSections={visibleSections}
-                                progress={progress}
-                                activeSection={activeSection}
-                                onSectionClick={setActiveSection}
-                            />
-                            <AtsCompatibilityPanel
-                                formData={formData}
-                                visibleSections={visibleSections}
-                                selectedTemplate={selectedTemplate}
-                            />
+                        {/* Completeness and ATS check: one band inside the editor panel, split by
+                            hairlines — sections of the panel, not cards inside it. */}
+                        <div className="mt-6 grid grid-cols-1 divide-y divide-border-default border-y border-border-default lg:grid-cols-2 lg:divide-x lg:divide-y-0">
+                            <div className="py-5 lg:pr-6">
+                                <GamifiedProgressTracker
+                                    formData={formData}
+                                    visibleSections={visibleSections}
+                                    progress={progress}
+                                    activeSection={activeSection}
+                                    onSectionClick={setActiveSection}
+                                />
+                            </div>
+                            <div className="py-5 lg:pl-6">
+                                <AtsCompatibilityPanel
+                                    formData={formData}
+                                    visibleSections={visibleSections}
+                                    selectedTemplate={selectedTemplate}
+                                />
+                            </div>
                         </div>
 
                         <div className="animate-fade-in mt-6">

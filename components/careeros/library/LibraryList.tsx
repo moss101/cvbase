@@ -3,7 +3,7 @@ import { Search, Wand2, LayoutTemplate, Sparkles, Plus, FileText, Image as Image
 import { useTranslation } from '../../../services/translationService';
 import { careerPath, useNavigation } from '../../NavigationProvider';
 import { track } from '../../../services/careerOs/careerEvents';
-import { Button, EntityCard, Pill, RowMenu, SkeletonCard, StatePanel, StatusChip, type EntityCardAction, type Tone } from '../primitives';
+import { Button, EntityCard, FILTER_GROUP, Pill, RowMenu, SkeletonCard, StatePanel, StatusChip, filterTabClass, type EntityCardAction, type Tone } from '../primitives';
 import { useCareerOs } from '../shell/CareerOsProvider';
 import { useOnline } from '../career/useOnline';
 import { confirmationLabel } from '../career/factFormat';
@@ -130,13 +130,13 @@ export const LibraryList: React.FC<LibraryListProps> = ({ type }) => {
                 </div>
             </div>
 
-            <div role="group" aria-label={t('careeros.library.filter', 'Filter by type')} className="mb-4 flex flex-wrap gap-2">
-                <button type="button" aria-pressed={!activeType} onClick={() => setType(undefined)} className={`tap-target rounded-full border px-3 py-1.5 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${!activeType ? 'border-action-primary/40 bg-action-primary/10 text-action-primary' : 'border-border-default bg-surface-panel text-content-secondary hover:bg-surface-canvas'}`}>
-                    {t('careeros.library.all', 'All')} · {counts.all}
+            <div role="group" aria-label={t('careeros.library.filter', 'Filter by type')} className={`mb-4 ${FILTER_GROUP}`}>
+                <button type="button" aria-pressed={!activeType} onClick={() => setType(undefined)} className={filterTabClass(!activeType)}>
+                    {t('careeros.library.all', 'All')}<span className="font-normal tabular-nums text-content-muted"><span className="sr-only"> · </span>{counts.all}</span>
                 </button>
                 {LIBRARY_KINDS.map((k) => (
-                    <button key={k} type="button" aria-pressed={activeType === k} onClick={() => setType(k)} className={`tap-target rounded-full border px-3 py-1.5 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${activeType === k ? 'border-action-primary/40 bg-action-primary/10 text-action-primary' : 'border-border-default bg-surface-panel text-content-secondary hover:bg-surface-canvas'}`}>
-                        {kindLabel(k)} · {counts[k]}
+                    <button key={k} type="button" aria-pressed={activeType === k} onClick={() => setType(k)} className={filterTabClass(activeType === k)}>
+                        {kindLabel(k)}<span className="font-normal tabular-nums text-content-muted"><span className="sr-only"> · </span>{counts[k]}</span>
                         {k === 'evidence' && counts.toReview > 0 && <span className="ml-1 text-[11px] font-normal">({t('careeros.library.toReview', '{count} to review').replace('{count}', String(counts.toReview))})</span>}
                     </button>
                 ))}
@@ -195,6 +195,7 @@ export const LibraryList: React.FC<LibraryListProps> = ({ type }) => {
                                                 meta={metaLine}
                                                 chips={
                                                     <>
+                                                        {asset.kind === 'cv' && asset.extra.isPrimary && <Pill tone="accent">{t('careeros.library.primaryCv', 'Primary')}</Pill>}
                                                         {asset.status && <StatusChip label={statusChip[asset.status].label} tone={statusChip[asset.status].tone} />}
                                                         {asset.stale && <StatusChip label={t('careeros.document.stale', 'Out of date')} tone="warning" />}
                                                     </>
@@ -248,7 +249,6 @@ const AssetChips: React.FC<{ asset: LibraryAsset; showMeta?: boolean }> = ({ ass
     const { t } = useTranslation();
     const chips: React.ReactNode[] = [];
     if (showMeta && asset.meta) chips.push(<span key="meta" className="text-[13px] text-content-secondary">{asset.meta}</span>);
-    if (asset.kind === 'cv' && asset.extra.isPrimary) chips.push(<Pill key="primary" tone="accent">{t('careeros.library.primaryCv', 'Primary')}</Pill>);
     if (asset.kind === 'cv' && asset.extra.origin === 'prism') chips.push(<Pill key="origin" mono>{t('careeros.library.originPrism', 'PRISM')}</Pill>);
     if (asset.kind === 'report') chips.push(<StatusChip key="score" label={asset.extra.score === null || asset.extra.score === undefined ? t('careeros.library.notScored', 'Not scored') : t('careeros.library.score', 'Score {score}/100').replace('{score}', String(asset.extra.score))} tone={asset.extra.score === null || asset.extra.score === undefined ? 'neutral' : asset.extra.score >= 75 ? 'success' : asset.extra.score >= 50 ? 'warning' : 'danger'} />);
     if ((asset.kind === 'story' || asset.kind === 'evidence') && asset.extra.confirmationState) chips.push(<Pill key="conf" tone={asset.extra.confirmationState === 'verified' || asset.extra.confirmationState === 'user_confirmed' ? 'success' : asset.extra.confirmationState === 'inferred' ? 'warning' : 'neutral'}>{confirmationLabel(t, asset.extra.confirmationState)}</Pill>);

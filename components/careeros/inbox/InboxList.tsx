@@ -144,8 +144,8 @@ export const InboxList: React.FC = () => {
 
     return (
         <div>
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                <p className="text-[13px] text-content-secondary">{t('careeros.inbox.description', 'Only what needs you, only in the app. Nothing is emailed or pushed.')}</p>
+            {/* The page's intro lives in its header; only the view toggle sits here. */}
+            <div className="-mt-3 mb-3 flex justify-end">
                 <Button variant="quiet" size="sm" aria-pressed={showDismissed} onClick={() => setShowDismissed((v) => !v)}>
                     {showDismissed ? t('careeros.inbox.hideDismissed', 'Hide dismissed') : t('careeros.inbox.showDismissed', 'Show dismissed')}
                 </Button>

@@ -130,9 +130,9 @@ export const CoachThread: React.FC<CoachThreadProps> = ({ conversationId, onGone
     }, []);
 
     // ---- sending ----------------------------------------------------------
-    const send = useCallback(async () => {
+    // `fromDraft` clears the composer on success; a retry re-sends an earlier question and leaves the draft alone.
+    const sendText = useCallback(async (message: string, fromDraft: boolean) => {
         if (!userId || !conversation) return;
-        const message = draft.trim();
         if (!message) return;
         if (!online) { setFailure({ kind: 'offline' }); return; }
         setSending(true);
@@ -140,7 +140,7 @@ export const CoachThread: React.FC<CoachThreadProps> = ({ conversationId, onGone
         setPending({ content: message });
         try {
             const reply = await sendCoachMessage({ conversationId: conversation.id, message, contextRefs: contextIds(conversation), locale: language });
-            setDraft('');
+            if (fromDraft) setDraft('');
             if (reply.abstained && reply.abstainReason) setAbstainReasons((prev) => ({ ...prev, [reply.message.id]: reply.abstainReason }));
             if (reply.released) setFailure({ kind: 'ai-unavailable', stored: true });
             await refreshAll();
@@ -154,7 +154,9 @@ export const CoachThread: React.FC<CoachThreadProps> = ({ conversationId, onGone
             setPending(null);
             setSending(false);
         }
-    }, [userId, conversation, draft, online, contextIds, language, refreshAll]);
+    }, [userId, conversation, online, contextIds, language, refreshAll]);
+
+    const send = useCallback(async () => { await sendText(draft.trim(), true); }, [draft, sendText]);
 
     // ---- context change ---------------------------------------------------
     const changeContext = useCallback(async (ids: ContextIds) => {
@@ -345,6 +347,12 @@ export const CoachThread: React.FC<CoachThreadProps> = ({ conversationId, onGone
                         onToggleSelect={(id) => setSelected((prev) => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; })}
                         onExecuted={onExecuted}
                         abstainReasons={abstainReasons}
+                        onRetry={sending || !online || archived ? undefined : (assistantId) => {
+                            // Re-ask the question this unavailable reply answered.
+                            const at = messages.findIndex((m) => m.id === assistantId);
+                            const question = messages.slice(0, at).reverse().find((m) => m.role === 'user');
+                            if (question) void sendText(question.content, false);
+                        }}
                     />
                 )}
                 <div ref={endRef} />

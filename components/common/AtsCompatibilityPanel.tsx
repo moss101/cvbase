@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { ResumeData, SectionId, AtsAnalysisResult, AtsCheck } from '../../types';
 import { checkAtsCompliance } from '../../services/geminiService';
-import { RefreshCw, Brain, ChevronDown, TriangleAlert, Lightbulb } from 'lucide-react';
+import { RefreshCw, Brain, ChevronDown, CircleAlert, CircleCheck, TriangleAlert, Lightbulb } from 'lucide-react';
 import { useTranslation } from '../../services/translationService';
 
 interface AtsCompatibilityPanelProps {
@@ -173,8 +173,9 @@ export const AtsCompatibilityPanel: React.FC<AtsCompatibilityPanelProps> = ({
         }
     };
 
-    // The score is the content: a numeral in its status tone, no gauge ring.
-    const scoreTone = score >= 80 ? 'text-status-success' : score >= 50 ? 'text-status-warning' : 'text-status-danger';
+    // The score is the content: an ink numeral; its status is carried by a small toned icon.
+    const StatusIcon = score >= 80 ? CircleCheck : score >= 50 ? CircleAlert : TriangleAlert;
+    const statusTone = score >= 80 ? 'text-status-success' : score >= 50 ? 'text-status-warning' : 'text-status-danger';
 
     const checkRows: { key: keyof AtsAnalysisResult['checks']; label: string }[] = [
         { key: 'contactInfo', label: t('atsPanel.contactInfoDetails', 'Contact Information Details') },
@@ -185,11 +186,14 @@ export const AtsCompatibilityPanel: React.FC<AtsCompatibilityPanelProps> = ({
     ];
 
     return (
-        <div className="w-full relative select-none rounded-2xl border border-border-default bg-surface-panel p-5">
+        <div className="w-full relative select-none">
             <div className="flex flex-wrap items-start justify-between gap-4">
                 {/* Score and summary */}
                 <div className="flex min-w-0 cursor-pointer items-start gap-4" onClick={() => setIsExpanded(!isExpanded)}>
-                    <span className={`text-[28px] font-semibold leading-none tabular-nums ${scoreTone}`}>{score}%</span>
+                    <span className="flex items-center gap-1.5">
+                        <StatusIcon className={`h-[18px] w-[18px] shrink-0 ${statusTone}`} aria-hidden="true" />
+                        <span className="text-[28px] font-semibold leading-none tabular-nums text-content-primary">{score}%</span>
+                    </span>
                     <div className="min-w-0 text-left">
                         <h3 className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-content-primary">
                             {t('atsPanel.parserMatchScore', 'ATS Parser Match Score')}

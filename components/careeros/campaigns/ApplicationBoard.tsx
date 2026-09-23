@@ -113,12 +113,13 @@ export const ApplicationBoard: React.FC<ApplicationBoardProps> = ({ applications
         <div>
             <p role="status" aria-live="polite" className="sr-only">{announcement}</p>
             {view === 'board' ? (
-                <div className="flex overflow-x-auto pb-2" role="list" aria-label={t('careeros.board.label', 'Application board')}>
+                // Phones stack the lanes (no clipped columns); from 768px they sit side by side and scroll.
+                <div className="flex flex-col md:flex-row md:overflow-x-auto md:pb-2" role="list" aria-label={t('careeros.board.label', 'Application board')}>
                     {STAGE_ORDER.map((stage) => {
                         const items = byStage.get(stage) ?? [];
                         return (
                             // Lanes are unframed columns split by hairlines — the board is one surface, not boxes in boxes.
-                            <section key={stage} role="listitem" aria-labelledby={`col-${stage}`} className="flex w-[min(264px,85vw)] shrink-0 flex-col border-l border-border-default px-3 first:border-l-0 first:pl-0">
+                            <section key={stage} role="listitem" aria-labelledby={`col-${stage}`} className="flex w-full flex-col border-t border-border-default py-4 first:border-t-0 first:pt-0 md:w-[264px] md:shrink-0 md:border-l md:border-t-0 md:px-3 md:py-0 md:first:border-l-0 md:first:pl-0">
                                 <h3 id={`col-${stage}`} className="flex items-center justify-between text-[13px] font-semibold text-content-primary">
                                     <span>{labels[stage]}</span>
                                     <span className="rounded-full bg-surface-canvas px-2 py-0.5 text-[12px] tabular-nums text-content-secondary" aria-label={t('careeros.board.count', '{count} applications').replace('{count}', String(items.length))}>{items.length}</span>

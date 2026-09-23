@@ -72,7 +72,7 @@ const NotFound: React.FC = () => {
     const { t } = useTranslation();
     const { reset } = useNavigation();
     return (
-        <div className="mx-auto w-full max-w-3xl">
+        <div className="mx-auto w-full max-w-[1240px] [&>*]:max-w-3xl">
             <SpaceHeader eyebrow={t('careeros.shell.eyebrow', 'Career OS')} title={t('careeros.space.notFound', 'Not found')} />
             <StatePanel
                 kind="empty"
@@ -100,13 +100,13 @@ const SpaceContent: React.FC<{ route: CareerRoute; onViewPricing: () => void }> 
         case 'settings': return <SettingsSpace route={route} />;
         case 'billing':
             return (
-                <div className="mx-auto w-full max-w-5xl">
+                <div className="mx-auto w-full max-w-[1240px]">
                     <BillingDashboard onChangePlan={onViewPricing} />
                 </div>
             );
         case 'admin':
             return isAdmin
-                ? <div className="mx-auto w-full max-w-6xl"><AdminPanel /></div>
+                ? <div className="mx-auto w-full max-w-[1240px]"><AdminPanel /></div>
                 : <StatePanel kind="denied" title={t('careeros.shell.adminOnly', 'Operators only')} description={t('careeros.shell.adminOnlyDescription', 'This console is limited to operator accounts.')} />;
         default:
             return <NotFound />;
@@ -127,7 +127,7 @@ const GuestContent: React.FC<{ route: CareerRoute; onOpenAuth: () => void }> = (
         case 'library': return <LibrarySpace route={route} />;
         case 'settings':
             return (
-                <div className="mx-auto w-full max-w-4xl">
+                <div className="mx-auto w-full max-w-[1240px] [&>*]:max-w-4xl">
                     <SpaceHeader title={t('mobile.settings', 'Settings')} />
                     <SettingsPanel embedded onViewLegal={(tab) => navigate({ view: 'legal', legalTab: tab })} onManageBilling={onOpenAuth} />
                 </div>

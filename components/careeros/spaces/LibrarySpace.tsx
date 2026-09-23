@@ -153,7 +153,7 @@ const GuestLibrary: React.FC = () => {
         { key: 'tailor', label: t('mobile.prismTailor', 'PRISM Tailor'), Icon: Wand2, onClick: () => navigate(careerPath.toLibraryTool('tailor')) },
     ];
     return (
-        <div className="mx-auto w-full max-w-5xl">
+        <div className="mx-auto w-full max-w-[1240px]">
             <SpaceHeader eyebrow={t('careeros.shell.eyebrow', 'Career OS')} title={t('careeros.space.library', 'Library')} description={t('careeros.guest.libraryDescription', 'Without an account, your CV lives on this device. Sign in to keep several CVs, reports and letters together.')} />
             <div className="flex flex-col gap-4 rounded-2xl border border-border-default bg-surface-panel p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex min-w-0 items-start gap-3">
@@ -195,28 +195,28 @@ const LibrarySpace: React.FC<SpaceProps> = ({ route }) => {
     switch (route.sub) {
         case 'templates':
             return (
-                <div className="mx-auto w-full max-w-6xl">
+                <div className="mx-auto w-full max-w-[1240px]">
                     <SpaceHeader eyebrow={eyebrow} title={t('dash.tab.templateGallery', 'Template gallery')} description={t('dash.designLibraryLayouts', 'Design library · {count} layouts').replace('{count}', String(AVAILABLE_TEMPLATES.length))} action={back} />
                     <TemplateGallery />
                 </div>
             );
         case 'tailor':
             return (
-                <div className="mx-auto w-full max-w-5xl">
+                <div className="mx-auto w-full max-w-[1240px]">
                     <SpaceHeader eyebrow={eyebrow} title={t('mobile.prismTailor', 'PRISM Tailor')} description={t('careeros.library.tailorDescription', 'Tailor a CV to a job description in a reviewed, grounded flow. From an application, tailoring binds to that application; here it runs standalone.')} action={back} />
                     {userId ? <TailorTool /> : <GuestPrism />}
                 </div>
             );
         case 'studio':
             return (
-                <div className="mx-auto w-full max-w-6xl">
+                <div className="mx-auto w-full max-w-[1240px]">
                     <SpaceHeader eyebrow={eyebrow} title={t('mobile.smartStudio', 'Smart Studio')} description={t('dash.smartStudioBlurb', 'Turn job requirements into a stronger profile, cover letter, and application plan.')} action={back} />
                     <StudioTool route={route} />
                 </div>
             );
         case 'ats':
             return (
-                <div className="mx-auto w-full max-w-5xl">
+                <div className="mx-auto w-full max-w-[1240px]">
                     <SpaceHeader eyebrow={eyebrow} title={t('mobile.atsChecker', 'ATS Checker')} description={t('careeros.library.atsDescription', 'Check a CV against a job description. Reports are saved to your library.')} action={back} />
                     <AtsTool />
                 </div>
@@ -224,7 +224,7 @@ const LibrarySpace: React.FC<SpaceProps> = ({ route }) => {
         case 'documents':
             if (route.id) {
                 return (
-                    <div className="mx-auto w-full max-w-3xl">
+                    <div className="mx-auto w-full max-w-[1240px] [&>*]:max-w-3xl">
                         <SpaceHeader eyebrow={eyebrow} title={t('careeros.library.document', 'Document')} action={back} compact />
                         <DocumentDetail documentId={route.id} />
                     </div>
@@ -239,7 +239,7 @@ const LibrarySpace: React.FC<SpaceProps> = ({ route }) => {
     }
 
     return (
-        <div className="mx-auto w-full max-w-5xl">
+        <div className="mx-auto w-full max-w-[1240px]">
             <SpaceHeader
                 eyebrow={eyebrow}
                 title={t('careeros.space.library', 'Library')}

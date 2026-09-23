@@ -71,7 +71,7 @@ const SettingsSpace: React.FC<SpaceProps> = ({ route }) => {
 
     if (route.sub === 'integrations') {
         return (
-            <div className="mx-auto w-full max-w-3xl">
+            <div className="mx-auto w-full max-w-[1240px] [&>*]:max-w-3xl">
                 <SpaceHeader
                     eyebrow={t('mobile.settings', 'Settings')}
                     title={t('careeros.integrations.pageTitle', 'Integrations')}
@@ -83,7 +83,7 @@ const SettingsSpace: React.FC<SpaceProps> = ({ route }) => {
     }
 
     return (
-        <div className="mx-auto w-full max-w-4xl">
+        <div className="mx-auto w-full max-w-[1240px] [&>*]:max-w-4xl">
             <SpaceHeader eyebrow={t('careeros.shell.eyebrow', 'Career OS')} title={t('mobile.settings', 'Settings')} description={t('careeros.settings.description', 'Proactive reminders and integrations for Career OS, then everything that changes how CVBase looks and behaves.')} />
             <section aria-labelledby={careerOsHeadingId} className="mb-10 space-y-4">
                 <h2 id={careerOsHeadingId} className="text-[15px] font-semibold text-content-primary">{t('careeros.settings.careerOs', 'Career OS')}</h2>

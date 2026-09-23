@@ -23,7 +23,7 @@ export const GuestSignIn: React.FC<{ space: CareerSpace; spaceLabel: string; onO
     const { t } = useTranslation();
     const copy = COPY[space];
     return (
-        <div className="mx-auto w-full max-w-3xl">
+        <div className="mx-auto w-full max-w-[1240px] [&>*]:max-w-3xl">
             <SpaceHeader eyebrow={t('careeros.shell.eyebrow', 'Career OS')} title={spaceLabel} />
             <StatePanel
                 kind="denied"

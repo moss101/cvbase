@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { BellRing, Play, Save } from 'lucide-react';
 import { useTranslation } from '../../../services/translationService';
+import { formatDate } from '../application/format';
 import * as preferencesRepo from '../../../services/careerOs/preferencesRepo';
 import { ConflictError, type CareerPreferences } from '../../../services/careerOs/types';
 import { Button, Pill, Skeleton, StatePanel, StatusChip } from '../primitives';
@@ -178,7 +179,7 @@ export const ProactiveSettings: React.FC = () => {
                 <input type="checkbox" className="h-[18px] w-[18px] shrink-0 rounded border-border-strong accent-action-primary" checked={draft.proactiveEnabled} onChange={(e) => set('proactiveEnabled', e.target.checked)} />
                 <span className="text-sm font-semibold text-content-primary">{t('careeros.proactive.enable', 'Turn on proactive reminders')}</span>
             </label>
-            {prefs.consentAt && <p className="mt-1 text-xs text-content-muted">{t('careeros.proactive.consentedAt', 'Consent recorded {date}').replace('{date}', new Date(prefs.consentAt).toLocaleString())}</p>}
+            {prefs.consentAt && <p className="mt-1 text-xs text-content-muted">{t('careeros.proactive.consentedAt', 'Consent recorded {date}').replace('{date}', formatDate(prefs.consentAt, undefined, true))}</p>}
 
             <fieldset disabled={off} className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2" aria-describedby={off ? `${ids}-off` : undefined}>
                 <legend className="sr-only">{t('careeros.proactive.settings', 'Reminder settings')}</legend>
@@ -232,7 +233,7 @@ export const ProactiveSettings: React.FC = () => {
                 {saved && <span role="status" className="text-[13px] text-status-success">{t('careeros.proactive.saved', 'Saved')}</span>}
                 {dirty && <span className="text-xs text-content-muted">{t('careeros.proactive.saveFirst', 'Save your changes before running.')}</span>}
             </div>
-            {prefs.lastProactiveRunAt && <p className="mt-2 text-xs text-content-muted">{t('careeros.proactive.lastRun', 'Last run {date}').replace('{date}', new Date(prefs.lastProactiveRunAt).toLocaleString())}</p>}
+            {prefs.lastProactiveRunAt && <p className="mt-2 text-xs text-content-muted">{t('careeros.proactive.lastRun', 'Last run {date}').replace('{date}', formatDate(prefs.lastProactiveRunAt, undefined, true))}</p>}
 
             {runError !== null && <FailureNotice error={runError} className="mt-4" title={t('careeros.proactive.runFailed', 'The run could not complete')} onReload={() => { void load(); }} onRetry={() => { void run(); }} onDismiss={() => setRunError(null)} />}
             {summary && (

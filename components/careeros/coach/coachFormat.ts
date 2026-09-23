@@ -171,3 +171,11 @@ export function timeLabel(iso: string, now: Date = new Date()): string {
         ? d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
         : d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 }
+
+/**
+ * The stored reply when the gateway could not reach the model (mirrors
+ * MODEL_UNAVAILABLE_REPLY in supabase/functions/career-coach/prompts.ts).
+ * Such a reply is an outage, not a lack of evidence, and can be retried.
+ */
+export const MODEL_UNAVAILABLE_REPLY = "I can't reach the model right now; your context is saved.";
+export const isModelUnavailable = (m: { abstained: boolean; content: string }): boolean => m.abstained && m.content.trim() === MODEL_UNAVAILABLE_REPLY;

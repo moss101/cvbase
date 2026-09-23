@@ -22,7 +22,7 @@ const SearchSpace: React.FC<SpaceProps> = () => {
     const [initialQuery] = useState(() => recallSearchQuery());
     if (!userId) return null;
     return (
-        <div className="mx-auto w-full max-w-3xl">
+        <div className="mx-auto w-full max-w-[1240px] [&>*]:max-w-3xl">
             <SpaceHeader
                 eyebrow={t('careeros.shell.eyebrow', 'Career OS')}
                 title={t('careeros.space.search', 'Search')}

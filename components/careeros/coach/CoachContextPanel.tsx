@@ -158,9 +158,10 @@ const ContextChips: React.FC<{ refs: ContextRefSummary[]; kindLabel: Record<Cont
                     const actionLabel = hasValue
                         ? t('careeros.context.change', 'Change {kind}').replace('{kind}', lower)
                         : t('careeros.context.choose', 'Choose {kind}').replace('{kind}', lower);
+                    // The kind is printed ("Goal: …") — several references can share a title.
                     const text = hasValue ? (
-                        <span className="min-w-0 truncate font-medium text-content-primary">
-                            <span className="sr-only">{kindLabel[kind]}: </span>{ref.label}
+                        <span className="min-w-0 truncate text-content-primary">
+                            <span className="text-content-muted">{kindLabel[kind]}: </span><span className="font-medium">{ref.label}</span>
                         </span>
                     ) : (
                         <span className="min-w-0 truncate text-content-muted">
@@ -184,10 +185,12 @@ const ContextChips: React.FC<{ refs: ContextRefSummary[]; kindLabel: Record<Cont
                                     </span>
                                 </button>
                             ) : (
-                                <span className="inline-flex h-11 max-w-full items-center gap-1.5 px-1 text-[13px]" title={ref.meta}>
-                                    {icon}
-                                    {text}
-                                    {ref.locked && <span className="sr-only">{t('careeros.context.locked', '(fixed by this application)')}</span>}
+                                <span className="inline-flex min-h-[44px] max-w-full items-center" title={ref.meta}>
+                                    <span className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-full border border-border-default bg-surface-canvas px-3 text-[13px]">
+                                        {icon}
+                                        {text}
+                                        {ref.locked && <span className="sr-only">{t('careeros.context.locked', '(fixed by this application)')}</span>}
+                                    </span>
                                 </span>
                             )}
                         </li>

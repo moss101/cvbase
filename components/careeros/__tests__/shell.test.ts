@@ -26,7 +26,7 @@ describe('shell descriptors', () => {
 
     it('maps routes to the navigation entry that owns them', () => {
         expect(activeSpaceKey(careerPath.toApplication('a1', 'cv'))).toBe('applications');
-        expect(activeSpaceKey(careerPath.toCareer('profile'))).toBe('profile');
+        expect(activeSpaceKey(careerPath.toCareer('profile'))).toBe('career');
         expect(activeSpaceKey(careerPath.toCareer('goals'))).toBe('career');
         expect(activeSpaceKey(careerPath.toLibraryTool('tailor'))).toBe('tailor');
         expect(activeSpaceKey(careerPath.toStudio('cover'))).toBe('studio');

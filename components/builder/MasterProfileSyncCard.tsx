@@ -19,9 +19,30 @@ interface MasterProfileSyncCardProps {
     onHydrate: () => void;
     onResync: () => void;
     onApply: (updater: (prev: ResumeData) => ResumeData) => void;
+    /** The draft as it is now; when the profile would add nothing to it, no offer is shown. */
+    current?: ResumeData;
 }
 
-const MasterProfileSyncCard: React.FC<MasterProfileSyncCardProps> = ({ userProfile, isHydrated, onHydrate, onResync, onApply }) => {
+const differs = (from: string | undefined | null, to: string | undefined | null): boolean => Boolean(from && from.trim() && from.trim() !== (to ?? '').trim());
+
+export type ProfileSection = 'contact' | 'summary' | 'skills' | 'certifications';
+
+/** The draft sections applying the profile would change (empty: nothing to offer). */
+export function profileAdditions(profile: UserProfile, draft: ResumeData): ProfileSection[] {
+    const c = draft.contact;
+    const out: ProfileSection[] = [];
+    if (differs(profile.firstName, c.firstName) || differs(profile.lastName, c.lastName) || differs(profile.phone, c.phone)
+        || differs(profile.email, c.email) || differs(profile.jobTitle, c.jobTitle) || differs(profile.linkedin, c.linkedin)
+        || differs(profile.portfolio || profile.github, c.website)) out.push('contact');
+    if (differs(profile.bio, draft.summary.professionalSummary)) out.push('summary');
+    const skills = new Set(draft.skills.map((sk) => String(sk).toLowerCase()));
+    if ((profile.careSpecialties ?? []).some((sk) => !skills.has(sk.toLowerCase()))) out.push('skills');
+    const certs = new Set(draft.certifications.map((ce) => ce.name.toLowerCase()));
+    if ((profile.certifications ?? []).some((name) => !certs.has(name.toLowerCase()))) out.push('certifications');
+    return out;
+}
+
+const MasterProfileSyncCard: React.FC<MasterProfileSyncCardProps> = ({ userProfile, isHydrated, onHydrate, onResync, onApply, current }) => {
     const { t } = useTranslation();
     const applyProfile = () => {
         onApply((prev) => {
@@ -66,17 +87,27 @@ const MasterProfileSyncCard: React.FC<MasterProfileSyncCardProps> = ({ userProfi
         onHydrate();
     };
 
-    // A calm hairline notice in the shell's palette: the profile is the one
-    // source behind every CV, so this reads as a helpful offer, not an alert.
+    // Nothing to offer: the draft already holds everything the profile has.
+    const additions = current ? profileAdditions(userProfile, current) : null;
+    if (!isHydrated && additions && additions.length === 0) return null;
+    const sectionName: Record<ProfileSection, string> = {
+        contact: t('nav.contact', 'Contact info'),
+        summary: t('nav.summary', 'Summary'),
+        skills: t('nav.skills', 'Skills'),
+        certifications: t('nav.certifications', 'Certifications'),
+    };
+
+    // A calm tinted row inside the editor panel (no border of its own): the
+    // profile is the one source behind every CV, so this reads as an offer.
     return (
         <div
-            className={`mt-6 flex flex-col items-start justify-between gap-4 rounded-2xl border px-5 py-4 sm:flex-row sm:items-center ${
-                isHydrated ? 'border-action-primary/25 bg-action-primary/5' : 'border-border-default bg-surface-canvas'
+            className={`mt-6 flex flex-col items-start justify-between gap-4 rounded-xl px-5 py-4 sm:flex-row sm:items-center ${
+                isHydrated ? 'bg-action-primary/5' : 'bg-surface-canvas'
             }`}
             id="profile-integration-block"
         >
             <div className="flex min-w-0 items-start gap-3.5">
-                <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-[10px] ${isHydrated ? 'bg-action-primary/10 text-action-primary' : 'border border-border-default bg-surface-panel text-action-primary'}`}>
+                <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-[10px] ${isHydrated ? 'bg-action-primary/10 text-action-primary' : 'bg-surface-panel text-action-primary'}`}>
                     {isHydrated
                         ? <CheckCheck className="h-[18px] w-[18px]" aria-hidden="true" />
                         : <Wand2 className="h-[18px] w-[18px]" aria-hidden="true" />}
@@ -93,10 +124,14 @@ const MasterProfileSyncCard: React.FC<MasterProfileSyncCardProps> = ({ userProfi
                     <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-content-secondary">
                         {isHydrated
                             ? t('masterSync.syncedDesc', 'Your contact fields, executive bio, core skills, links, and certified badges are safely synchronized.')
-                            : t('masterSync.detectedDesc', 'We detected a master profile checklist for "{name}" containing {skills} skills and {certs} credentials. Would you like to instantly auto-fill your active resume draft?')
-                                .replace('{name}', userProfile.firstName || t('mobile.user', 'User'))
-                                .replace('{skills}', String(userProfile.careSpecialties?.length || 0))
-                                .replace('{certs}', String(userProfile.certifications?.length || 0))
+                            : additions
+                                // Name exactly what would change, not a count that may be zero.
+                                ? t('masterSync.fillsSections', 'Your profile has details this CV does not use yet: {sections}. Filling copies them in; you can edit anything afterwards.')
+                                    .replace('{sections}', additions.map((a) => sectionName[a].toLowerCase()).join(', '))
+                                : t('masterSync.detectedDesc', 'We detected a master profile checklist for "{name}" containing {skills} skills and {certs} credentials. Would you like to instantly auto-fill your active resume draft?')
+                                    .replace('{name}', userProfile.firstName || t('mobile.user', 'User'))
+                                    .replace('{skills}', String(userProfile.careSpecialties?.length || 0))
+                                    .replace('{certs}', String(userProfile.certifications?.length || 0))
                         }
                     </p>
                 </div>

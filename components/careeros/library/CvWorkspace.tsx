@@ -55,7 +55,7 @@ export const CvWorkspace: React.FC = () => {
     ];
 
     return (
-        <div className="mx-auto w-full max-w-[1100px]">
+        <div className="mx-auto w-full max-w-[1240px]">
             <SpaceHeader
                 title={t('careeros.space.cvBuilder', 'CV Builder')}
                 description={t('careeros.cvw.description', 'Every CV you have made, the editor, templates and CV tools in one workspace. All of them draw on one career profile.')}

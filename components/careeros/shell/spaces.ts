@@ -80,7 +80,9 @@ export function activeSpaceKey(route: CareerRoute): string {
             // Applications is its own workspace entry; the sidebar and the breadcrumb agree.
             return 'applications';
         case 'career':
-            return route.sub === 'profile' ? 'profile' : 'career';
+            // Profile is a Career tab: the sidebar and breadcrumb stay on Career
+            // (the account menu still links straight to it).
+            return 'career';
         case 'library':
             if (route.sub === 'cvs') return 'cvs';
             if (route.sub === 'templates') return 'templates';

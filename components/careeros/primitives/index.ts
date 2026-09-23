@@ -11,6 +11,7 @@ export { Skeleton, SkeletonCard, type SkeletonProps, type SkeletonCardProps, typ
 export { StatePanel, type StatePanelProps, type StatePanelKind, type StatePanelAction } from './StatePanel';
 export { Notice, type NoticeProps, type NoticeTone } from './Notice';
 export { RowMenu, type RowMenuItem } from './RowMenu';
+export { FILTER_GROUP, filterTabClass } from './filterTab';
 export { EvidenceBadge, useEvidenceLabel, type EvidenceBadgeProps } from './EvidenceBadge';
 export { ActionCard, useActionStatus, type ActionCardProps } from './ActionCard';
 export { FitBreakdown, type FitBreakdownProps } from './FitBreakdown';

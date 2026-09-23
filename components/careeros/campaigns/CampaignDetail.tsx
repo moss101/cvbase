@@ -14,7 +14,7 @@ import { ConfirmDialog } from '../../common/ConfirmDialog';
 import { Dialog } from '../../common/Dialog';
 import { useOwnedQuery } from '../data/useOwnedQuery';
 import { useCareerOs } from '../shell/CareerOsProvider';
-import { Button, Skeleton, SpaceHeader, StatePanel, StatusChip, type Tone } from '../primitives';
+import { Button, FILTER_GROUP, Skeleton, SpaceHeader, StatePanel, StatusChip, filterTabClass, type Tone } from '../primitives';
 import { FailureNotice } from '../application/FailureNotice';
 import { Panel, PaneHeading, Select, TextArea } from '../application/fields';
 import { formatDate } from '../application/format';
@@ -226,7 +226,7 @@ export const CampaignDetail: React.FC<{ id: string; route: CareerRoute }> = ({ i
 
     if (query.error) {
         return (
-            <div className="mx-auto w-full max-w-5xl">
+            <div className="mx-auto w-full max-w-[1240px]">
                 <SpaceHeader eyebrow={t('careeros.space.campaigns', 'Campaigns')} title={t('careeros.campaign.unavailableTitle', 'Campaign unavailable')} compact />
                 <FailureNotice error={query.error} onRetry={() => { void query.refresh(); }} onReload={() => { void query.refresh(); }} />
                 <Button variant="quiet" className="mt-4" onClick={onBack}>{t('careeros.common.back', 'Back')}</Button>
@@ -235,7 +235,7 @@ export const CampaignDetail: React.FC<{ id: string; route: CareerRoute }> = ({ i
     }
     if (!campaign || !data) {
         return (
-            <div className="mx-auto w-full max-w-5xl" aria-busy="true">
+            <div className="mx-auto w-full max-w-[1240px]" aria-busy="true">
                 <Skeleton variant="text" width="6rem" className="h-2.5" />
                 <Skeleton variant="title" width="50%" className="mt-3" />
                 <Skeleton variant="block" className="mt-6" />
@@ -263,7 +263,7 @@ export const CampaignDetail: React.FC<{ id: string; route: CareerRoute }> = ({ i
     ];
 
     return (
-        <div className="mx-auto w-full max-w-6xl">
+        <div className="mx-auto w-full max-w-[1240px]">
             <SpaceHeader
                 eyebrow={t('careeros.space.campaigns', 'Campaigns')}
                 title={campaign.name}
@@ -296,9 +296,9 @@ export const CampaignDetail: React.FC<{ id: string; route: CareerRoute }> = ({ i
                             description={t('careeros.campaign.boardHint', 'Move cards with the Earlier / Later buttons. A move you make is labelled as yours and can be undone.')}
                             action={
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <div role="group" aria-label={t('careeros.campaign.viewLabel', 'View')} className="flex rounded-lg border border-border-default p-0.5">
+                                    <div role="group" aria-label={t('careeros.campaign.viewLabel', 'View')} className={FILTER_GROUP}>
                                         {(['board', 'list'] as const).map((v) => (
-                                            <button key={v} type="button" aria-pressed={view === v} onClick={() => { storeView(v); replace({ ...route, query: { view: v } }); }} className={`tap-target rounded-md px-3 text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${view === v ? 'bg-action-primary/10 text-content-primary' : 'text-content-secondary'}`}>
+                                            <button key={v} type="button" aria-pressed={view === v} onClick={() => { storeView(v); replace({ ...route, query: { view: v } }); }} className={filterTabClass(view === v)}>
                                                 {v === 'board' ? t('careeros.campaign.view.board', 'Board') : t('careeros.campaign.view.list', 'List')}
                                             </button>
                                         ))}

@@ -145,10 +145,16 @@ describe('coachFormat', () => {
 
 describe('CoachThread', () => {
     it('renders the thread with citation chips and marks abstained replies honestly', async () => {
-        messages.push(message({ id: 'm3', abstained: true, content: "I can't reach the model right now; your context is saved." }));
+        messages.push(message({ id: 'm3', abstained: true, content: 'Nothing in your records covers that yet.' }));
+        messages.push(message({ id: 'm4', abstained: true, content: "I can't reach the model right now; your context is saved." }));
         await mount(<CoachThread conversationId={CONV_ID} onGone={vi.fn()} />);
         expect(document.body.textContent).toContain('Review your goal first.');
+        // A reply without evidence says so…
         expect(document.body.textContent).toContain("The coach didn't have enough evidence to answer this");
+        // …while an outage names the outage (not missing evidence) and offers to ask again.
+        expect(document.body.textContent).toContain("The Coach couldn't reach the AI model");
+        await click(buttonByText('Retry'));
+        expect(vi.mocked(sendCoachMessage)).toHaveBeenCalledWith(expect.objectContaining({ message: 'What should I do next?' }));
         const chip = buttonByText('Senior nurse role');
         await click(chip);
         expect(navigate).toHaveBeenCalledWith(expect.objectContaining({ space: 'career', sub: 'goals', id: 'g1' }));
@@ -200,7 +206,7 @@ describe('CoachThread', () => {
         await flush();
         expect(document.body.textContent).toContain('AI assistance is unavailable');
         expect(document.body.textContent).toContain('nothing was charged');
-        expect(document.body.textContent).toContain("The coach didn't have enough evidence to answer this");
+        expect(document.body.textContent).toContain("The Coach couldn't reach the AI model");
     });
 
     it('a plan limit shows the denied state with the upgrade link', async () => {

@@ -61,7 +61,7 @@ const CareerSpace: React.FC<SpaceProps> = ({ route }) => {
     }
 
     return (
-        <div className="mx-auto w-full max-w-5xl">
+        <div className="mx-auto w-full max-w-[1240px]">
             <SpaceHeader
                 eyebrow={t('careeros.shell.eyebrow', 'Career OS')}
                 title={t('careeros.space.career', 'Career')}

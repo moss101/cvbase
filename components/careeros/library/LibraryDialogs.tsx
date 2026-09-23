@@ -9,6 +9,7 @@ import type { StoredVersion } from '../../../services/repos/mappers';
 import Dialog from '../../common/Dialog';
 import { Button, Skeleton, StatePanel, StatusChip } from '../primitives';
 import { dateLabel } from './libraryFormat';
+import { formatDate } from '../application/format';
 
 /**
  * The three Library detail dialogs. Each reads its owner-scoped row only
@@ -152,7 +153,7 @@ export const VersionsDialog: React.FC<{ userId: string; resumeId: string; title:
                         <li key={v.id ?? v.createdAt} className="flex items-center justify-between gap-3 py-2">
                             <span className="min-w-0">
                                 <span className="block truncate text-sm font-semibold text-content-primary">{v.label}</span>
-                                <span className="block text-xs text-content-muted">{v.createdAt ? new Date(v.createdAt).toLocaleString() : ''}</span>
+                                <span className="block text-xs text-content-muted">{v.createdAt ? formatDate(v.createdAt, undefined, true) : ''}</span>
                             </span>
                         </li>
                     ))}

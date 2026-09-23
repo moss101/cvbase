@@ -5,6 +5,13 @@
  */
 import type { ApplicationArtifact, ApplicationRecord, InterviewSession, Opportunity, Readiness, ReadinessItem } from './types';
 
+/** The same short date style as the rest of Career OS ("Sep 21, 2026"). */
+const recordedOn = (iso: string): string => {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso.slice(0, 10);
+  return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' }).format(date);
+};
+
 export interface ReadinessInput {
   application: ApplicationRecord;
   artifacts: ApplicationArtifact[];
@@ -58,7 +65,7 @@ export function computeReadiness(input: ReadinessInput): Readiness {
 
   // Necessary: a user-confirmed submission record.
   items.push(app.submittedAt && app.submissionSnapshot
-    ? { id: 'submission', label: 'Submission recorded', kind: 'necessary', state: 'complete', destination: 'activity', detail: `Recorded ${app.submittedAt.slice(0, 10)}.` }
+    ? { id: 'submission', label: 'Submission recorded', kind: 'necessary', state: 'complete', destination: 'activity', detail: `Recorded ${recordedOn(app.submittedAt)}.` }
     : { id: 'submission', label: 'Submission recorded', kind: 'necessary', state: 'incomplete', destination: 'activity', detail: 'Record the submission yourself once you have sent it; opening the employer site does not count.' });
 
   // Optional items.

@@ -6,7 +6,7 @@ import { ConflictError, NotFoundError, type CareerGoal } from '../../../services
 import { captureException } from '../../../lib/monitoring';
 import { careerPath, useNavigation } from '../../NavigationProvider';
 import { ConfirmDialog } from '../../common/ConfirmDialog';
-import { Button, CareerGoalCard, Pill, SkeletonCard, StatePanel } from '../primitives';
+import { Button, CareerGoalCard, Pill, SkeletonCard, StatePanel, FILTER_GROUP, filterTabClass } from '../primitives';
 import { useCareerOs } from '../shell/CareerOsProvider';
 import { useOwnedQuery } from '../data/useOwnedQuery';
 import { GoalForm, goalToValues, valuesToGoalInput, type GoalFormValues } from './GoalForm';
@@ -73,7 +73,7 @@ const GoalsList: React.FC = () => {
             <div aria-live="polite">{error && <StatePanel kind="error" compact title={error} description="" />}</div>
 
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <div role="tablist" aria-label={t('careeros.goal.listFilter', 'Goals filter')} className="flex gap-1 rounded-lg border border-border-default bg-surface-canvas p-1">
+                <div role="tablist" aria-label={t('careeros.goal.listFilter', 'Goals filter')} className={FILTER_GROUP}>
                     {[{ key: false, label: t('careeros.goal.active', 'Active') }, { key: true, label: t('careeros.goal.archivedList', 'Archived') }].map((tab) => (
                         <button
                             key={String(tab.key)}
@@ -81,7 +81,7 @@ const GoalsList: React.FC = () => {
                             role="tab"
                             aria-selected={showArchived === tab.key}
                             onClick={() => setShowArchived(tab.key)}
-                            className={`tap-target rounded-md px-3 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${showArchived === tab.key ? 'bg-surface-panel text-content-primary' : 'text-content-secondary'}`}
+                            className={filterTabClass(showArchived === tab.key)}
                         >
                             {tab.label}
                         </button>

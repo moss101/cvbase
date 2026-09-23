@@ -173,7 +173,7 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
             )}
 
             {/* Main Tracker Container */}
-            <div className="rounded-2xl border border-border-default bg-surface-panel p-5">
+            <div>
                 {/* Heading, count and percentage */}
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 text-left">
@@ -217,7 +217,7 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
                 {nextAction && (
                     <button
                         type="button"
-                        className="group mt-3.5 flex w-full cursor-pointer items-start gap-2.5 rounded-xl border border-border-default p-3 text-left transition-colors hover:bg-surface-canvas"
+                        className="group -mx-3 mt-2.5 flex w-[calc(100%+1.5rem)] cursor-pointer items-start gap-2.5 rounded-lg px-3 py-2 text-left transition-colors hover:bg-surface-canvas"
                         onClick={() => onSectionClick(nextAction.section)}
                     >
                         <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-action-primary" aria-hidden="true" />
@@ -236,7 +236,7 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
                                 type="button"
                                 key={item.id}
                                 onClick={() => onSectionClick(item.section)}
-                                className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl border border-border-default px-3 py-2 text-left transition-colors hover:bg-surface-canvas"
+                                className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-left transition-colors hover:bg-surface-canvas"
                             >
                                 {item.isFilled
                                     ? <CircleCheck className="h-4 w-4 shrink-0 text-action-primary" aria-hidden="true" />

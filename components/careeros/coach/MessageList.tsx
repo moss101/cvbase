@@ -1,12 +1,12 @@
 import React from 'react';
-import { CircleHelp, Link2, User, Sparkles, Terminal, Info } from 'lucide-react';
+import { CircleHelp, Link2, RotateCcw, User, Sparkles, Terminal, Info } from 'lucide-react';
 import { useTranslation } from '../../../services/translationService';
 import { useNavigation } from '../../NavigationProvider';
 import type { ToolName } from '../../../services/careerOs/gateway';
 import type { ActionRun, CoachCitation, CoachConversation, CoachMessage } from '../../../services/careerOs/types';
 import { Button, Skeleton } from '../primitives';
 import AgentSuggestion from './AgentSuggestion';
-import { citationRoute, timeLabel } from './coachFormat';
+import { citationRoute, isModelUnavailable, timeLabel } from './coachFormat';
 
 /**
  * The thread: user, assistant, tool and system messages with their time,
@@ -29,6 +29,8 @@ export interface MessageListProps {
     onExecuted: (run: ActionRun, tool: ToolName, messageId: string) => void;
     /** Reason stored beside the last abstained reply, when the server returned one. */
     abstainReasons?: Record<string, string | null>;
+    /** Re-send the question behind a reply the model could not produce. */
+    onRetry?: (assistantMessageId: string) => void;
 }
 
 const ROLE_ICON: Record<CoachMessage['role'], React.ReactNode> = {
@@ -113,7 +115,7 @@ const Bubble: React.FC<{ role: CoachMessage['role']; roleLabel: string; time: st
 
 export const MessageList: React.FC<MessageListProps> = ({
     conversation, messages, pending, thinking = false, hasEarlier = false, loadingEarlier = false, onLoadEarlier,
-    selectMode = false, selected, onToggleSelect, onExecuted, abstainReasons = {},
+    selectMode = false, selected, onToggleSelect, onExecuted, abstainReasons = {}, onRetry,
 }) => {
     const { t } = useTranslation();
     const roleLabel: Record<CoachMessage['role'], string> = {
@@ -144,7 +146,20 @@ export const MessageList: React.FC<MessageListProps> = ({
                     ) : undefined;
                     return (
                         <Bubble key={m.id} role={m.role} roleLabel={roleLabel[m.role]} time={timeLabel(m.createdAt)} checkbox={checkbox} abstained={m.abstained}>
-                            {m.abstained && (
+                            {isModelUnavailable(m) ? (
+                                <div role="status" className="whitespace-normal">
+                                    <p className="flex items-start gap-1.5 text-[13.5px] font-semibold text-content-primary">
+                                        <CircleHelp size={15} strokeWidth={2} className="mt-0.5 shrink-0 text-status-warning" aria-hidden="true" />
+                                        {t('careeros.coach.unavailableTitle', "The Coach couldn't reach the AI model")}
+                                    </p>
+                                    <p className="mt-0.5 pl-[21px] text-[13px] text-content-secondary">{t('careeros.coach.unavailableBody', 'Your question and context are saved. Try again in a moment.')}</p>
+                                    {onRetry && (
+                                        <div className="mt-2 pl-[15px]">
+                                            <Button variant="secondary" size="sm" icon={<RotateCcw size={14} strokeWidth={2} />} onClick={() => onRetry(m.id)}>{t('careeros.state.retry', 'Retry')}</Button>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : m.abstained && (
                                 <p className="mb-1.5 flex items-start gap-1.5 text-[13px] font-medium text-content-secondary" role="status">
                                     <CircleHelp size={15} strokeWidth={2} className="mt-0.5 shrink-0 text-status-warning" aria-hidden="true" />
                                     <span>
@@ -153,7 +168,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                                     </span>
                                 </p>
                             )}
-                            {m.content}
+                            {!isModelUnavailable(m) && m.content}
                             <CitationChips citations={m.citations} applicationId={applicationId} />
                             {m.proposals.length > 0 && (
                                 <div className="mt-3 space-y-3 whitespace-normal">

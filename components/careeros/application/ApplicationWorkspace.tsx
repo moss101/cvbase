@@ -98,7 +98,7 @@ export const ApplicationWorkspace: React.FC<{ id: string; route: CareerRoute }> 
 
     if (workspace.error) {
         return (
-            <div className="mx-auto w-full max-w-6xl">
+            <div className="mx-auto w-full max-w-[1240px]">
                 <SpaceHeader eyebrow={t('careeros.space.applications', 'Applications')} title={t('careeros.application.unavailableTitle', 'Application unavailable')} compact />
                 <FailureNotice error={workspace.error} onRetry={() => { void workspace.refresh(); }} onReload={() => { void workspace.refresh(); }} />
                 <Button variant="quiet" className="mt-4" onClick={onBack}>{t('careeros.common.back', 'Back')}</Button>
@@ -107,7 +107,7 @@ export const ApplicationWorkspace: React.FC<{ id: string; route: CareerRoute }> 
     }
     if (!data || !app) {
         return (
-            <div className="mx-auto w-full max-w-6xl" aria-busy="true">
+            <div className="mx-auto w-full max-w-[1240px]" aria-busy="true">
                 <Skeleton variant="text" width="6rem" className="h-2.5" />
                 <Skeleton variant="title" width="50%" className="mt-3" />
                 <Skeleton variant="text" lines={2} className="mt-4" />
@@ -158,7 +158,7 @@ export const ApplicationWorkspace: React.FC<{ id: string; route: CareerRoute }> 
     );
 
     return (
-        <div className="mx-auto w-full max-w-6xl">
+        <div className="mx-auto w-full max-w-[1240px]">
             <SpaceHeader
                 eyebrow={t('careeros.space.applications', 'Applications')}
                 title={app.jobTitle || t('careeros.application.untitled', 'Untitled application')}

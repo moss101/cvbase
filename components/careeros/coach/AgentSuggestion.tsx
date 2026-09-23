@@ -10,6 +10,7 @@ import type { ActionRun, CoachProposal } from '../../../services/careerOs/types'
 import Dialog from '../../common/Dialog';
 import { Button, Notice, Pill, StatusChip } from '../primitives';
 import { isDone, isExplainOnly, isToolName, resultRoute, toolLabel } from './coachFormat';
+import { formatDate } from '../application/format';
 import ToolResultView from './ToolResultView';
 
 /**
@@ -292,7 +293,7 @@ export const AgentSuggestion: React.FC<AgentSuggestionProps> = ({ proposal, mess
                         {phase.confirmation.expiresAt && (
                             <>
                                 <dt className="text-[12.5px] font-medium text-content-muted">{t('careeros.coach.confirm.expires', 'Valid until')}</dt>
-                                <dd className="text-content-secondary">{new Date(phase.confirmation.expiresAt).toLocaleString()}</dd>
+                                <dd className="text-content-secondary">{formatDate(phase.confirmation.expiresAt, undefined, true)}</dd>
                             </>
                         )}
                     </dl>

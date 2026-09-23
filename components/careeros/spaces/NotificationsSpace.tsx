@@ -19,8 +19,8 @@ const NotificationsSpace: React.FC<SpaceProps> = () => {
     const { userId } = useCareerOs();
     if (!userId) return null;
     return (
-        <div className="mx-auto w-full max-w-3xl">
-            <SpaceHeader eyebrow={t('careeros.shell.eyebrow', 'Career OS')} title={t('careeros.space.notifications', 'Inbox')} />
+        <div className="mx-auto w-full max-w-[1240px] [&>*]:max-w-3xl">
+            <SpaceHeader eyebrow={t('careeros.shell.eyebrow', 'Career OS')} title={t('careeros.space.notifications', 'Inbox')} description={t('careeros.inbox.description', 'Only what needs you, only in the app. Nothing is emailed or pushed.')} />
             <InboxList />
         </div>
     );

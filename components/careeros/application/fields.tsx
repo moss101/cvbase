@@ -104,7 +104,7 @@ export const PaneHeading: React.FC<{ title: string; description?: string; action
     return (
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
             {/* The text keeps a readable minimum width; a wide action wraps beneath it instead of squeezing the words. */}
-            <div className="min-w-0 flex-1 basis-[14rem]">
+            <div className="min-w-0 flex-1 sm:basis-[14rem]">
                 <Tag id={id} className={`font-semibold tracking-tight text-content-primary ${level === 2 ? 'text-lg' : 'text-sm'}`}>{title}</Tag>
                 {description && <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-content-secondary">{description}</p>}
             </div>
