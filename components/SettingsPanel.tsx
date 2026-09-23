@@ -195,8 +195,9 @@ const Toggle: React.FC<{
                 checked ? 'border-ember bg-ember' : 'border-ink/20 bg-ink/[0.08]'
             }`}
         >
+            {/* `left-0`: without it the knob takes the button's centred static position and looks "on" when off. */}
             <span
-                className={`absolute top-0.5 h-[22px] w-[22px] rounded-full bg-true-white shadow-sm transition-transform ${
+                className={`absolute left-0 top-0.5 h-[22px] w-[22px] rounded-full bg-true-white shadow-sm transition-transform ${
                     checked ? 'translate-x-[22px]' : 'translate-x-0.5'
                 }`}
             />
