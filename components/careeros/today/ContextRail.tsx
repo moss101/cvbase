@@ -5,7 +5,7 @@ import { ACTIVITY_FEED_EVENTS } from '../../../services/careerOs/careerEvents';
 import { careerPath, useNavigation, type CareerContextHints } from '../../NavigationProvider';
 import { handOffToCoach } from '../coach/coachHandoff';
 import { Skeleton } from '../primitives';
-import { currentCv, nextDeadline, priorityOpportunity, progressCounts, upcomingInterviews } from './commandCenter';
+import { currentCv, nextDeadline, priorityOpportunity, upcomingInterviews } from './commandCenter';
 import { eventTitle } from './RecentActivity';
 import { InsightsPanel } from './InsightsPanel';
 import type { TodayData } from './useTodayData';
@@ -44,10 +44,11 @@ export const ContextRail: React.FC<ContextRailProps> = ({ userId, data, loading,
         return <aside className="space-y-5" aria-busy="true" aria-label={t('careeros.rail.label', 'Context')}><Skeleton variant="text" lines={6} /></aside>;
     }
 
-    const counts = progressCounts(data, now);
     const cv = currentCv(data.resumes);
     const campaign = data.campaigns.find((c) => c.campaign.status === 'active');
     const deadline = nextDeadline(data, now);
+    const goal = data.goal;
+    const goalTarget = goal ? [goal.level, goal.location, goal.targetDate ? t('careeros.rail.by', 'by {date}').replace('{date}', when(goal.targetDate, language, null, false)) : null].filter(Boolean).join(' · ') : '';
     const interview = upcomingInterviews(data, now)[0];
     const opportunity = priorityOpportunity(data);
     const activity = data.events.filter((e) => ACTIVITY_FEED_EVENTS.includes(e.eventName)).slice(0, 3);
@@ -66,7 +67,7 @@ export const ContextRail: React.FC<ContextRailProps> = ({ userId, data, loading,
                 {data.goal ? (
                     <button type="button" onClick={() => navigate(careerPath.toGoal(data.goal!.id))} className="block w-full text-left">
                         <span className="block truncate text-[14px] font-medium text-content-primary hover:underline">{data.goal.title || data.goal.role}</span>
-                        <span className="block text-[12.5px] text-content-secondary">{t('careeros.progress.facts', '{confirmed} of {total} facts confirmed').replace('{confirmed}', String(counts.factsConfirmed)).replace('{total}', String(counts.factsTotal))}</span>
+                        {goalTarget && <span className="block truncate text-[12.5px] text-content-secondary">{goalTarget}</span>}
                     </button>
                 ) : (
                     <button type="button" onClick={() => navigate(careerPath.toCareer('goals'))} className="text-[13.5px] font-medium text-action-primary hover:underline">{t('careeros.rail.setGoal', 'Set a career goal')}</button>

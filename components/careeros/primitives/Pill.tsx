@@ -24,14 +24,14 @@ export interface PillProps {
     children: React.ReactNode;
     tone?: Tone;
     icon?: React.ReactNode;
-    /** Monospace label treatment for source/type tags. */
+    /** Source/type tags: a quieter weight so they read as metadata, not status. */
     mono?: boolean;
     className?: string;
     title?: string;
 }
 
 export const Pill: React.FC<PillProps> = ({ children, tone = 'neutral', icon, mono = false, className = '', title }) => (
-    <span className={`${BASE} ${TONE[tone]} ${mono ? 'font-label uppercase tracking-[0.08em]' : ''} ${className}`} title={title}>
+    <span className={`${BASE} ${TONE[tone]} ${mono ? 'font-medium' : ''} ${className}`} title={title}>
         {icon && <span className="inline-flex shrink-0 [&>svg]:h-3 [&>svg]:w-3" aria-hidden="true">{icon}</span>}
         <span className="truncate">{children}</span>
     </span>

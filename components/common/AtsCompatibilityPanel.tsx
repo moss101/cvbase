@@ -173,27 +173,19 @@ export const AtsCompatibilityPanel: React.FC<AtsCompatibilityPanelProps> = ({
         }
     };
 
-    // Color definitions
-    let borderClass = 'border-slate-200/80 bg-white/80';
+    // The gauge carries the status colour; the frame stays neutral.
     let ringColor = 'stroke-primary';
     let textScoreColor = 'text-primary';
-    let statusBadge = 'from-violet-500 to-indigo-600';
 
     if (score >= 80) {
-        borderClass = 'border-emerald-200/80 bg-white/95';
         ringColor = 'stroke-emerald-500';
         textScoreColor = 'text-emerald-500';
-        statusBadge = 'from-emerald-500 to-green-600';
     } else if (score >= 50) {
-        borderClass = 'border-amber-200/85 bg-white/95';
         ringColor = 'stroke-amber-500';
         textScoreColor = 'text-amber-500';
-        statusBadge = 'from-amber-400 to-orange-500';
     } else {
-        borderClass = 'border-rose-200/80 bg-white/95';
         ringColor = 'stroke-red-500';
         textScoreColor = 'text-red-500';
-        statusBadge = 'from-red-500 to-rose-600';
     }
 
     // Gauge circle calculation
@@ -202,14 +194,14 @@ export const AtsCompatibilityPanel: React.FC<AtsCompatibilityPanelProps> = ({
     const strokeDashoffset = circumference - (score / 100) * circumference;
 
     return (
-        <div className={`w-full relative select-none rounded-2xl border p-4 shadow-sm hover:shadow-md transition-all ${borderClass}`}>
+        <div className={`w-full relative select-none rounded-2xl border border-border-default bg-surface-panel p-5`}>
             <div className="flex flex-wrap items-center justify-between gap-4 shrink-0">
                 {/* Visual Left Gauge and Summary */}
                 <div className="flex items-center gap-4 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
                     <div className="relative w-16 h-16 shrink-0">
                         <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
                             <circle
-                                className="text-gray-100"
+                                className="text-border-default"
                                 strokeWidth="5.5"
                                 stroke="currentColor"
                                 fill="transparent"
@@ -230,28 +222,28 @@ export const AtsCompatibilityPanel: React.FC<AtsCompatibilityPanelProps> = ({
                                 cy="40"
                             />
                         </svg>
-                        <div className={`absolute inset-0 flex flex-col items-center justify-center font-black text-sm tracking-tighter ${textScoreColor}`}>
+                        <div className={`absolute inset-0 flex flex-col items-center justify-center text-[14px] font-semibold tabular-nums ${textScoreColor}`}>
                             <span>{score}%</span>
                         </div>
                     </div>
 
                     <div className="text-left">
                         <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-400">{t('atsPanel.complianceMeter', 'Compliance Meter')}</span>
+                            <span className="text-[12px] font-medium text-content-muted">{t('atsPanel.complianceMeter', 'Compliance Meter')}</span>
                             {aiAnalysis ? (
-                                <span className="bg-emerald-50 text-emerald-700 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-emerald-100">
+                                <span className="rounded-full bg-action-primary/10 px-2 py-0.5 text-[11px] font-medium text-action-primary">
                                     {t('atsPanel.aiVerified', 'AI Verified')}
                                 </span>
                             ) : (
-                                <span className="bg-slate-100 text-slate-500 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-slate-200">
+                                <span className="rounded-full border border-border-default px-2 py-0.5 text-[11px] font-medium text-content-secondary">
                                     {t('atsPanel.liveRules', 'Live Rules')}
                                 </span>
                             )}
                         </div>
-                        <h3 className="text-base font-black text-slate-800 tracking-tight flex items-center gap-1">
+                        <h3 className="mt-0.5 flex items-center gap-1 text-[15px] font-semibold text-content-primary">
                             {t('atsPanel.parserMatchScore', 'ATS Parser Match Score')}
                         </h3>
-                        <p className="text-xs text-slate-500 font-medium leading-normal max-w-sm">
+                        <p className="mt-0.5 max-w-sm text-[13px] leading-normal text-content-secondary">
                             {score >= 80 
                                 ? t('atsPanel.scoreOutstanding', 'Outstanding! This layout is optimized and ready for enterprise scanners.') 
                                 : score >= 50 
@@ -268,7 +260,7 @@ export const AtsCompatibilityPanel: React.FC<AtsCompatibilityPanelProps> = ({
                         type="button"
                         onClick={handleRunAiAudit}
                         disabled={isLoading}
-                        className="px-3.5 py-2.5 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-primary hover:to-secondary text-white font-extrabold text-xs tracking-wide uppercase rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                        className="flex items-center gap-2 rounded-[10px] border border-border-strong bg-surface-panel px-3.5 py-2 text-[13px] font-semibold text-content-primary transition-colors duration-150 hover:border-action-primary/50 hover:text-action-primary disabled:opacity-50"
                     >
                         {isLoading ? (
                             <RefreshCw className="w-[1em] h-[1em] text-sm select-none animate-spin block" aria-hidden="true" />
@@ -281,7 +273,8 @@ export const AtsCompatibilityPanel: React.FC<AtsCompatibilityPanelProps> = ({
                     <button
                         type="button"
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="p-1 px-2.5 border border-slate-200 bg-white/80 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 active:scale-95"
+                        aria-expanded={isExpanded}
+                        className="flex items-center gap-1 rounded-lg border border-border-default px-2.5 py-1 text-[12.5px] font-semibold text-content-secondary transition-colors hover:bg-surface-canvas hover:text-content-primary"
                     >
                         <span>{isExpanded ? t('atsPanel.collapse', 'Collapse') : t('atsPanel.checks', 'Checks')}</span>
                         <ChevronDown className={`w-[1em] h-[1em] text-sm transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
@@ -303,13 +296,13 @@ export const AtsCompatibilityPanel: React.FC<AtsCompatibilityPanelProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                         {/* Section Header Checks */}
                         <div className="space-y-3.5">
-                            <h4 className="text-xs font-black text-slate-400 tracking-wider uppercase">{t('atsPanel.auditCategories', 'Audit Categories')}</h4>
+                            <h4 className="text-[12px] font-medium text-content-muted">{t('atsPanel.auditCategories', 'Audit Categories')}</h4>
                             
                             {/* Contact Info */}
                             <div className={`p-3 rounded-2xl border transition-all ${activeAnalysis.checks.contactInfo.pass ? 'bg-emerald-50/10 border-emerald-100' : 'bg-rose-50/10 border-rose-100'}`}>
                                 <div className="flex items-center justify-between mb-1.5">
-                                    <span className="text-xs font-extrabold text-slate-800">{t('atsPanel.contactInfoDetails', 'Contact Information Details')}</span>
-                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase ${activeAnalysis.checks.contactInfo.pass ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                                    <span className="text-[13px] font-semibold text-content-primary">{t('atsPanel.contactInfoDetails', 'Contact Information Details')}</span>
+                                    <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${activeAnalysis.checks.contactInfo.pass ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
                                         {activeAnalysis.checks.contactInfo.pass ? t('atsPanel.pass', 'Pass') : t('atsPanel.improve', 'Improve')}
                                     </span>
                                 </div>
@@ -321,8 +314,8 @@ export const AtsCompatibilityPanel: React.FC<AtsCompatibilityPanelProps> = ({
                             {/* Keywords */}
                             <div className={`p-3 rounded-2xl border transition-all ${activeAnalysis.checks.keywords.pass ? 'bg-emerald-50/10 border-emerald-100' : 'bg-rose-50/10 border-rose-100'}`}>
                                 <div className="flex items-center justify-between mb-1.5">
-                                    <span className="text-xs font-extrabold text-slate-800">{t('atsPanel.keywordDensity', 'Keyword Density & Synonyms')}</span>
-                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase ${activeAnalysis.checks.keywords.pass ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                                    <span className="text-[13px] font-semibold text-content-primary">{t('atsPanel.keywordDensity', 'Keyword Density & Synonyms')}</span>
+                                    <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${activeAnalysis.checks.keywords.pass ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
                                         {activeAnalysis.checks.keywords.pass ? t('atsPanel.pass', 'Pass') : t('atsPanel.improve', 'Improve')}
                                     </span>
                                 </div>
@@ -334,8 +327,8 @@ export const AtsCompatibilityPanel: React.FC<AtsCompatibilityPanelProps> = ({
                             {/* Section Headers */}
                             <div className={`p-3 rounded-2xl border transition-all ${activeAnalysis.checks.sectionHeaders.pass ? 'bg-emerald-50/10 border-emerald-100' : 'bg-rose-50/10 border-rose-100'}`}>
                                 <div className="flex items-center justify-between mb-1.5">
-                                    <span className="text-xs font-extrabold text-slate-800">{t('atsPanel.standardHeadingTags', 'Standard Heading Tags')}</span>
-                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase ${activeAnalysis.checks.sectionHeaders.pass ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                                    <span className="text-[13px] font-semibold text-content-primary">{t('atsPanel.standardHeadingTags', 'Standard Heading Tags')}</span>
+                                    <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${activeAnalysis.checks.sectionHeaders.pass ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
                                         {activeAnalysis.checks.sectionHeaders.pass ? t('atsPanel.pass', 'Pass') : t('atsPanel.improve', 'Improve')}
                                     </span>
                                 </div>
@@ -347,13 +340,13 @@ export const AtsCompatibilityPanel: React.FC<AtsCompatibilityPanelProps> = ({
 
                         {/* Suggestions and Best Practices */}
                         <div className="space-y-3.5">
-                            <h4 className="text-xs font-black text-slate-400 tracking-wider uppercase">{t('atsPanel.formatSuggestions', 'Format & Parsing Suggestions')}</h4>
+                            <h4 className="text-[12px] font-medium text-content-muted">{t('atsPanel.formatSuggestions', 'Format & Parsing Suggestions')}</h4>
 
                             {/* Bullet points check details */}
                             <div className={`p-3 rounded-2xl border transition-all ${activeAnalysis.checks.bulletPoints.pass ? 'bg-emerald-50/10 border-emerald-100' : 'bg-rose-50/10 border-rose-100'}`}>
                                 <div className="flex items-center justify-between mb-1.5">
-                                    <span className="text-xs font-extrabold text-slate-800">{t('atsPanel.bulletStructure', 'Bullet Structure')}</span>
-                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase ${activeAnalysis.checks.bulletPoints.pass ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                                    <span className="text-[13px] font-semibold text-content-primary">{t('atsPanel.bulletStructure', 'Bullet Structure')}</span>
+                                    <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${activeAnalysis.checks.bulletPoints.pass ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
                                         {activeAnalysis.checks.bulletPoints.pass ? t('atsPanel.pass', 'Pass') : t('atsPanel.improve', 'Improve')}
                                     </span>
                                 </div>
@@ -365,8 +358,8 @@ export const AtsCompatibilityPanel: React.FC<AtsCompatibilityPanelProps> = ({
                             {/* File / Template Structure details */}
                             <div className={`p-3 rounded-2xl border transition-all ${activeAnalysis.checks.fileFormat.pass ? 'bg-emerald-50/10 border-emerald-100' : 'bg-rose-50/10 border-rose-100'}`}>
                                 <div className="flex items-center justify-between mb-1.5">
-                                    <span className="text-xs font-extrabold text-slate-800">{t('atsPanel.templateLayoutParsing', 'Template Layout Parsing')}</span>
-                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase ${activeAnalysis.checks.fileFormat.pass ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                                    <span className="text-[13px] font-semibold text-content-primary">{t('atsPanel.templateLayoutParsing', 'Template Layout Parsing')}</span>
+                                    <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${activeAnalysis.checks.fileFormat.pass ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
                                         {activeAnalysis.checks.fileFormat.pass ? t('atsPanel.pass', 'Pass') : t('atsPanel.improve', 'Improve')}
                                     </span>
                                 </div>

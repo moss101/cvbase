@@ -63,7 +63,7 @@ describe('computeCandidateActions — interviews', () => {
     expect(prep).toHaveLength(1);
     expect(prep[0]).toMatchObject({ subjectId: 'i1', priorityBand: 'now', expiresAt: '2026-09-24T09:00:00.000Z' });
     expect(prep[0].ranking).toEqual({ deadlineAt: '2026-09-24T09:00:00.000Z', unblocks: false, goalRelevant: true, effortMinutes: 45 });
-    expect(prep[0].reason).toContain('24 Sept 2026, 10:00 (Europe/London)');
+    expect(prep[0].reason).toContain('Thu, Sep 24, 10:00 AM (Europe/London)');
     expect(prep[0].reason).toContain('1 of 2 themes covered');
     expect(prep[0].materialInputs).toEqual({ 'interview:i1.scheduledAt': '2026-09-24T09:00:00.000Z' });
     const far = interview({ id: 'i2', applicationId: 'a1', scheduledAt: '2026-10-15T09:00:00.000Z' });

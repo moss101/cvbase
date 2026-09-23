@@ -110,7 +110,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({ tool, result }) 
         <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
             {entries.map(([key, value]) => (
                 <React.Fragment key={key}>
-                    <dt className="font-label text-[10px] uppercase tracking-[0.12em] text-content-muted">{key}</dt>
+                    <dt className="text-[12px] font-medium text-content-muted">{key}</dt>
                     <dd className="min-w-0 break-words text-content-primary">
                         {value === null || value === undefined ? '—'
                             : typeof value === 'object'

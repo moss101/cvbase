@@ -62,9 +62,10 @@ export const ProgressStrip: React.FC<{ data: TodayData | null; loading: boolean;
         {
             key: 'interviews', Icon: CalendarClock, label: t('careeros.progress.interviews', 'Interviews'),
             value: String(c.interviewsUpcoming),
-            detail: next?.session.scheduledAt
-                ? `${dayLabel(next.session.scheduledAt, language, next.session.timeZone)}${next.application ? ` · ${next.application.company}` : ''}`
-                : c.interviewsUpcoming > 0 ? t('careeros.progress.intNoDate', 'No time recorded yet') : t('careeros.progress.intNone', 'None scheduled'),
+            // The date itself lives in the next step and the rail; here, who it is with.
+            detail: next
+                ? (next.application?.company ? t('careeros.progress.intNext', 'Next: {company}').replace('{company}', next.application.company) : next.session.scheduledAt ? dayLabel(next.session.scheduledAt, language, next.session.timeZone) : t('careeros.progress.intNoDate', 'No time recorded yet'))
+                : t('careeros.progress.intNone', 'None scheduled'),
             blocker: c.interviewsUnprepared > 0 ? t('careeros.progress.intBlocker', '{count} not prepared yet').replace('{count}', String(c.interviewsUnprepared)) : undefined,
             route: next?.application ? careerPath.toApplication(next.application.id, 'interview') : careerPath.toSpace('applications'),
         },
@@ -80,12 +81,17 @@ export const ProgressStrip: React.FC<{ data: TodayData | null; loading: boolean;
         <nav aria-label={t('careeros.progress.label', 'Career progress')} className="cos-panel overflow-hidden">
             <ol className="flex overflow-x-auto lg:grid lg:grid-cols-[1.35fr_repeat(4,minmax(0,1fr))] lg:overflow-visible">
                 {stages.map((s, i) => (
-                    <li key={s.key} className={`relative min-w-[168px] flex-1 lg:min-w-0 ${i > 0 ? 'border-l border-border-default' : ''}`}>
-                        <button type="button" onClick={() => navigate(s.route)} className="group flex h-full w-full flex-col gap-1 px-5 py-4 text-left transition-colors duration-150 hover:bg-surface-canvas">
+                    <li key={s.key} className={`relative min-w-[160px] flex-1 lg:min-w-0 ${i > 0 ? 'border-l border-border-default' : ''}`}>
+                        {i > 0 && (
+                            // The journey reads as a path: a small step marker sits on each divider.
+                            <span className="pointer-events-none absolute -left-[9px] top-[18px] z-10 grid h-[18px] w-[18px] place-items-center rounded-full border border-border-default bg-surface-panel text-content-muted" aria-hidden="true">
+                                <ChevronRight size={11} strokeWidth={2.2} />
+                            </span>
+                        )}
+                        <button type="button" onClick={() => navigate(s.route)} className="flex h-full w-full flex-col gap-1 px-4 py-4 text-left transition-colors duration-150 hover:bg-surface-canvas">
                             <span className="flex min-w-0 items-center gap-1.5 text-[12.5px] font-medium text-content-muted">
                                 <s.Icon size={14} strokeWidth={1.9} className="shrink-0" aria-hidden="true" />
                                 <span className="truncate">{s.label}</span>
-                                <ChevronRight size={13} className="ml-auto shrink-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100" aria-hidden="true" />
                             </span>
                             <span className={`font-semibold text-content-primary ${s.key === 'goal' ? 'line-clamp-2 text-[15.5px] leading-snug' : 'cos-num text-[22px] leading-tight'}`}>{s.value}</span>
                             <span className="line-clamp-2 text-[12.5px] leading-snug text-content-secondary">{s.detail}</span>

@@ -84,7 +84,7 @@ const SettingsSpace: React.FC<SpaceProps> = ({ route }) => {
         <div className="mx-auto w-full max-w-4xl">
             <SpaceHeader eyebrow={t('careeros.shell.eyebrow', 'Career OS')} title={t('mobile.settings', 'Settings')} description={t('careeros.settings.description', 'Proactive reminders and integrations for Career OS, then everything that changes how CVBase looks and behaves.')} />
             <section aria-label={t('careeros.settings.careerOs', 'Career OS')} className="mb-8 space-y-4">
-                <h2 className="font-label text-[10px] uppercase tracking-[0.14em] text-content-muted">{t('careeros.settings.careerOs', 'Career OS')}</h2>
+                <h2 className="text-[12px] font-medium text-content-muted">{t('careeros.settings.careerOs', 'Career OS')}</h2>
                 <ProactiveSettings />
                 <div className="rounded-2xl border border-border-default bg-surface-panel p-5">
                     <h3 className="text-base font-semibold text-content-primary">{t('careeros.integrations.pageTitle', 'Integrations')}</h3>

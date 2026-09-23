@@ -91,7 +91,7 @@ const CoachContextPanel: React.FC<CoachContextPanelProps> = ({ conversation, lab
         <section aria-label={t('careeros.coach.context.title', 'Coach context')} className="rounded-2xl border border-border-default bg-surface-panel p-3 sm:p-4">
             <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                    <h2 className="font-label text-[10px] uppercase tracking-[0.14em] text-content-muted">{t('careeros.coach.context.title', 'Coach context')}</h2>
+                    <h2 className="text-[12px] font-medium text-content-muted">{t('careeros.coach.context.title', 'Coach context')}</h2>
                     {expanded
                         ? <p className="mt-0.5 text-xs text-content-secondary">{t('careeros.coach.context.hint', 'Answers cite the records in this context. Change it any time.')}</p>
                         : <p className="mt-0.5 truncate text-[13px] text-content-primary">{summary}</p>}

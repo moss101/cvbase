@@ -112,7 +112,7 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
             )}
             {!compact && (
                 <div className="mt-2">
-                    <p className="font-label text-[10px] uppercase tracking-[0.12em] text-content-muted">{t('careeros.fit.qualification', 'Qualification fit')}</p>
+                    <p className="text-[12px] font-medium text-content-muted">{t('careeros.fit.qualification', 'Qualification fit')}</p>
                     {fit && fitTotal > 0 ? (
                         <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[13px] font-semibold" aria-label={t('careeros.fit.qualification', 'Qualification fit')}>
                             <li className="inline-flex items-center gap-1 text-status-success">

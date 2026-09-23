@@ -70,7 +70,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
             } ${className}`}
         >
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-                <p className="inline-flex items-center gap-1 font-label text-[10px] uppercase tracking-[0.14em] text-content-muted">
+                <p className="inline-flex items-center gap-1 text-[12px] font-medium text-content-muted">
                     {kindIcon && <span className="inline-flex [&>svg]:h-3 [&>svg]:w-3" aria-hidden="true">{kindIcon}</span>}
                     {kind}
                 </p>

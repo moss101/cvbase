@@ -6,7 +6,7 @@ import { ALL_SPACES, MOBILE_TABS, PRIMARY_SPACES, activeSpaceKey } from '../shel
 describe('shell descriptors', () => {
     it('exposes six primary spaces and five mobile entries (four tabs + More)', () => {
         expect(PRIMARY_SPACES.map((s) => s.key)).toEqual(['today', 'career', 'opportunities', 'campaigns', 'coach', 'library']);
-        // Phone tabs: Today, Opportunities, Campaigns, CVs (+ More); Coach is one tap away through Ask.
+        // Phone tabs: Today, Opportunities, Campaigns, CV Builder (+ More); Coach is one tap away through Ask.
         expect(MOBILE_TABS.map((s) => s.key)).toEqual(['today', 'opportunities', 'campaigns', 'cvs']);
     });
 
@@ -25,7 +25,7 @@ describe('shell descriptors', () => {
     });
 
     it('maps routes to the navigation entry that owns them', () => {
-        expect(activeSpaceKey(careerPath.toApplication('a1', 'cv'))).toBe('campaigns');
+        expect(activeSpaceKey(careerPath.toApplication('a1', 'cv'))).toBe('applications');
         expect(activeSpaceKey(careerPath.toCareer('profile'))).toBe('profile');
         expect(activeSpaceKey(careerPath.toCareer('goals'))).toBe('career');
         expect(activeSpaceKey(careerPath.toLibraryTool('tailor'))).toBe('tailor');

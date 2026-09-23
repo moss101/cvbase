@@ -1,5 +1,5 @@
 import React, { useId, useState } from 'react';
-import { ArrowRight, CheckCheck, ChevronDown, Clock, RotateCcw, X } from 'lucide-react';
+import { ArrowRight, CheckCheck, ChevronDown, Clock, Info, RotateCcw, X } from 'lucide-react';
 import { useTranslation } from '../../../services/translationService';
 import { useNavigation, careerPath } from '../../NavigationProvider';
 import { ConfirmDialog } from '../../common/ConfirmDialog';
@@ -28,11 +28,26 @@ const dayLabel = (iso: string, language: string): string => {
     try { return new Intl.DateTimeFormat(language, { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(iso)); } catch { return iso.slice(0, 10); }
 };
 
-/** Why this step leads the list, in the person's language, from the same ranking signals the rules used. */
+/** "today", "tomorrow", "in 3 days" or a date — how far away a recorded date is. */
+function relativeWhen(t: (k: string, f: string) => string, language: string, iso: string, now: Date = new Date()): string {
+    const day = (d: Date) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+    const days = Math.round((day(new Date(iso)) - day(now)) / 86_400_000);
+    if (days <= 0) return t('careeros.when.today', 'today');
+    if (days === 1) return t('careeros.when.tomorrow', 'tomorrow');
+    if (days <= 7) return t('careeros.when.inDays', 'in {n} days').replace('{n}', String(days));
+    return t('careeros.when.onDate', 'on {date}').replace('{date}', dayLabel(iso, language));
+}
+
+/** What is at stake for the person — from the same ranking signals the rules used, never the rule itself. */
 function whyItMatters(t: (k: string, f: string) => string, language: string, ranked: RankedAction): string | null {
     const r = ranked.candidate?.ranking;
     if (!r) return null;
-    if (r.deadlineAt) return t('careeros.today.next.whyDeadline', 'It has a recorded date, {date}, and dated work comes first.').replace('{date}', dayLabel(r.deadlineAt, language));
+    if (r.deadlineAt) {
+        const when = relativeWhen(t, language, r.deadlineAt);
+        if (ranked.action.actionType === 'PREPARE_INTERVIEW') return t('careeros.today.next.whyInterview', 'The interview is {when}. Preparation time only shrinks from here.').replace('{when}', when);
+        if (ranked.action.actionType === 'FOLLOW_UP_APPLICATION') return t('careeros.today.next.whyFollowUp', 'You planned to follow up {when}; a timely note keeps the application in mind.').replace('{when}', when);
+        return t('careeros.today.next.whyDue', 'It is due {when} — the soonest date you have recorded.').replace('{when}', when);
+    }
     if (r.unblocks) return t('careeros.today.next.whyUnblocks', 'Other steps wait on this one.');
     if (r.goalRelevant) return t('careeros.today.next.whyGoal', 'It moves your primary goal forward.');
     return t('careeros.today.next.whySmall', 'A small step you can finish now.');
@@ -84,9 +99,11 @@ const NextActionPanel: React.FC<{ userId: string; ranked: RankedAction; then: Ra
     const dominant = whyItMatters(t, language, ranked);
     const outcome = expectedOutcome(t, action.actionType);
     const due = candidate?.ranking.deadlineAt ?? null;
+    const [sourcesOpen, setSourcesOpen] = useState(false);
     const meta: string[] = [];
     if (action.estimatedEffort) meta.push(action.estimatedEffort);
-    if (due) meta.push(t('careeros.today.next.due', 'Due {date}').replace('{date}', dayLabel(due, language)));
+    // The date is already in "Why it matters" when a deadline leads; say it once.
+    if (due && !dominant) meta.push(t('careeros.today.next.due', 'Due {date}').replace('{date}', dayLabel(due, language)));
     const inProgress = action.status === 'IN_PROGRESS';
 
     return (
@@ -141,8 +158,8 @@ const NextActionPanel: React.FC<{ userId: string; ranked: RankedAction; then: Ra
                     </dl>
                 )}
 
-                {action.evidenceRefs.length > 0 && (
-                    <div className="mt-4 flex flex-wrap items-center gap-1.5 text-[12.5px]">
+                {action.evidenceRefs.length > 0 && sourcesOpen && (
+                    <div id={`${headingId}-sources`} className="mt-4 flex flex-wrap items-center gap-1.5 text-[12.5px]">
                         <span className="text-content-muted">{t('careeros.action.evidence', 'Based on')}:</span>
                         {action.evidenceRefs.slice(0, 5).map((ref) => {
                             const route = evidenceRefRoute(ref.kind, ref.id);
@@ -165,6 +182,12 @@ const NextActionPanel: React.FC<{ userId: string; ranked: RankedAction; then: Ra
                 <Button variant="quiet" size="sm" icon={<Clock size={14} />} aria-expanded={snoozeOpen} onClick={() => setSnoozeOpen((v) => !v)} disabled={controls.busy}>{t('careeros.today.action.snooze', 'Snooze')}</Button>
                 <Button variant="quiet" size="sm" icon={<CheckCheck size={14} />} onClick={() => setReportOpen(true)} disabled={controls.busy || !online}>{t('careeros.today.action.didElsewhere', 'I did this elsewhere')}</Button>
                 <Button variant="quiet" size="sm" icon={<X size={14} />} onClick={() => { void controls.dismiss(); }} disabled={controls.busy}>{t('careeros.today.action.dismiss', 'Dismiss')}</Button>
+                {action.evidenceRefs.length > 0 && (
+                    <Button variant="quiet" size="sm" icon={<Info size={14} />} aria-expanded={sourcesOpen} aria-controls={`${headingId}-sources`} onClick={() => setSourcesOpen((v) => !v)} title={t('careeros.today.next.sources', 'Sources')}>
+                        {/* Icon-only below 1440px so the footer stays on one row. */}
+                        <span className="max-[1439px]:sr-only">{t('careeros.today.next.sources', 'Sources')}</span>
+                    </Button>
+                )}
                 {then.length > 0 && (
                     <button type="button" onClick={() => setThenOpen((v) => !v)} aria-expanded={thenOpen} aria-controls={thenId} className="ml-auto inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-semibold text-content-secondary hover:text-content-primary">
                         {t('careeros.today.next.then', 'Then · {count} more').replace('{count}', String(then.length))}

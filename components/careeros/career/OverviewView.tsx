@@ -73,7 +73,7 @@ export const OverviewView: React.FC = () => {
             {!online && <StatePanel kind="offline" compact description={t('careeros.career.offlineDescription', 'Your facts are shown from the last load. Edits need a connection.')} />}
 
             <section aria-labelledby={`${headlineId}-label`} className="rounded-2xl border border-border-default bg-surface-panel p-5">
-                <p id={`${headlineId}-label`} className="font-label text-[10px] uppercase tracking-[0.14em] text-content-muted">{t('careeros.career.headline', 'Headline')}</p>
+                <p id={`${headlineId}-label`} className="text-[12px] font-medium text-content-muted">{t('careeros.career.headline', 'Headline')}</p>
                 {profile === null ? (
                     <Skeleton variant="title" width="50%" className="mt-2" />
                 ) : editingHeadline ? (

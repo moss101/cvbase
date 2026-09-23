@@ -56,7 +56,7 @@ export const TemplateGallery: React.FC = () => {
                         <div className="flex items-center justify-between gap-3 border-t border-border-default p-4">
                             <div className="min-w-0">
                                 <h3 className="truncate text-base font-semibold text-content-primary">{template.name}</h3>
-                                <p className="font-label text-[10px] uppercase tracking-[0.12em] text-content-muted">{template.category}</p>
+                                <p className="text-[12px] font-medium text-content-muted">{template.category}</p>
                             </div>
                             <Button variant="primary" size="sm" onClick={() => use(template.id)} aria-label={t('careeros.library.useTemplateNamed', 'Use the {name} template').replace('{name}', template.name)}>
                                 {t('dash.useTemplate', 'Use Template')}

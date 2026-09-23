@@ -20,8 +20,8 @@ const UndoRedoButtons: React.FC<UndoRedoButtonsProps> = ({ canUndo, canRedo, onU
     const { t } = useTranslation();
     const buttonClass = compact
         ? 'tap-target flex items-center justify-center rounded-full text-dark transition active:scale-95 disabled:opacity-30'
-        : 'tap-target flex items-center justify-center rounded-xl border-2 border-border bg-white text-dark shadow-sm transition hover:border-primary hover:text-primary hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:border-border disabled:hover:text-dark';
-    const iconSize = compact ? 20 : 18;
+        : 'tap-target flex items-center justify-center rounded-[10px] text-content-secondary transition-colors hover:bg-surface-canvas hover:text-content-primary disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent';
+    const iconSize = compact ? 20 : 17;
 
     return (
         <div className={`inline-flex items-center gap-1.5 ${className ?? ''}`}>

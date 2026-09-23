@@ -67,17 +67,18 @@ export const ACCOUNT_SPACES: SpaceDescriptor[] = [
 
 export const ALL_SPACES: SpaceDescriptor[] = [...PRIMARY_SPACES, ...UTILITY_SPACES, ...WORKSPACE_SPACES, ...ACCOUNT_SPACES];
 
-/** The five mobile entries: Today, Opportunities, Campaigns, CVs, More. Coach is one tap away through Ask. */
+/** The five mobile entries: Today, Opportunities, Campaigns, CV Builder, More. Coach is one tap away through Ask. */
 export const MOBILE_TABS: SpaceDescriptor[] = [
     PRIMARY_SPACES[0], PRIMARY_SPACES[2], PRIMARY_SPACES[3],
-    { ...WORKSPACE_SPACES[0], labelKey: 'careeros.space.cvs', label: 'CVs' },
+    WORKSPACE_SPACES[0],
 ];
 
 /** Which primary space a route belongs to, for highlighting navigation. */
 export function activeSpaceKey(route: CareerRoute): string {
     switch (route.space) {
         case 'applications':
-            return 'campaigns';
+            // Applications is its own workspace entry; the sidebar and the breadcrumb agree.
+            return 'applications';
         case 'career':
             return route.sub === 'profile' ? 'profile' : 'career';
         case 'library':

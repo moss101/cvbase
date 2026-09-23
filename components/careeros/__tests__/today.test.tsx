@@ -170,6 +170,9 @@ describe('TodaySpace', () => {
         expect(vi.mocked(actionRepo.upsertByDedupeKey)).toHaveBeenCalledTimes(1);
         expect(text()).toContain('Create the CV for Nurse at Acme');
         expect(text()).toContain('no CV linked yet');
+        // Provenance is progressive: hidden until the person asks for sources.
+        expect(text()).not.toContain('Rule rules-1.0.0');
+        await click('Sources');
         expect(text()).toContain('Rule rules-1.0.0');
         expect(text()).toContain('1 preparing');
         await click('Begin');

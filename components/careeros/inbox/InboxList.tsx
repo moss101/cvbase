@@ -156,7 +156,7 @@ export const InboxList: React.FC = () => {
             ) : (
                 <div className="space-y-6">
                     <section aria-labelledby="inbox-action">
-                        <h2 id="inbox-action" className="mb-2 flex items-center gap-2 font-label text-[10px] uppercase tracking-[0.14em] text-content-muted">
+                        <h2 id="inbox-action" className="mb-2 flex items-center gap-2 text-[12px] font-medium text-content-muted">
                             <Bell size={12} strokeWidth={2} aria-hidden="true" />{t('careeros.inbox.actionRequired', 'Action required')} · {groups.actionRequired.length}
                         </h2>
                         {groups.actionRequired.length === 0
@@ -164,7 +164,7 @@ export const InboxList: React.FC = () => {
                             : <ul className="space-y-3">{groups.actionRequired.map(row)}</ul>}
                     </section>
                     <section aria-labelledby="inbox-info">
-                        <h2 id="inbox-info" className="mb-2 font-label text-[10px] uppercase tracking-[0.14em] text-content-muted">{t('careeros.inbox.information', 'Information')} · {groups.information.length}</h2>
+                        <h2 id="inbox-info" className="mb-2 text-[12px] font-medium text-content-muted">{t('careeros.inbox.information', 'Information')} · {groups.information.length}</h2>
                         {groups.information.length === 0
                             ? <p className="text-[13px] text-content-secondary">{t('careeros.inbox.noInformation', 'No updates.')}</p>
                             : <ul className="space-y-3">{groups.information.map(row)}</ul>}

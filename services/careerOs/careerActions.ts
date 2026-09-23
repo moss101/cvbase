@@ -142,8 +142,9 @@ const ref = (kind: EvidenceRef['kind'], id: string, label: string): EvidenceRef 
 /** A recorded instant rendered in the interview's own time zone (never inferred). */
 function formatWhen(iso: string, timeZone: string | null): string {
   try {
-    const opts: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short', ...(timeZone ? { timeZone } : {}) };
-    return `${new Intl.DateTimeFormat('en-GB', opts).format(new Date(iso))}${timeZone ? ` (${timeZone})` : ''}`;
+    // Same style the interface uses for dates ("Thu, Sep 24, 10:00 AM"), in the recorded zone.
+    const opts: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', ...(timeZone ? { timeZone } : {}) };
+    return `${new Intl.DateTimeFormat('en', opts).format(new Date(iso))}${timeZone ? ` (${timeZone})` : ''}`;
   } catch {
     return `${iso}${timeZone ? ` (${timeZone})` : ''}`;
   }

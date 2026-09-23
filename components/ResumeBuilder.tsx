@@ -704,17 +704,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId, 
                     indicator. env() resolves to 0 on the web. */}
                 <div className={`max-w-5xl mx-auto p-3 sm:p-6 md:p-10 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] sm:pt-[calc(1.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(2.5rem+env(safe-area-inset-top,0px))] pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] ${embedded ? 'min-h-full' : 'min-h-screen'} animate-fade-in`}>
                     <div className={embedded ? 'p-4 sm:p-6 md:p-8 rounded-2xl border border-border-default bg-surface-panel' : 'glass-panel p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl min-h-[calc(100vh-5rem)] border border-white/40 shadow-xl bg-white/60 backdrop-blur-md'}>
-                        <div className="flex items-start justify-between gap-3">
-                            <UndoRedoButtons
-                                canUndo={history.canUndo}
-                                canRedo={history.canRedo}
-                                onUndo={history.undo}
-                                onRedo={history.redo}
-                                className="shrink-0"
-                            />
-                        </div>
-
                         <HeaderActions
+                            leading={(
+                                <UndoRedoButtons
+                                    canUndo={history.canUndo}
+                                    canRedo={history.canRedo}
+                                    onUndo={history.undo}
+                                    onRedo={history.redo}
+                                    className="shrink-0"
+                                />
+                            )}
                             onAiEnhanceClick={() => setIsAiActionModalOpen(true)}
                             onLoadExample={handleLoadExample}
                             saveState={saveState === 'error' ? 'idle' : saveState}

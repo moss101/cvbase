@@ -113,7 +113,7 @@ export const FitPanel: React.FC<FitPanelProps> = ({ opportunity, goal, applicati
                         </span>
                     )}
                     {typeof analysis?.atsScore === 'number' && (
-                        <Pill tone="info" title={t('careeros.fit.atsHint', 'Keyword alignment between your primary CV and the listing, from the deterministic ATS engine. A formatting signal, not a hiring probability.')}>
+                        <Pill tone="neutral" title={t('careeros.fit.atsHint', 'Keyword alignment between your primary CV and the listing, from the deterministic ATS engine. A formatting signal, not a hiring probability.')}>
                             {t('careeros.fit.atsSignal', 'ATS keyword match {score}/100').replace('{score}', String(analysis.atsScore))}
                         </Pill>
                     )}
@@ -122,7 +122,7 @@ export const FitPanel: React.FC<FitPanelProps> = ({ opportunity, goal, applicati
                     )}
                 </div>
                 <Button
-                    variant={analysis && !stale ? 'secondary' : 'primary'}
+                    variant="secondary"
                     size="sm"
                     icon={analysis ? <RefreshCw size={14} strokeWidth={2} /> : <Sparkles size={14} strokeWidth={2} />}
                     onClick={() => { void analyse(); }}

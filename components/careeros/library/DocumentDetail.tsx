@@ -112,7 +112,7 @@ export const DocumentDetail: React.FC<{ documentId: string }> = ({ documentId })
             </section>
 
             <section aria-label={t('careeros.library.provenance', 'Provenance')} className="mt-4">
-                <h3 className="font-label text-[10px] uppercase tracking-[0.14em] text-content-muted">{t('careeros.library.provenance', 'Provenance')}</h3>
+                <h3 className="text-[12px] font-medium text-content-muted">{t('careeros.library.provenance', 'Provenance')}</h3>
                 {facts.length === 0 && (!artifact.provenance.factIds || artifact.provenance.factIds.length === 0) ? (
                     <p className="mt-1 text-[13px] text-content-secondary">{t('careeros.library.noProvenance', 'No career facts are recorded as sources for this document.')}</p>
                 ) : (

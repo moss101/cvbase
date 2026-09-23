@@ -22,14 +22,16 @@ export const CareerTabBar: React.FC<MobileTabBarProps> = ({ route, onOpenMore, m
             type="button"
             onClick={onClick}
             aria-current={isActive ? 'page' : undefined}
-            className={`tap-target flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 ${isActive ? 'text-primary' : 'text-gray-400'}`}
+            aria-label={label}
+            className={`tap-target flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 py-1.5 ${isActive ? 'text-action-primary' : 'text-content-muted'}`}
         >
             <Icon size={23} strokeWidth={isActive ? 2 : 1.75} aria-hidden="true" />
-            <span className="text-[10.5px] font-semibold">{label}</span>
+            {/* Below 360px five labels cannot sit side by side; the icons carry it and the name stays accessible. */}
+            <span className="max-w-full truncate px-0.5 text-[10.5px] font-semibold max-[359px]:sr-only" aria-hidden="true">{label}</span>
         </button>
     );
     return (
-        <nav className="pb-safe flex shrink-0 border-t border-border bg-white/95 backdrop-blur-md" aria-label={t('careeros.nav.primary', 'Career OS navigation')}>
+        <nav className="pb-safe flex shrink-0 border-t border-border-default bg-surface-panel" aria-label={t('careeros.nav.primary', 'Career OS navigation')}>
             {MOBILE_TABS.map((tab) => item(tab.key, t(tab.labelKey, tab.label), tab.Icon, active === tab.key && !moreActive, () => navigate(tab.route)))}
             {item('more', t('careeros.nav.more', 'More'), Ellipsis, moreActive || !MOBILE_TABS.some((tab) => tab.key === active), onOpenMore)}
         </nav>
@@ -57,7 +59,7 @@ export const MoreSheet: React.FC<MoreSheetProps> = ({ open, onClose, isAdmin, un
     );
     const Group: React.FC<{ title: string; items: SpaceDescriptor[] }> = ({ title, items }) => (
         <section className="mb-2">
-            <h3 className="px-3 pb-1 pt-2 font-label text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">{title}</h3>
+            <h3 className="px-3 pb-1 pt-2 text-[12px] font-medium text-content-muted">{title}</h3>
             {items.filter((i) => !i.adminOnly || isAdmin).map((item) => (
                 <Row key={item.key} item={item} badge={item.key === 'notifications' ? unreadCount : undefined} />
             ))}

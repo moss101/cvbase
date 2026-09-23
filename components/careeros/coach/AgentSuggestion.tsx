@@ -155,7 +155,7 @@ export const AgentSuggestion: React.FC<AgentSuggestionProps> = ({ proposal, mess
     return (
         <article aria-label={t('careeros.coach.suggestion.label', 'Suggested action: {tool}').replace('{tool}', label)} className="rounded-2xl border border-action-primary/30 bg-surface-panel p-3 sm:p-4">
             <div className="flex flex-wrap items-center gap-2">
-                <p className="inline-flex items-center gap-1 font-label text-[10px] uppercase tracking-[0.14em] text-content-muted">
+                <p className="inline-flex items-center gap-1 text-[12px] font-medium text-content-muted">
                     <Wand2 size={12} strokeWidth={2} aria-hidden="true" />
                     {t('careeros.coach.suggestion.eyebrow', 'Suggested action')}
                 </p>
@@ -253,21 +253,21 @@ export const AgentSuggestion: React.FC<AgentSuggestionProps> = ({ proposal, mess
                 >
                     <p className="text-sm text-content-primary">{phase.confirmation.summary || proposal.summary}</p>
                     <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
-                        <dt className="font-label text-[10px] uppercase tracking-[0.12em] text-content-muted">{t('careeros.coach.confirm.tool', 'Tool')}</dt>
+                        <dt className="text-[12px] font-medium text-content-muted">{t('careeros.coach.confirm.tool', 'Tool')}</dt>
                         <dd className="text-content-primary">{label}</dd>
                         {phase.confirmation.destination && (
                             <>
-                                <dt className="font-label text-[10px] uppercase tracking-[0.12em] text-content-muted">{t('careeros.coach.confirm.destination', 'Destination')}</dt>
+                                <dt className="text-[12px] font-medium text-content-muted">{t('careeros.coach.confirm.destination', 'Destination')}</dt>
                                 <dd className="break-words text-content-primary">{phase.confirmation.destination}</dd>
                             </>
                         )}
-                        <dt className="font-label text-[10px] uppercase tracking-[0.12em] text-content-muted">{t('careeros.coach.confirm.policy', 'Policy')}</dt>
+                        <dt className="text-[12px] font-medium text-content-muted">{t('careeros.coach.confirm.policy', 'Policy')}</dt>
                         <dd className="text-content-primary">{phase.confirmation.policy === 'explicit' ? t('careeros.coach.confirm.explicit', 'Explicit confirmation (external or destructive)') : t('careeros.coach.confirm.diff', 'Review of a material change')}</dd>
-                        <dt className="font-label text-[10px] uppercase tracking-[0.12em] text-content-muted">{t('careeros.coach.confirm.contentHash', 'Content hash')}</dt>
+                        <dt className="text-[12px] font-medium text-content-muted">{t('careeros.coach.confirm.contentHash', 'Content hash')}</dt>
                         <dd className="font-mono text-xs text-content-secondary" title={phase.confirmation.contentHash}>{shortHash(phase.confirmation.contentHash)}</dd>
                         {phase.confirmation.expiresAt && (
                             <>
-                                <dt className="font-label text-[10px] uppercase tracking-[0.12em] text-content-muted">{t('careeros.coach.confirm.expires', 'Valid until')}</dt>
+                                <dt className="text-[12px] font-medium text-content-muted">{t('careeros.coach.confirm.expires', 'Valid until')}</dt>
                                 <dd className="text-content-secondary">{new Date(phase.confirmation.expiresAt).toLocaleString()}</dd>
                             </>
                         )}

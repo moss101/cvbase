@@ -64,7 +64,7 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ refs, conflict
                         <>
                             <Icon size={16} strokeWidth={1.75} className="shrink-0 text-content-muted" aria-hidden="true" />
                             <span className="min-w-0 text-left">
-                                <span className="block font-label text-[10px] uppercase tracking-[0.12em] text-content-muted">{kindLabel[ref.kind]}</span>
+                                <span className="block text-[12px] font-medium text-content-muted">{kindLabel[ref.kind]}</span>
                                 <span className={`block truncate text-[13px] ${hasValue ? 'font-semibold text-content-primary' : 'text-content-secondary'}`}>
                                     {ref.label ?? t('careeros.context.none', 'None selected')}
                                 </span>

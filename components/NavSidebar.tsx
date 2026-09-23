@@ -323,7 +323,7 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
                         >
                             <div className="flex items-center gap-2">
                                 <Eye className="w-[18px] h-[18px] text-gray-500" aria-hidden="true" />
-                                <span className="text-[12px] font-bold text-gray-700 tracking-wide uppercase">{t('label.toggleSections', 'Toggle Sections')}</span>
+                                <span className="text-[13px] font-semibold text-gray-700">{t('label.toggleSections', 'Toggle Sections')}</span>
                                 <span className="bg-primary/12 text-primary text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">
                                     {visibleSections.length}
                                 </span>
@@ -366,7 +366,7 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
                     {/* Preview Section - Pushed to bottom via mt-auto, but scrolls if needed */}
                     <div className="mt-auto p-6 bg-gradient-to-t from-white/80 to-transparent border-t border-gray-100">
                         <div className="flex justify-between items-end mb-3">
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">{t('label.livePreview', 'Live Preview')}</span>
+                            <span className="text-[13px] font-semibold text-gray-500">{t('label.livePreview', 'Live Preview')}</span>
                             <span className="text-sm font-bold text-primary">{progress}% {t('label.ready', 'Ready')}</span>
                         </div>
                         

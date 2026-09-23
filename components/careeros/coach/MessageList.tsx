@@ -50,7 +50,7 @@ export const CitationChips: React.FC<{ citations: CoachCitation[]; applicationId
                 const inner = (
                     <>
                         <Link2 size={11} strokeWidth={2} aria-hidden="true" />
-                        <span className="font-label text-[10px] uppercase tracking-[0.08em] text-content-muted">{c.kind}</span>
+                        <span className="text-[12px] font-medium text-content-muted">{c.kind}</span>
                         <span className="truncate">{text}</span>
                     </>
                 );
@@ -87,7 +87,7 @@ const Bubble: React.FC<{ role: CoachMessage['role']; roleLabel: string; time: st
                 }`}
             >
                 <header className="flex items-center gap-2 text-[11px] text-content-muted">
-                    <span className="inline-flex items-center gap-1 font-label uppercase tracking-[0.08em]">{ROLE_ICON[role]}{roleLabel}</span>
+                    <span className="inline-flex items-center gap-1 font-medium">{ROLE_ICON[role]}{roleLabel}</span>
                     {time && <time className="ml-auto">{time}</time>}
                 </header>
                 <div className="mt-1 whitespace-pre-wrap break-words text-[14px] leading-relaxed text-content-primary">{children}</div>

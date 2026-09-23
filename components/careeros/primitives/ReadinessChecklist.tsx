@@ -114,7 +114,7 @@ export const ReadinessChecklist: React.FC<ReadinessChecklistProps> = ({ items, o
                     )}
                     {optional.length > 0 && (
                         <>
-                            <p className="mt-3 font-label text-[10px] uppercase tracking-[0.14em] text-content-muted">{t('careeros.readiness.optional', 'Optional')}</p>
+                            <p className="mt-3 text-[12px] font-medium text-content-muted">{t('careeros.readiness.optional', 'Optional')}</p>
                             <ul className="mt-1 -mx-2" aria-label={t('careeros.readiness.optional', 'Optional')}>
                                 {optional.map(renderItem)}
                             </ul>

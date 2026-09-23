@@ -301,7 +301,7 @@ export const CoachThread: React.FC<CoachThreadProps> = ({ conversationId, onGone
                 <aside aria-label={t('careeros.coach.summaryLabel', 'Derived summary')} className="rounded-2xl border border-border-default bg-surface-canvas p-3">
                     <div className="flex flex-wrap items-center gap-2">
                         <Brain size={14} strokeWidth={2} className="text-content-muted" aria-hidden="true" />
-                        <span className="font-label text-[10px] uppercase tracking-[0.14em] text-content-muted">
+                        <span className="text-[12px] font-medium text-content-muted">
                             {t('careeros.coach.summaryFrom', 'Derived summary (from {count} messages)').replace('{count}', String(conversation.summarySourceIds.length))}
                         </span>
                     </div>

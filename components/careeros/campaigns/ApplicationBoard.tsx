@@ -115,7 +115,7 @@ export const ApplicationBoard: React.FC<ApplicationBoardProps> = ({ applications
                         const items = byStage.get(stage) ?? [];
                         return (
                             <section key={stage} role="listitem" aria-labelledby={`col-${stage}`} className="flex w-[min(280px,85vw)] shrink-0 flex-col rounded-2xl border border-border-default bg-surface-canvas p-3">
-                                <h3 id={`col-${stage}`} className="flex items-center justify-between font-label text-[11px] uppercase tracking-[0.12em] text-content-secondary">
+                                <h3 id={`col-${stage}`} className="flex items-center justify-between text-[13px] font-semibold text-content-primary">
                                     <span>{labels[stage]}</span>
                                     <span className="rounded-full bg-surface-panel px-2 py-0.5 tabular-nums text-content-primary" aria-label={t('careeros.board.count', '{count} applications').replace('{count}', String(items.length))}>{items.length}</span>
                                 </h3>
