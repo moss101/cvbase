@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from '../../../services/translationService';
 import type { TodayData } from './useTodayData';
-import { SpaceHeader, Skeleton } from '../primitives';
+import { Skeleton } from '../primitives';
 
 /**
  * Greeting, date and one sentence derived from real state — counts of
@@ -53,13 +53,12 @@ export const OrientationHeader: React.FC<OrientationHeaderProps> = ({ name, data
         date = now.toDateString();
     }
     return (
-        <SpaceHeader
-            eyebrow={date}
-            title={name ? `${greeting}, ${name}` : greeting}
-            description={data ? orientationLine(t, data) : undefined}
-        >
-            {loading && !data && <Skeleton variant="text" width="60%" />}
-        </SpaceHeader>
+        <header className="mb-6">
+            <h1 className="cos-greeting text-[32px] text-content-primary md:text-[36px]">{name ? `${greeting}, ${name}` : greeting}</h1>
+            {loading && !data
+                ? <div className="mt-3 max-w-md"><Skeleton variant="text" /></div>
+                : <p className="mt-2 max-w-[70ch] text-[15px] leading-relaxed text-content-secondary">{data ? `${date} · ${orientationLine(t, data)}` : date}</p>}
+        </header>
     );
 };
 

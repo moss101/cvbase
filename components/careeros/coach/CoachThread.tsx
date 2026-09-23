@@ -20,6 +20,7 @@ import MemoryMenu from './MemoryMenu';
 import MessageList from './MessageList';
 import { buildConversationExport, exportFilename } from './coachFormat';
 import { CONTEXT_KEYS, CONVERSATIONS_KEY, THREAD_KEY, loadContextLabels, resolveContextRefs, useThread, type ContextIds, type ContextLabels } from './useCoach';
+import { takeCoachHandoff } from './coachHandoff';
 
 /**
  * One conversation: its editable context, the derived summary (clearly a
@@ -62,7 +63,13 @@ export const CoachThread: React.FC<CoachThreadProps> = ({ conversationId, onGone
 
     const [labels, setLabels] = useState<ContextLabels | null>(null);
     const [labelsError, setLabelsError] = useState(false);
-    const [draft, setDraft] = useState(() => readDraft(conversationId));
+    // A question handed over from Ask CVbase or Today becomes this thread's stored
+    // draft, so it survives re-renders and is never sent without the person.
+    const [draft, setDraft] = useState(() => {
+        const handoff = takeCoachHandoff();
+        if (handoff) { writeDraft(conversationId, handoff); return handoff; }
+        return readDraft(conversationId);
+    });
     const [pending, setPending] = useState<{ content: string } | null>(null);
     const [sending, setSending] = useState(false);
     const [failure, setFailure] = useState<SendFailure | null>(null);

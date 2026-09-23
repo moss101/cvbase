@@ -122,9 +122,11 @@ interface ResumeBuilderProps {
     onBack: () => void;
     /** When set, edit this specific resume; otherwise fall back to the user's primary. */
     initialResumeId?: string | null;
+    /** Rendered inside the Career OS shell: size to the container, hairline surfaces. */
+    embedded?: boolean;
 }
 
-const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }) => {
+const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId, embedded = false }) => {
     const { user, userProfile, loading: authLoading } = useAuth();
     const { toast } = useToast();
     const [isHydrated, setIsHydrated] = useState(false);
@@ -587,7 +589,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
     // offer the way back — never open the primary CV in its place.
     if (documentState === 'unavailable') {
         return (
-            <div className="flex h-screen items-center justify-center bg-light px-4">
+            <div className={`flex ${embedded ? 'h-full' : 'h-screen'} items-center justify-center bg-light px-4`}>
                 <div role="alert" className="glass-panel w-full max-w-md rounded-2xl border border-white/40 bg-white/70 p-6 text-center shadow-xl backdrop-blur-md">
                     <h2 className="text-lg font-bold text-dark">{t('builder.unavailableTitle', 'This CV is unavailable')}</h2>
                     <p className="mt-2 text-sm text-gray-600">
@@ -621,7 +623,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
         // matches the viewport exactly (h-screen), so `fixed inset-0` inside
         // it looks identical to being fixed to the real viewport.
         <div
-            className="flex h-screen bg-transparent overflow-hidden"
+            className={`flex ${embedded ? 'h-full' : 'h-screen'} bg-transparent overflow-hidden`}
             style={{ transform: 'translateZ(0)' }}
         >
             {isMobileShell && (
@@ -694,13 +696,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
                 onGoHome={onBack}
                 isMobileOpen={isMobileMenuOpen}
                 onCloseMobile={() => setIsMobileMenuOpen(false)}
+                embedded={embedded}
             />
-            <main className="flex-1 h-full overflow-y-auto bg-light/50 relative">
+            <main className={`flex-1 h-full overflow-y-auto relative ${embedded ? 'bg-surface-canvas' : 'bg-light/50'}`}>
                 {/* Top/bottom padding folds in the safe-area insets so the toolbar
                     clears the status bar and the last field clears the home
                     indicator. env() resolves to 0 on the web. */}
-                <div className="max-w-5xl mx-auto p-3 sm:p-6 md:p-10 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] sm:pt-[calc(1.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(2.5rem+env(safe-area-inset-top,0px))] pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] min-h-screen animate-fade-in">
-                    <div className="glass-panel p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl min-h-[calc(100vh-5rem)] border border-white/40 shadow-xl bg-white/60 backdrop-blur-md">
+                <div className={`max-w-5xl mx-auto p-3 sm:p-6 md:p-10 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] sm:pt-[calc(1.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(2.5rem+env(safe-area-inset-top,0px))] pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] ${embedded ? 'min-h-full' : 'min-h-screen'} animate-fade-in`}>
+                    <div className={embedded ? 'p-4 sm:p-6 md:p-8 rounded-2xl border border-border-default bg-surface-panel' : 'glass-panel p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl min-h-[calc(100vh-5rem)] border border-white/40 shadow-xl bg-white/60 backdrop-blur-md'}>
                         <div className="flex items-start justify-between gap-3">
                             <UndoRedoButtons
                                 canUndo={history.canUndo}

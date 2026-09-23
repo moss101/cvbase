@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
-import { LoaderCircle, Menu, User } from 'lucide-react';
+import { Bell, LoaderCircle, Search } from 'lucide-react';
 import { useTranslation } from '../../services/translationService';
 import { careerPath, useNavigation, type CareerRoute } from '../NavigationProvider';
 import { useAuth } from '../AuthProvider';
@@ -13,7 +13,9 @@ import DesktopSidebar from './shell/DesktopSidebar';
 import { CareerTabBar, MoreSheet } from './shell/MobileNav';
 import { ALL_SPACES, MOBILE_TABS, activeSpaceKey } from './shell/spaces';
 import { CommandPalette, useCommandPaletteShortcut } from './search/CommandPalette';
+import { TopBar, spaceTitle } from './shell/TopBar';
 import '../dashboard.css';
+import './careeros.css';
 
 /**
  * The six-space Career OS shell (COS-008). One information architecture on
@@ -56,7 +58,9 @@ const Loader: React.FC = () => {
 };
 
 /** Routes that render a full-viewport screen with their own chrome. */
-const isFullScreen = (route: CareerRoute): boolean => route.space === 'library' && route.sub === 'cvs';
+/** The CV editor itself (a specific CV, or a new one) — not the CV Builder workspace home. */
+const isCvEditor = (route: CareerRoute): boolean =>
+    route.space === 'library' && route.sub === 'cvs' && (Boolean(route.id) || route.section === 'new');
 
 /** Detail routes on mobile show a back arrow instead of the tab bar. */
 const isPushedScreen = (route: CareerRoute): boolean =>
@@ -141,41 +145,57 @@ interface CareerShellProps {
     route: CareerRoute;
 }
 
+const RAIL_KEY = 'cvbase:sidebar-rail';
+const readRail = (): boolean => { try { return window.localStorage.getItem(RAIL_KEY) === '1'; } catch { return false; } };
+
+/** True below `px` — tablets get the icon rail so the content keeps its width. */
+function useNarrow(px: number): boolean {
+    const query = `(max-width: ${px - 1}px)`;
+    const [narrow, setNarrow] = useState(() => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(query).matches);
+    useEffect(() => {
+        if (typeof window.matchMedia !== 'function') return;
+        const mq = window.matchMedia(query);
+        const on = () => setNarrow(mq.matches);
+        on();
+        mq.addEventListener?.('change', on);
+        return () => mq.removeEventListener?.('change', on);
+    }, [query]);
+    return narrow;
+}
+
 const ShellFrame: React.FC<{ route: CareerRoute; onOpenAuth: () => void }> = ({ route, onOpenAuth }) => {
     const { t } = useTranslation();
     const { user } = useAuth();
     const { back, navigate, reset } = useNavigation();
-    const { isAdmin, unreadCount, migration, profileError, refreshProfile } = useCareerOs();
+    const { isAdmin, unreadCount, migration, profileError, refreshProfile, context } = useCareerOs();
     const isMobileShell = useMobileShell();
+    const narrow = useNarrow(1100);
     const [moreOpen, setMoreOpen] = useState(false);
-    const [drawerOpen, setDrawerOpen] = useState(false);
     const [paletteOpen, setPaletteOpen] = useState(false);
+    const [railPref, setRailPref] = useState<boolean>(readRail);
     const mainRef = useRef<HTMLElement>(null);
+    const editor = isCvEditor(route);
 
-    // Cmd/Ctrl-K opens the command palette from any space (REQ-23).
+    // Cmd/Ctrl-K opens Ask CVbase from any space (REQ-23).
     useCommandPaletteShortcut(() => setPaletteOpen(true));
 
     useEffect(() => { mainRef.current?.scrollTo({ top: 0, behavior: 'auto' }); }, [route.space, route.id, route.sub, route.section]);
 
-    const title = useMemo(() => {
-        // The application workspace is a nested context, not a seventh space:
-        // its bar says what it is rather than the Campaigns entry that owns it.
-        if (route.space === 'applications') return t('careeros.space.applications', route.id ? 'Application' : 'Applications');
-        const key = activeSpaceKey(route);
-        const item = ALL_SPACES.find((s) => s.key === key);
-        return item ? t(item.labelKey, item.label) : t('careeros.shell.eyebrow', 'Career OS');
-    }, [route, t]);
-
+    const title = useMemo(() => spaceTitle(route, t), [route, t]);
     const onBackToLanding = () => reset({ view: 'landing' });
     const onViewPricing = () => navigate({ view: 'pricing' });
+    const leaveEditor = () => { if (!back()) reset(careerPath.toCvWorkspace()); };
+    const toggleRail = () => setRailPref((v) => {
+        const next = !v;
+        try { window.localStorage.setItem(RAIL_KEY, next ? '1' : '0'); } catch { /* preference only */ }
+        return next;
+    });
 
-    if (isFullScreen(route)) {
+    // Phones keep the editor as a pushed, full-screen workspace with its own back bar.
+    if (editor && isMobileShell) {
         return (
             <Suspense fallback={<Loader />}>
-                <ResumeBuilder
-                    onBack={() => { if (!back()) reset(careerPath.toLibrary('cv')); }}
-                    initialResumeId={route.section === 'new' ? null : (route.id ?? null)}
-                />
+                <ResumeBuilder onBack={leaveEditor} initialResumeId={route.section === 'new' ? null : (route.id ?? null)} />
             </Suspense>
         );
     }
@@ -208,45 +228,79 @@ const ShellFrame: React.FC<{ route: CareerRoute; onOpenAuth: () => void }> = ({ 
         </ErrorBoundary>
     );
 
+    const palette = user ? <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} /> : null;
+
     if (isMobileShell) {
         const pushed = isPushedScreen(route);
+        const ask = (
+            <button type="button" onClick={() => (user ? setPaletteOpen(true) : onOpenAuth())} className="tap-target grid h-10 w-10 place-items-center rounded-xl text-content-secondary" aria-label={t('careeros.ask.label', 'Ask CVbase or search')}>
+                <Search size={19} strokeWidth={1.9} aria-hidden="true" />
+            </button>
+        );
         return (
-            <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-light">
-                {pushed && (
+            <div className="dashboard-shell cos-main flex h-[100dvh] w-full flex-col overflow-hidden">
+                {pushed ? (
                     <MobileTopBar
                         onBack={() => { if (!back()) reset(careerPath.toSpace('today')); }}
-                        center={<span className="text-[15.5px] font-bold text-dark">{title}</span>}
+                        center={<span className="text-[15.5px] font-semibold text-content-primary">{title}</span>}
+                        trailing={ask}
                     />
+                ) : (
+                    <div className="flex shrink-0 items-center justify-between border-b border-border-default bg-surface-panel px-4 pb-1.5 pt-[calc(0.375rem+env(safe-area-inset-top,0px))]">
+                        <span className="cos-wordmark-name !text-content-primary" aria-hidden="true">CVbase.</span>
+                        <div className="flex items-center gap-1">
+                            {ask}
+                            {user && (
+                                <button type="button" onClick={() => navigate(careerPath.toSpace('notifications'))} className="tap-target relative grid h-10 w-10 place-items-center rounded-xl text-content-secondary" aria-label={unreadCount > 0 ? t('careeros.nav.inboxUnread', 'Inbox, {n} unread').replace('{n}', String(unreadCount)) : t('careeros.space.notifications', 'Inbox')}>
+                                    <Bell size={19} strokeWidth={1.9} aria-hidden="true" />
+                                    {unreadCount > 0 && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-action-primary" aria-hidden="true" />}
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 )}
-                <main ref={mainRef} className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-4">{body}</main>
+                <main ref={mainRef} className="cos-scroll min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-5">{body}</main>
                 {!pushed && <CareerTabBar route={route} onOpenMore={() => setMoreOpen(true)} moreActive={moreOpen} />}
                 <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} isAdmin={isAdmin} unreadCount={unreadCount} />
-                {user && <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />}
+                {palette}
             </div>
         );
     }
 
+    const collapsed = editor || narrow || railPref;
     return (
         <div className="dashboard-shell relative flex h-[100dvh] w-full overflow-hidden">
-            {drawerOpen && <div className="fixed inset-0 z-20 bg-ink/65 backdrop-blur-sm lg:hidden" onClick={() => setDrawerOpen(false)} />}
-            <DesktopSidebar route={route} isAdmin={isAdmin} onBackToLanding={onBackToLanding} onOpenAuth={onOpenAuth} onViewPricing={onViewPricing} unreadCount={unreadCount} />
-            <main ref={mainRef} className="dashboard-main relative min-w-0 flex-1 overflow-y-auto">
-                <div className="dashboard-toolbar sticky top-0 z-20 flex h-16 select-none items-center justify-between px-5 lg:px-8">
-                    <div className="flex min-w-0 items-center gap-3">
-                        <button type="button" onClick={() => setDrawerOpen(true)} className="tap-target flex items-center justify-center rounded-lg p-2 text-ink transition hover:bg-ink/5 active:scale-95 lg:hidden" title={t('dash.openMainMenu', 'Open Main Menu')} aria-label={t('dash.openMainMenu', 'Open Main Menu')}>
-                            <Menu size={20} strokeWidth={1.75} aria-hidden="true" />
-                        </button>
-                        <span className="hidden font-label text-[10px] uppercase tracking-[0.14em] text-ink-faint sm:block">{t('careeros.shell.eyebrow', 'Career OS')}</span>
-                        <span className="hidden text-stone-300 sm:block" aria-hidden="true">/</span>
-                        <span className="truncate text-sm font-semibold text-ink">{title}</span>
+            <DesktopSidebar
+                route={route}
+                isAdmin={isAdmin}
+                onBackToLanding={onBackToLanding}
+                onOpenAuth={onOpenAuth}
+                onViewPricing={onViewPricing}
+                onOpenPalette={() => (user ? setPaletteOpen(true) : onOpenAuth())}
+                unreadCount={unreadCount}
+                collapsed={collapsed}
+                canToggle={!editor && !narrow}
+                onToggle={toggleRail}
+            />
+            <div className="cos-main relative">
+                <TopBar route={route} projection={context?.projection ?? null} unreadCount={unreadCount} signedIn={Boolean(user)} onOpenPalette={() => (user ? setPaletteOpen(true) : onOpenAuth())} />
+                {editor ? (
+                    // The CV Builder is a workspace inside the shell: the existing editor, every
+                    // section, preview, export and AI tool, sized to the space the shell leaves.
+                    <div className="relative min-h-0 flex-1">
+                        <ErrorBoundary key={`builder:${route.id ?? route.section ?? ''}`} scope="careeros:cv-builder">
+                            <Suspense fallback={<Loader />}>
+                                <ResumeBuilder embedded onBack={() => navigate(careerPath.toCvWorkspace())} initialResumeId={route.section === 'new' ? null : (route.id ?? null)} />
+                            </Suspense>
+                        </ErrorBoundary>
                     </div>
-                    <button type="button" onClick={() => (user ? navigate(careerPath.toCareer('profile')) : onOpenAuth())} className="tap-target grid h-8 w-8 place-items-center rounded-lg border border-ink/10 bg-paper-bright text-ink transition hover:border-ember/40 hover:text-ember-deep" title={t('dash.openProfile', 'Open profile')} aria-label={t('dash.openProfile', 'Open profile')}>
-                        <User size={17} strokeWidth={1.75} aria-hidden="true" />
-                    </button>
-                </div>
-                <div className="dashboard-content relative z-10 p-6 md:p-10 xl:p-12">{body}</div>
-            </main>
-            {user && <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />}
+                ) : (
+                    <main ref={mainRef} className="cos-scroll relative min-h-0 flex-1 overflow-y-auto">
+                        <div className="px-6 pb-16 pt-8 md:px-10 xl:px-12">{body}</div>
+                    </main>
+                )}
+            </div>
+            {palette}
         </div>
     );
 };

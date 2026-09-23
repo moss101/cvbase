@@ -6,12 +6,17 @@ import { ALL_SPACES, MOBILE_TABS, PRIMARY_SPACES, activeSpaceKey } from '../shel
 describe('shell descriptors', () => {
     it('exposes six primary spaces and five mobile entries (four tabs + More)', () => {
         expect(PRIMARY_SPACES.map((s) => s.key)).toEqual(['today', 'career', 'opportunities', 'campaigns', 'coach', 'library']);
-        expect(MOBILE_TABS.map((s) => s.key)).toEqual(['today', 'opportunities', 'coach', 'campaigns']);
+        // Phone tabs: Today, Opportunities, Campaigns, CVs (+ More); Coach is one tap away through Ask.
+        expect(MOBILE_TABS.map((s) => s.key)).toEqual(['today', 'opportunities', 'campaigns', 'cvs']);
     });
 
     it('keeps utilities, tools and account entries reachable without making them career pillars', () => {
         const keys = ALL_SPACES.map((s) => s.key);
-        for (const k of ['search', 'notifications', 'templates', 'tailor', 'ats', 'studio', 'profile', 'settings', 'billing', 'resources', 'admin']) expect(keys).toContain(k);
+        for (const k of ['search', 'notifications', 'cvs', 'templates', 'tailor', 'ats', 'studio', 'profile', 'settings', 'billing', 'resources', 'admin']) expect(keys).toContain(k);
+        // The CV Builder is a first-class workspace: its home and the editor both light it up.
+        expect(ALL_SPACES.find((s) => s.key === 'cvs')?.route).toEqual(careerPath.toCvWorkspace());
+        expect(activeSpaceKey(careerPath.toCvWorkspace())).toBe('cvs');
+        expect(activeSpaceKey(careerPath.toCvEdit('r1'))).toBe('cvs');
         expect(ALL_SPACES.find((s) => s.key === 'admin')?.adminOnly).toBe(true);
         // Pre-existing modules keep their own destinations: Smart Studio inside the Library,
         // the public resources page outside the shell.

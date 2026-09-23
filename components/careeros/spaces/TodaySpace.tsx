@@ -8,17 +8,15 @@ import { Button, SpaceHeader, StatePanel } from '../primitives';
 import { useCareerOs } from '../shell/CareerOsProvider';
 import { useOnline } from '../career/useOnline';
 import { OnboardingFlow } from '../onboarding/OnboardingFlow';
-import { ActionQueue } from '../today/ActionQueue';
-import { ActiveCampaigns } from '../today/ActiveCampaigns';
-import { CareerPulse } from '../today/CareerPulse';
 import { ClaimDraftDialog } from '../today/ClaimDraftDialog';
-import { InsightsPanel } from '../today/InsightsPanel';
 import { IntroductionCard } from '../today/IntroductionCard';
 import { OrientationHeader } from '../today/OrientationHeader';
-import { RecentActivity } from '../today/RecentActivity';
 import { listClaimableDrafts, listClaimableJobs, type DraftPreview } from '../today/anonymousClaims';
 import { useTodayData } from '../today/useTodayData';
-import { WorkspaceShortcuts } from '../today/WorkspaceShortcuts';
+import { NextAction } from '../today/NextAction';
+import { ProgressStrip } from '../today/ProgressStrip';
+import { ActiveWork } from '../today/ActiveWork';
+import { ContextRail } from '../today/ContextRail';
 
 /**
  * Today (REQ-12, COS-015): orientation, up to three eligible actions, a
@@ -115,7 +113,7 @@ const TodaySpace: React.FC<SpaceProps> = (_props) => {
     const pausedOnboarding = Boolean(profile && !profile.onboarding.completedAt && profile.onboarding.pausedAt);
 
     return (
-        <div className="mx-auto w-full max-w-5xl">
+        <div className="mx-auto w-full max-w-[1240px]">
             {profileError !== null && !profile ? (
                 <>
                     <SpaceHeader eyebrow={t('careeros.shell.eyebrow', 'Career OS')} title={t('careeros.space.today', 'Today')} />
@@ -162,10 +160,11 @@ const TodaySpace: React.FC<SpaceProps> = (_props) => {
                         )}
                     </div>
 
-                    {/* grid-cols-1 is minmax(0,1fr): on phones the stacked column must never grow to a truncated line's full width. */}
-                    <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+                    {/* The command center: next step, progress, work in progress — and the context rail.
+                        grid-cols-1 is minmax(0,1fr) so the stacked phone column never outgrows the screen. */}
+                    <div className="mt-6 grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_300px]">
                         <div className="min-w-0 space-y-6">
-                            <ActionQueue
+                            <NextAction
                                 userId={userId}
                                 actions={data?.actions ?? []}
                                 loading={loading || migration === 'running'}
@@ -174,20 +173,11 @@ const TodaySpace: React.FC<SpaceProps> = (_props) => {
                                 onChanged={() => { invalidate('today'); }}
                                 onRetry={() => void today.refresh()}
                             />
-                            <ActiveCampaigns campaigns={data?.campaigns ?? []} loading={loading} failed={failed('campaigns')} onRetry={() => void today.refresh()} />
+                            <ProgressStrip data={data} loading={loading} />
+                            <ActiveWork userId={userId} data={data} loading={loading} />
                         </div>
-                        <div className="min-w-0 space-y-6">
-                            <CareerPulse data={data} loading={loading} />
-                            <WorkspaceShortcuts userId={userId} />
-                            <InsightsPanel
-                                userId={userId}
-                                insights={data?.insights ?? []}
-                                submittedCount={data ? data.applications.filter((a) => a.submittedAt).length : 0}
-                                goal={data?.goal ?? null}
-                                loading={loading}
-                                online={online}
-                            />
-                            <RecentActivity userId={userId} events={data?.events ?? []} loading={loading} failed={failed('events')} onRetry={() => void today.refresh()} />
+                        <div className="min-w-0 border-t border-border-default pt-6 xl:border-t-0 xl:pt-1">
+                            <ContextRail userId={userId} data={data} loading={loading} online={online} />
                         </div>
                     </div>
                 </>

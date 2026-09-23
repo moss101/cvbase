@@ -8,6 +8,7 @@ import { AVAILABLE_TEMPLATES } from '../../../constants';
 import { Button, Skeleton, SpaceHeader, StatePanel } from '../primitives';
 import { useCareerOs } from '../shell/CareerOsProvider';
 import LibraryList from '../library/LibraryList';
+import CvWorkspace from '../library/CvWorkspace';
 import TemplateGallery from '../library/TemplateGallery';
 import DocumentDetail from '../library/DocumentDetail';
 import { readGuestDraft, guestDraftLabel } from '../guest/guestDraft';
@@ -231,13 +232,8 @@ const LibrarySpace: React.FC<SpaceProps> = ({ route }) => {
             }
             break;
         case 'cvs':
-            // The editor owns the viewport (CareerShell renders it); reaching here means no id — show the CV list.
-            return (
-                <div className="mx-auto w-full max-w-5xl">
-                    <SpaceHeader eyebrow={eyebrow} title={t('careeros.space.library', 'Library')} />
-                    <LibraryList type="cv" />
-                </div>
-            );
+            // The editor itself is rendered by the shell; without an id this is the CV Builder workspace home.
+            return <CvWorkspace />;
         default:
             break;
     }

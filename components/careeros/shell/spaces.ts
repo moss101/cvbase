@@ -1,7 +1,7 @@
 import type React from 'react';
 import {
     BookOpen, Briefcase, Compass, CreditCard, FileText, Home, LayoutTemplate, Library, MessageCircle, Search,
-    Settings, ShieldCheck, Sparkles, Target, Bell, Wand2, IdCard, Route as RouteIcon, Award,
+    Settings, ShieldCheck, Sparkles, Target, Bell, Wand2, IdCard, Route as RouteIcon, Award, FilePen,
 } from 'lucide-react';
 import { careerPath, type CareerRoute, type CareerSpace, type Route } from '../../NavigationProvider';
 
@@ -41,15 +41,21 @@ export const UTILITY_SPACES: SpaceDescriptor[] = [
     { key: 'notifications', space: 'notifications', route: careerPath.toSpace('notifications'), labelKey: 'careeros.space.notifications', label: 'Inbox', Icon: Bell, group: 'utility' },
 ];
 
-/** Existing tools, reachable inside the shell so nothing regresses (IA ledger MOVE/MERGE rows). */
-export const LEGACY_TOOL_SPACES: SpaceDescriptor[] = [
+/**
+ * Workspaces: the tools people open to produce something. The CV Builder is
+ * first — the existing editor, templates, exports and CV actions as one
+ * workspace inside the shell — followed by the other existing tools.
+ */
+export const WORKSPACE_SPACES: SpaceDescriptor[] = [
+    { key: 'cvs', space: 'library', route: careerPath.toCvWorkspace(), labelKey: 'careeros.space.cvBuilder', label: 'CV Builder', Icon: FilePen, group: 'legacy' },
     { key: 'applications', space: 'applications', route: careerPath.toSpace('applications'), labelKey: 'careeros.space.applications', label: 'Applications', Icon: Briefcase, group: 'legacy' },
-    { key: 'templates', space: 'library', route: careerPath.toLibraryTool('templates'), labelKey: 'dash.tab.templateGallery', label: 'Template gallery', Icon: LayoutTemplate, group: 'legacy' },
     { key: 'tailor', space: 'library', route: careerPath.toLibraryTool('tailor'), labelKey: 'mobile.prismTailor', label: 'PRISM Tailor', Icon: Wand2, group: 'legacy' },
     { key: 'ats', space: 'library', route: careerPath.toLibraryTool('ats'), labelKey: 'mobile.atsChecker', label: 'ATS Checker', Icon: Sparkles, group: 'legacy' },
     { key: 'studio', space: 'library', route: careerPath.toStudio(), labelKey: 'mobile.smartStudio', label: 'Smart Studio', Icon: Award, group: 'legacy' },
-    { key: 'cvs', space: 'library', route: careerPath.toLibrary('cv'), labelKey: 'dash.tab.resume', label: 'Resume', Icon: FileText, group: 'legacy' },
+    { key: 'templates', space: 'library', route: careerPath.toLibraryTool('templates'), labelKey: 'dash.tab.templateGallery', label: 'Template gallery', Icon: LayoutTemplate, group: 'legacy' },
 ];
+/** Earlier name for the workspace group. */
+export const LEGACY_TOOL_SPACES = WORKSPACE_SPACES;
 
 export const ACCOUNT_SPACES: SpaceDescriptor[] = [
     { key: 'profile', space: 'career', route: careerPath.toCareer('profile'), labelKey: 'tabbar.profile', label: 'Profile', Icon: IdCard, group: 'account' },
@@ -59,11 +65,12 @@ export const ACCOUNT_SPACES: SpaceDescriptor[] = [
     { key: 'admin', space: 'admin', route: careerPath.toSpace('admin'), labelKey: 'mobile.admin', label: 'Admin', Icon: ShieldCheck, group: 'account', adminOnly: true },
 ];
 
-export const ALL_SPACES: SpaceDescriptor[] = [...PRIMARY_SPACES, ...UTILITY_SPACES, ...LEGACY_TOOL_SPACES, ...ACCOUNT_SPACES];
+export const ALL_SPACES: SpaceDescriptor[] = [...PRIMARY_SPACES, ...UTILITY_SPACES, ...WORKSPACE_SPACES, ...ACCOUNT_SPACES];
 
-/** The five mobile entries: Today, Opportunities, Coach, Campaigns, More. */
+/** The five mobile entries: Today, Opportunities, Campaigns, CVs, More. Coach is one tap away through Ask. */
 export const MOBILE_TABS: SpaceDescriptor[] = [
-    PRIMARY_SPACES[0], PRIMARY_SPACES[2], PRIMARY_SPACES[4], PRIMARY_SPACES[3],
+    PRIMARY_SPACES[0], PRIMARY_SPACES[2], PRIMARY_SPACES[3],
+    { ...WORKSPACE_SPACES[0], labelKey: 'careeros.space.cvs', label: 'CVs' },
 ];
 
 /** Which primary space a route belongs to, for highlighting navigation. */
@@ -74,6 +81,7 @@ export function activeSpaceKey(route: CareerRoute): string {
         case 'career':
             return route.sub === 'profile' ? 'profile' : 'career';
         case 'library':
+            if (route.sub === 'cvs') return 'cvs';
             if (route.sub === 'templates') return 'templates';
             if (route.sub === 'tailor') return 'tailor';
             if (route.sub === 'ats') return 'ats';

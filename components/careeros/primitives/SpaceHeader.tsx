@@ -1,13 +1,14 @@
 import React from 'react';
 
 /**
- * The top of every Career OS space: an eyebrow naming where you are, the one
- * `h1` on the page, a sentence on what the space is for and a slot for the
- * screen's single dominant action. Keeping the heading level here means a
- * screen reader's heading list always starts with the space.
+ * The top of every Career OS space: the one `h1` on the page, a sentence on
+ * what the space is for and a slot for the screen's single dominant action.
+ * Where you are is the shell's top bar (space › record) — the heading carries
+ * its own weight, so no label sits above it. Keeping the heading level here
+ * means a screen reader's heading list always starts with the space.
  */
 export interface SpaceHeaderProps {
-    /** Small label above the title, e.g. the space or parent record. */
+    /** Kept for callers; location now lives in the shell's breadcrumb, so it is not rendered. */
     eyebrow?: string;
     title: string;
     description?: string;
@@ -19,15 +20,14 @@ export interface SpaceHeaderProps {
     className?: string;
 }
 
-export const SpaceHeader: React.FC<SpaceHeaderProps> = ({ eyebrow, title, description, action, children, compact = false, className = '' }) => (
-    <header className={`${compact ? 'pb-4' : 'pb-6'} ${className}`}>
+export const SpaceHeader: React.FC<SpaceHeaderProps> = ({ title, description, action, children, compact = false, className = '' }) => (
+    <header className={`${compact ? 'pb-4' : 'pb-7'} ${className}`}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
-                {eyebrow && <p className="font-label text-[10px] uppercase tracking-[0.14em] text-content-muted">{eyebrow}</p>}
-                <h1 className={`${eyebrow ? 'mt-2' : ''} font-semibold tracking-tight text-content-primary ${compact ? 'text-xl' : 'text-2xl sm:text-3xl'}`}>
+                <h1 className={`font-semibold tracking-[-0.02em] text-content-primary ${compact ? 'text-[20px]' : 'text-[26px] leading-tight sm:text-[28px]'}`}>
                     {title}
                 </h1>
-                {description && <p className="mt-1.5 max-w-2xl text-[15px] leading-relaxed text-content-secondary">{description}</p>}
+                {description && <p className="mt-2 max-w-[68ch] text-[15px] leading-relaxed text-content-secondary">{description}</p>}
             </div>
             {action && <div className="shrink-0">{action}</div>}
         </div>

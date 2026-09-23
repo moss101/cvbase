@@ -42,38 +42,37 @@ export const GuestToday: React.FC<{ onOpenAuth: () => void }> = ({ onOpenAuth })
     ];
 
     return (
-        <div className="mx-auto w-full max-w-5xl">
+        <div className="mx-auto w-full max-w-[1240px]">
             <OrientationHeader name={null} data={null} loading={false} />
-            <p className="-mt-3 mb-6 max-w-2xl text-[15px] leading-relaxed text-content-secondary">
+            <p className="-mt-3 mb-8 max-w-[68ch] text-[15px] leading-relaxed text-content-secondary">
                 {t('careeros.guest.intro', 'Build and check a CV right now — no account needed. Sign in when you want CVBase to keep your goals, applications and interviews together.')}
             </p>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+            <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
                 <div className="min-w-0 space-y-6">
-                    <section className="rounded-2xl border border-border-default bg-surface-panel p-5" aria-label={t('careeros.guest.yourCv', 'Your CV')}>
+                    <section className="cos-panel p-6 md:p-7" aria-label={t('careeros.guest.yourCv', 'Your CV')}>
                         <div className="flex items-start gap-3">
                             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-action-primary/10 text-action-primary"><FileText size={20} strokeWidth={1.75} aria-hidden="true" /></span>
                             <div className="min-w-0">
-                                <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">{draft ? t('careeros.guest.onThisDevice', 'On this device') : t('careeros.guest.yourCv', 'Your CV')}</p>
-                                <h2 className="mt-1 text-lg font-semibold text-content-primary">
+                                <h2 className="text-[21px] font-semibold tracking-[-0.015em] text-content-primary md:text-[23px]">
                                     {draft
                                         ? (label?.name || t('dash.untitled', 'Untitled'))
                                         : t('careeros.guest.startTitle', 'Start your CV')}
                                 </h2>
-                                <p className="mt-1 text-sm text-content-secondary">
+                                <p className="mt-1.5 text-[15px] text-content-secondary">
                                     {draft
-                                        ? (label?.title || t('mobile.continueEditing', 'Continue where you left off'))
+                                        ? `${t('careeros.guest.onThisDevice', 'On this device')} · ${label?.title || t('mobile.continueEditing', 'Continue where you left off')}`
                                         : t('careeros.guest.startDetail', 'Pick a layout, fill in your details, and export a PDF or DOCX.')}
                                 </p>
                             </div>
                         </div>
-                        <div className="mt-4 flex flex-wrap gap-2">
+                        <div className="mt-6 flex flex-wrap gap-2">
                             <Button variant="primary" onClick={() => navigate(careerPath.toNewCv())}>{draft ? t('mobile.continueEditing', 'Continue where you left off') : t('dash.startBuilding', 'Start building')}</Button>
                             <Button variant="secondary" onClick={() => navigate(careerPath.toLibraryTool('templates'))}>{t('dash.tab.templateGallery', 'Template gallery')}</Button>
                         </div>
                     </section>
 
-                    <section aria-labelledby={toolsId} className="rounded-2xl border border-border-default bg-surface-panel p-5">
+                    <section aria-labelledby={toolsId} className="cos-panel px-6 py-5">
                         <h2 id={toolsId} className="text-base font-semibold text-content-primary">{t('careeros.guest.toolsTitle', 'Tools you can use now')}</h2>
                         <ul className="mt-3 divide-y divide-border-default">
                             {tools.map((row) => (
@@ -92,7 +91,7 @@ export const GuestToday: React.FC<{ onOpenAuth: () => void }> = ({ onOpenAuth })
                     </section>
                 </div>
 
-                <section aria-labelledby={accountId} className="min-w-0 self-start rounded-2xl border border-action-primary/30 bg-action-primary/5 p-5">
+                <section aria-labelledby={accountId} className="min-w-0 self-start rounded-2xl border border-border-default bg-surface-panel p-6 xl:sticky xl:top-8">
                     <span className="grid h-9 w-9 place-items-center rounded-xl bg-surface-panel text-action-primary"><Sparkles size={18} strokeWidth={1.75} aria-hidden="true" /></span>
                     <h2 id={accountId} className="mt-3 text-base font-semibold text-content-primary">{t('careeros.guest.accountTitle', 'A free account adds your Career OS')}</h2>
                     <ul className="mt-3 space-y-3">

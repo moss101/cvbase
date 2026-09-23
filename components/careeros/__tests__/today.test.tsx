@@ -147,11 +147,14 @@ describe('TodaySpace', () => {
         await mount();
         expect(text()).toContain('Good');
         expect(text()).toContain('no goal set');
-        expect(text()).toContain('Nothing is waiting on you');
-        expect(text()).toContain('Insufficient data');
-        expect(text()).toContain('No active campaign');
+        // Layer 1: nothing invented to fill the next step.
+        expect(text()).toContain('You are clear for now');
+        expect(text()).toContain('Nothing is invented to fill this space');
+        // Layer 2: every stage says it is empty rather than showing progress.
+        for (const empty of ['Not set', 'None saved yet', 'None in progress', 'None scheduled', 'None yet']) expect(text()).toContain(empty);
+        // Layer 4: the rail is honest too.
         expect(text()).toContain('No activity yet');
-        expect(text()).toContain('No submitted applications yet');
+        expect(text()).toContain('Nothing dated');
         expect(text()).not.toMatch(/\d+%/);
         expect(text()).not.toContain('This space is being built');
     });
@@ -190,12 +193,14 @@ describe('TodaySpace', () => {
         vi.mocked(factRepo.list).mockResolvedValue([fact({ id: 'f1', reviewState: 'candidate', confirmationState: 'inferred' }), fact({ id: 'f2' })]);
         await mount();
         expect(text()).toContain('primary goal: Senior nurse role');
-        expect(text()).toContain('1 confirmed · 1 to review');
+        // The progress strip decomposes: facts confirmed of total, and the blocker.
+        expect(text()).toContain('1 of 2 facts confirmed');
+        expect(text()).toContain('Facts to review: 1');
         expect(text()).toContain('Senior nurse role');
-        expect(text()).not.toContain('Insufficient data');
+        expect(text()).not.toContain('Not set');
     });
 
-    it('keeps the legacy dashboard shortcuts: latest CV, latest ATS score, Smart Studio, templates and plan', async () => {
+    it('shows the CV in use with its ATS signal, and opens it in the Builder or the CV workspace', async () => {
         vi.mocked(factRepo.list).mockResolvedValue([fact({ id: 'f1' })]);
         vi.mocked(resumeRepo.list).mockResolvedValue([
             { id: 'r1', title: 'Older CV', updatedAt: '2026-09-01T00:00:00.000Z' },
@@ -203,27 +208,20 @@ describe('TodaySpace', () => {
         ] as never);
         vi.mocked(atsReportRepo.listRecent).mockResolvedValue([{ id: 'rep1', resumeId: 'r2', jobDescription: null, score: 82, createdAt: '2026-09-16T00:00:00.000Z' }]);
         await mount();
-        expect(text()).toContain('Documents & tools');
+        expect(text()).toContain('In progress');
         expect(text()).toContain('Newest CV');
         expect(text()).toContain('Score 82/100');
-        const row = async (label: string) => {
-            const button = buttons().find((b) => (b.textContent ?? '').startsWith(label));
-            if (!button) throw new Error(`no row "${label}"`);
-            await act(async () => { button.click(); });
-        };
-        await row('Recent document');
+        await click('Open in Builder');
         expect(navigate).toHaveBeenCalledWith(expect.objectContaining({ space: 'library', sub: 'cvs', id: 'r2', section: 'edit' }));
-        await row('Smart Studio');
-        expect(navigate).toHaveBeenCalledWith(expect.objectContaining({ space: 'library', sub: 'studio' }));
-        await row('Current plan');
-        expect(navigate).toHaveBeenCalledWith({ view: 'pricing' });
+        await click('All CVs');
+        expect(navigate).toHaveBeenCalledWith(expect.objectContaining({ space: 'library', sub: 'cvs' }));
     });
 
     it('sends an empty new account into onboarding, but never an account with history', async () => {
         careerOs.profile = profile({});
         await mount();
         expect(text()).toContain('What brings you here?');
-        expect(text()).not.toContain('Next actions');
+        expect(text()).not.toContain('In progress');
         await act(async () => { root.unmount(); });
 
         container = document.createElement('div');
@@ -233,9 +231,12 @@ describe('TodaySpace', () => {
         vi.mocked(applicationRepo.list).mockResolvedValue([application({ id: 'a9' })]);
         await mount();
         expect(text()).not.toContain('What brings you here?');
-        expect(text()).toContain('Next actions');
+        expect(text()).toContain('In progress');
+        // Existing users get a compact notice with the detail on demand.
         expect(text()).toContain('Your account is now a Career OS');
         expect(text()).toContain('1 CVs');
+        await click('What moved where');
+        expect(text()).toContain('Nothing was rewritten');
     });
 
     it('offers to claim an anonymous draft only when one exists on the device', async () => {

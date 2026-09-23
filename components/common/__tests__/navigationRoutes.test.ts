@@ -200,7 +200,10 @@ describe('career routes', () => {
         });
         expect(pathToRoute('/app/library/documents/d-1')).toEqual({ view: 'career', space: 'library', sub: 'documents', id: 'd-1' });
         // A missing id never opens another resume: the shape has to be exact.
-        expect(pathToRoute('/app/library/cvs')).toEqual(NOT_FOUND);
+        // The CV Builder workspace home (every CV, templates, CV tools); round-trips to the same URL.
+        expect(pathToRoute('/app/library/cvs')).toEqual({ view: 'career', space: 'library', sub: 'cvs' });
+        expect(routeToPath(careerPath.toCvWorkspace())).toBe('/app/library/cvs');
+        expect(routeToPath(careerPath.toNewCv())).toBe('/app/library/cvs/new');
         expect(pathToRoute('/app/library/cvs/r-1')).toEqual(NOT_FOUND);
         expect(pathToRoute('/app/library/cvs/r-1/view')).toEqual(NOT_FOUND);
         expect(pathToRoute('/app/library/documents')).toEqual(NOT_FOUND);
@@ -387,7 +390,7 @@ describe('career routes', () => {
         expect(isCareerRoute({ view: 'career', space: 'today' })).toBe(true);
         expect(isCareerRoute({ view: 'dashboard' })).toBe(false);
         expect(routeToPath(LEGACY_TO_CAREER.dashboard)).toBe('/app/today');
-        expect(routeToPath(LEGACY_TO_CAREER.resumes)).toBe('/app/library?type=cv');
+        expect(routeToPath(LEGACY_TO_CAREER.resumes)).toBe('/app/library/cvs');
         expect(routeToPath(LEGACY_TO_CAREER.templates)).toBe('/app/library/templates');
         expect(routeToPath(LEGACY_TO_CAREER.profile)).toBe('/app/career/profile');
         expect(routeToPath(LEGACY_TO_CAREER['smart-studio'])).toBe('/app/library/studio');

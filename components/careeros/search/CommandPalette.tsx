@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { ArrowRight, Search } from 'lucide-react';
+import { ArrowRight, MessageCircle, Search } from 'lucide-react';
 import { useTranslation } from '../../../services/translationService';
 import { careerPath, useNavigation, type Route } from '../../NavigationProvider';
 import Dialog from '../../common/Dialog';
 import { Button, Skeleton, StatePanel } from '../primitives';
 import { useCareerOs } from '../shell/CareerOsProvider';
 import { useOnline } from '../career/useOnline';
+import { handOffToCoach } from '../coach/coachHandoff';
 import {
     GROUP_CAP, MAX_QUERY, MIN_QUERY, normaliseQuery, rememberSearchQuery, useCommandSearch, type SearchGroup, type SearchResult,
 } from './useCommandPalette';
@@ -67,13 +68,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose, i
     useEffect(() => { if (open) setQuery(initialQuery); }, [open, initialQuery]);
     useEffect(() => { setActive(0); }, [search.answered]);
 
-    const flat = useMemo(() => search.groups.flatMap((g) => g.items), [search.groups]);
     const q = normaliseQuery(query);
+    // Ask CVbase: anything typed can go to the Coach as a question, first in the
+    // list, prefilled but never sent for the person.
+    const askItem = useMemo<SearchResult | null>(() => (!inline && q.length >= MIN_QUERY
+        ? { id: 'ask-coach', group: 'conversations', title: t('careeros.ask.coachItem', 'Ask the Coach: “{q}”').replace('{q}', q), subtitle: t('careeros.ask.coachHint', 'Opens a conversation with your question ready to send'), route: careerPath.toCoach() }
+        : null), [inline, q, t]);
+    const flat = useMemo(() => [...(askItem ? [askItem] : []), ...search.groups.flatMap((g) => g.items)], [askItem, search.groups]);
 
-    const openResult = useCallback((route: Route) => {
+    const openResult = useCallback((route: Route, item?: SearchResult) => {
+        if (item?.id === 'ask-coach') handOffToCoach(q);
         onClose();
         navigate(route);
-    }, [onClose, navigate]);
+    }, [onClose, navigate, q]);
 
     const showMore = useCallback(() => {
         rememberSearchQuery(q);
@@ -84,7 +91,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose, i
     const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'ArrowDown') { e.preventDefault(); setActive((i) => (flat.length === 0 ? 0 : (i + 1) % flat.length)); }
         else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((i) => (flat.length === 0 ? 0 : (i - 1 + flat.length) % flat.length)); }
-        else if (e.key === 'Enter') { e.preventDefault(); const hit = flat[active]; if (hit) openResult(hit.route); }
+        else if (e.key === 'Enter') { e.preventDefault(); const hit = flat[active]; if (hit) openResult(hit.route, hit); }
         else if (e.key === 'Escape' && inline) { setQuery(''); }
         else if (e.key === 'Home' && flat.length > 0) { e.preventDefault(); setActive(0); }
         else if (e.key === 'End' && flat.length > 0) { e.preventDefault(); setActive(flat.length - 1); }
@@ -113,7 +120,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose, i
                     maxLength={MAX_QUERY}
                     onChange={(e) => setQuery(e.target.value.slice(0, MAX_QUERY))}
                     onKeyDown={onKeyDown}
-                    placeholder={t('careeros.search.placeholder', 'Search your career, or type a space name…')}
+                    placeholder={inline ? t('careeros.search.placeholder', 'Search your career, or type a space name…') : t('careeros.ask.placeholder', 'Ask CVbase or search…')}
                     className="tap-target w-full rounded-xl border border-border-strong bg-surface-panel py-2.5 pl-9 pr-3 text-[15px] text-content-primary placeholder:text-content-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                 />
             </div>
@@ -139,9 +146,30 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose, i
                     <StatePanel kind="empty" compact title={t('careeros.search.noResults', 'No matches in your account')} description={t('careeros.search.noResultsDescription', 'Try a company, a role, a space name or a fact title.')} />
                 ) : (
                     <ul id={listId} role="listbox" aria-label={t('careeros.search.results', 'Search results')} className="space-y-3">
+                        {askItem && (
+                            <li role="presentation">
+                                <ul role="group" aria-label={t('careeros.ask.group', 'Ask')}>
+                                    <li id={`${listId}-${askItem.id}`} role="option" aria-selected={active === 0} onMouseEnter={() => setActive(0)}>
+                                        <button
+                                            type="button"
+                                            tabIndex={-1}
+                                            onClick={() => openResult(askItem.route, askItem)}
+                                            className={`tap-target flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors ${active === 0 ? 'bg-action-primary/10 text-content-primary ring-1 ring-action-primary/40' : 'text-content-primary hover:bg-surface-canvas'}`}
+                                        >
+                                            <MessageCircle size={16} strokeWidth={1.9} className="shrink-0 text-action-primary" aria-hidden="true" />
+                                            <span className="min-w-0 flex-1">
+                                                <span className="block truncate text-sm font-semibold">{askItem.title}</span>
+                                                <span className="block truncate text-xs text-content-secondary">{askItem.subtitle}</span>
+                                            </span>
+                                            <ArrowRight size={14} strokeWidth={2} className="shrink-0 text-content-muted" aria-hidden="true" />
+                                        </button>
+                                    </li>
+                                </ul>
+                            </li>
+                        )}
                         {search.groups.map((group) => (
                             <li key={group.group} role="presentation">
-                                <p className="mb-1 px-1 font-label text-[10px] uppercase tracking-[0.14em] text-content-muted">
+                                <p className="mb-1 px-1 text-[12px] font-semibold text-content-muted">
                                     {t(GROUP_LABEL[group.group][0], GROUP_LABEL[group.group][1])}
                                     {group.failed && <span className="ml-2 normal-case tracking-normal text-status-warning">{t('careeros.search.groupFailed', '(could not be searched)')}</span>}
                                 </p>
@@ -160,7 +188,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose, i
                                                 <button
                                                     type="button"
                                                     tabIndex={-1}
-                                                    onClick={() => openResult(item.route)}
+                                                    onClick={() => openResult(item.route, item)}
                                                     className={`tap-target flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition-colors ${selected ? 'bg-action-primary/10 text-content-primary ring-1 ring-action-primary/40' : 'text-content-primary hover:bg-surface-canvas'}`}
                                                 >
                                                     <span className="min-w-0">
@@ -191,7 +219,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose, i
 
     if (inline) return body;
     return (
-        <Dialog open={open} onClose={onClose} title={t('careeros.search.title', 'Search')} panelClassName="max-w-xl max-h-[85vh]" bodyClassName="flex min-h-0 flex-col" initialFocusRef={inputRef}>
+        <Dialog open={open} onClose={onClose} title={t('careeros.ask.title', 'Ask CVbase')} panelClassName="max-w-xl max-h-[85vh]" bodyClassName="flex min-h-0 flex-col" initialFocusRef={inputRef}>
             {body}
         </Dialog>
     );

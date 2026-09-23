@@ -280,7 +280,7 @@ function careerPathname(route: CareerRoute): string {
             if (!sub) return '/app/library';
             if (sub === 'cvs') {
                 if (id) return `/app/library/cvs/${enc(id)}/edit`;
-                return '/app/library/cvs/new';
+                return section === 'new' ? '/app/library/cvs/new' : '/app/library/cvs';
             }
             if (sub === 'documents' && id) return `/app/library/documents/${enc(id)}`;
             return `/app/library/${enc(sub)}`;
@@ -378,6 +378,8 @@ function parseCareerPath(segments: string[], search: string): CareerRoute {
                 return third === undefined ? done({ view: 'career', space, sub: second }) : NOT_FOUND;
             }
             if (second === 'cvs') {
+                // The CV Builder workspace home: every CV, new, templates and the CV tools.
+                if (third === undefined) return done({ view: 'career', space, sub: 'cvs' });
                 if (third === 'new' && fourth === undefined) {
                     return done({ view: 'career', space, sub: 'cvs', section: 'new' });
                 }
@@ -484,6 +486,8 @@ export const careerPath = {
     toLibraryTool: (tool: (typeof LIBRARY_TOOLS)[number]): CareerRoute => career({ space: 'library', sub: tool }),
     toStudio: (tool?: StudioTool): CareerRoute => career(tool ? { space: 'library', sub: 'studio', query: { tool } } : { space: 'library', sub: 'studio' }),
     toNewCv: (): CareerRoute => career({ space: 'library', sub: 'cvs', section: 'new' }),
+    /** The CV Builder workspace home (all CVs, new CV, templates, CV tools). */
+    toCvWorkspace: (): CareerRoute => career({ space: 'library', sub: 'cvs' }),
     toCvEdit: (resumeId: string, context?: CareerContextHints): CareerRoute =>
         career(
             context
@@ -502,7 +506,7 @@ export const careerPath = {
  */
 export const LEGACY_TO_CAREER: Record<DashboardTab, CareerRoute> = {
     dashboard: career({ space: 'today' }),
-    resumes: career({ space: 'library', query: { type: 'cv' } }),
+    resumes: career({ space: 'library', sub: 'cvs' }),
     templates: career({ space: 'library', sub: 'templates' }),
     profile: career({ space: 'career', sub: 'profile' }),
     'smart-studio': career({ space: 'library', sub: 'studio' }),

@@ -129,11 +129,14 @@ describe('CommandPalette', () => {
         expect(options.length).toBeGreaterThan(3);
         expect(document.body.textContent).toContain('Opportunities');
         expect(document.body.textContent).toContain('Facts');
+        // Ask CVbase: the typed words can go to the Coach first; results follow.
+        expect(options[0].textContent).toContain('Ask the Coach: “acme”');
         expect(options[0].getAttribute('aria-selected')).toBe('true');
         await key(input, 'ArrowDown');
         expect(document.querySelectorAll('[role="option"]')[1].getAttribute('aria-selected')).toBe('true');
+        await key(input, 'ArrowDown');
         await key(input, 'ArrowUp');
-        expect(document.querySelectorAll('[role="option"]')[0].getAttribute('aria-selected')).toBe('true');
+        expect(document.querySelectorAll('[role="option"]')[1].getAttribute('aria-selected')).toBe('true');
         await key(input, 'Enter');
         expect(onClose).toHaveBeenCalled();
         expect(navigate).toHaveBeenCalledWith(expect.objectContaining({ space: 'applications', id: 'a1' }));
@@ -142,6 +145,18 @@ describe('CommandPalette', () => {
         expect(track).toHaveBeenCalledWith('u1', 'career_search_used', expect.objectContaining({ payload: expect.objectContaining({ groups: expect.any(Number) }) }));
         const payload = vi.mocked(track).mock.calls.find((c) => c[1] === 'career_search_used')?.[2]?.payload ?? {};
         expect(JSON.stringify(payload)).not.toContain('acme');
+    });
+
+    it('Ask the Coach hands the typed question to the Coach without sending it', async () => {
+        const onClose = vi.fn();
+        await mount(<CommandPalette open onClose={onClose} />);
+        const input = document.querySelector('input[role="combobox"]') as HTMLInputElement;
+        setValue(input, 'how do I negotiate');
+        await flush(300);
+        await key(input, 'Enter');
+        expect(onClose).toHaveBeenCalled();
+        expect(navigate).toHaveBeenCalledWith(expect.objectContaining({ space: 'coach' }));
+        expect(sessionStorage.getItem('cvbase:coach-handoff')).toBe('how do I negotiate');
     });
 
     it('drops a stale response when the query changes before it answers', async () => {

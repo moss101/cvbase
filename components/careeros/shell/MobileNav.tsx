@@ -68,7 +68,7 @@ export const MoreSheet: React.FC<MoreSheetProps> = ({ open, onClose, isAdmin, un
             <div className="px-1 pb-2">
                 <Group title={t('careeros.nav.spaces', 'Spaces')} items={[PRIMARY_SPACES[1], PRIMARY_SPACES[5]]} />
                 <Group title={t('careeros.nav.utilities', 'Utilities')} items={UTILITY_SPACES} />
-                <Group title={t('careeros.nav.tools', 'Tools')} items={LEGACY_TOOL_SPACES} />
+                <Group title={t('careeros.nav.workspaces', 'Workspaces')} items={LEGACY_TOOL_SPACES} />
                 <Group title={t('dash.libraryAndAccount', 'Library & account')} items={ACCOUNT_SPACES} />
             </div>
         </BottomSheet>
