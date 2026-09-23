@@ -1,5 +1,14 @@
 import { getSupabase } from '../supabase';
 import { rowToResume, resumeToRow, type StoredResume } from './mappers';
+import { ConflictError, NotFoundError } from '../careerOs/types';
+
+/** What a precondition-checked write returns: the row's new server-owned
+ *  revision/timestamp so the caller can send them with its next write. */
+export interface SavedRevision {
+  id: string;
+  revision: number | null;
+  updatedAt: string | null;
+}
 
 export async function getPrimary(userId: string): Promise<StoredResume | null> {
   const { data, error } = await getSupabase().from('resumes')
@@ -71,11 +80,34 @@ export async function rename(userId: string, id: string, title: string): Promise
   if (error) throw error;
 }
 
-/** Persist edits to a specific resume by id (the multi-resume editor auto-save). */
-export async function saveById(userId: string, id: string, r: Partial<StoredResume>): Promise<void> {
-  const { error } = await getSupabase().from('resumes')
+/**
+ * Persist edits to a specific resume by id (the multi-resume editor auto-save).
+ *
+ * With `expectedRevision` the update is an optimistic-concurrency write: it
+ * only applies when the row still carries that revision. Zero affected rows
+ * then means another device saved first and is surfaced as a `ConflictError`
+ * (the caller stages a conflict instead of overwriting). Without a
+ * precondition, zero rows means the row is gone or not owned by this user —
+ * a `NotFoundError`, never a silent no-op that claims success.
+ */
+export async function saveById(
+  userId: string, id: string, r: Partial<StoredResume>, expectedRevision?: number,
+): Promise<SavedRevision> {
+  let query = getSupabase().from('resumes')
     .update(resumeToRow({ ...r, id: undefined }, userId)).eq('user_id', userId).eq('id', id);
+  if (expectedRevision !== undefined) query = query.eq('revision', expectedRevision);
+  const { data, error } = await query.select('id,revision,updated_at');
   if (error) throw error;
+  const row = (data ?? [])[0] as Record<string, unknown> | undefined;
+  if (!row) {
+    if (expectedRevision !== undefined) throw new ConflictError('resume', id, expectedRevision);
+    throw new NotFoundError('resume', id);
+  }
+  return {
+    id: typeof row.id === 'string' ? row.id : id,
+    revision: typeof row.revision === 'number' ? row.revision : null,
+    updatedAt: typeof row.updated_at === 'string' ? row.updated_at : null,
+  };
 }
 
 export async function remove(userId: string, id: string): Promise<void> {

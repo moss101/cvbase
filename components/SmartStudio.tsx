@@ -26,8 +26,16 @@ import {
   ShieldCheck, Copy, NotebookPen, Plus,
 } from 'lucide-react';
 
+type StudioTab = 'match' | 'linkedin' | 'cover' | 'tracker' | 'trajectory';
+
 interface SmartStudioProps {
   resumeData?: ResumeData | null;
+  /** Tool to open first (Career OS deep links: /app/library/studio?tool=…). */
+  initialTool?: StudioTab;
+  /** Told when the person switches tools, so a host can keep the URL in step. */
+  onToolChange?: (tool: StudioTab) => void;
+  /** Rendered above the Job Pipeline tool (Career OS explains where those records also appear). */
+  trackerNotice?: React.ReactNode;
 }
 
 const SMART_STUDIO_JOBS_KEY = 'smart-studio-jobs-v1';
@@ -79,12 +87,20 @@ const aiErrorCopy = (e: unknown, feature: string, t: Translate): string => {
   return t('smartStudio.error.generic', 'Something went wrong on our side. Please try again.');
 };
 
-export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
+export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData, initialTool, onToolChange, trackerNotice }) => {
   const isMobileShell = useMobileShell();
   const { toast } = useToast();
   const { t } = useTranslation();
   // Navigation tabs of Smart Studio
-  const [activeSubTab, setActiveSubTab] = useState<'match' | 'linkedin' | 'cover' | 'tracker' | 'trajectory'>('match');
+  const [activeSubTab, setActiveSubTabState] = useState<StudioTab>(initialTool ?? 'match');
+  const setActiveSubTab = (tab: StudioTab) => {
+    setActiveSubTabState(tab);
+    onToolChange?.(tab);
+  };
+  // A new deep link (back/forward between tools) re-selects the tool.
+  useEffect(() => {
+    if (initialTool) setActiveSubTabState(initialTool);
+  }, [initialTool]);
 
   // State: Career Trajectory Analysis
   const [trajectoryResult, setTrajectoryResult] = useState<CareerTrajectoryResult | null>(null);
@@ -268,22 +284,41 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
   const [showAddJobModal, setShowAddJobModal] = useState(false);
   const { user } = useAuth();
 
-  // Load the tracker: authenticated users from Postgres (with a one-time import
-  // of any existing localStorage jobs); anonymous users from localStorage as before.
+  const trackerSyncFailedToast = () => toast({
+    variant: 'error',
+    title: t('smartStudio.toast.trackerSyncFailedTitle', 'Job tracker did not sync'),
+    description: t('smartStudio.toast.trackerSyncFailedDesc', 'Your change is kept on this device. It will sync with your next change.'),
+  });
+
+  // Load the tracker: authenticated users from Postgres (retrying any writes
+  // that failed earlier, then a one-time import of the jobs the person created
+  // on this device before signing in); anonymous users from localStorage as before.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       if (user) {
         try {
+          // Writes the cloud rejected last time are retried before reading, so
+          // the list below already reflects them when they go through.
+          const flushed = await trackerRepo.flushPending(user.id);
+          if (cancelled) return;
+          if (flushed.error) console.error('Tracker pending sync failed', flushed.error);
           const cloud = await trackerRepo.list(user.id);
           if (cancelled) return;
-          if (cloud.length > 0) { setJobs(cloud); return; }
+          if (cloud.length > 0 || trackerRepo.readPending(user.id).length > 0) {
+            // Whatever is still queued is shown as intended, not as lost.
+            setJobs(trackerRepo.applyOpsLocally(cloud, trackerRepo.readPending(user.id)));
+            return;
+          }
           const raw = localStorage.getItem(SMART_STUDIO_JOBS_KEY);
           if (raw) {
             const local: JobApplication[] = JSON.parse(raw);
-            const imported = local.map((j) => ({ ...j, id: crypto.randomUUID() }));
-            await Promise.all(imported.map((j) => trackerRepo.upsert(user.id, j)));
-            if (!cancelled) setJobs(imported);
+            // Sample cards are never imported; the local id → cloud id map makes
+            // a repeated import (reload, partial failure) idempotent.
+            const result = await trackerRepo.importLocalJobs(user.id, local);
+            if (cancelled) return;
+            setJobs(result.imported);
+            if (result.error) { console.error('Tracker import failed', result.error); trackerSyncFailedToast(); }
           } else if (!cancelled) {
             setJobs([]);
           }
@@ -303,23 +338,21 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // Persist a full jobs array. Authenticated: reconcile Postgres (upsert all,
-  // delete removed). Anonymous: localStorage as before.
+  // Persist a full jobs array. Authenticated: only the records that changed
+  // (added / edited / removed vs. the previous array) are written, one at a
+  // time; whatever the cloud rejects is queued under this user and retried on
+  // the next load or the next save. Anonymous: localStorage as before.
   const saveJobs = (updatedJobs: JobApplication[]) => {
     const prev = jobs;
     setJobs(updatedJobs);
     if (user) {
-      const nextIds = new Set(updatedJobs.map((j) => j.id));
-      Promise.all([
-        ...updatedJobs.map((j) => trackerRepo.upsert(user.id, j)),
-        ...prev.filter((j) => !nextIds.has(j.id)).map((j) => trackerRepo.remove(user.id, j.id)),
-      ]).catch((e) => {
+      trackerRepo.syncJobs(user.id, prev, updatedJobs).then(({ failed, error }) => {
+        if (failed.length === 0) return;
+        console.error('Tracker cloud sync failed', error);
+        trackerSyncFailedToast();
+      }).catch((e) => {
         console.error('Tracker cloud sync failed', e);
-        toast({
-          variant: 'error',
-          title: t('smartStudio.toast.trackerSyncFailedTitle', 'Job tracker did not sync'),
-          description: t('smartStudio.toast.trackerSyncFailedDesc', 'Your change is kept on this device. It will sync with your next change.'),
-        });
+        trackerSyncFailedToast();
       });
     } else {
       localStorage.setItem(SMART_STUDIO_JOBS_KEY, JSON.stringify(updatedJobs));
@@ -1148,6 +1181,7 @@ export const SmartStudio: React.FC<SmartStudioProps> = ({ resumeData }) => {
       {/* SUBTAB CONTENT 4: PIPELINE WORKSPACE (Trello Replica) */}
       {activeSubTab === 'tracker' && (
         <div className="space-y-6">
+          {trackerNotice}
           <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
             <div>
               <h3 className="font-bold text-slate-900 text-base">{t('smartStudio.tracker.title', 'FORTUNE 50 JOB PIPELINE')}</h3>

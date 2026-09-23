@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# psql shim: runs psql inside the local Supabase database container; any
+# postgresql:// URL argument is rewritten to the in-container port.
+args=()
+for a in "$@"; do
+  case "$a" in
+    postgresql://*) args+=("postgresql://postgres:postgres@127.0.0.1:5432/postgres") ;;
+    *) args+=("$a") ;;
+  esac
+done
+exec docker exec -i supabase_db_cvbase_ psql "${args[@]}"

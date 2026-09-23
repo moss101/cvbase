@@ -10,7 +10,8 @@ import { TranslationProvider } from './services/translationService';
 import { AuthProvider, useAuth } from './components/AuthProvider';
 import { SubscriptionProvider, useSubscription } from './components/SubscriptionProvider';
 import { ThemeProvider } from './components/ThemeProvider';
-import { NavigationProvider, useNavigation, type Route } from './components/NavigationProvider';
+import { LEGACY_TO_CAREER, NavigationProvider, legacyTabForSpace, useNavigation, type Route } from './components/NavigationProvider';
+import { useCareerOsEnabled } from './services/careerOs/flags';
 import { ToastProvider } from './components/common/Toast';
 import { ErrorBoundary, ScreenErrorFallback } from './components/common/ErrorBoundary';
 import { setUser as setMonitoringUser } from './lib/monitoring';
@@ -25,6 +26,9 @@ const ResourcesPage = lazy(() => import('./components/ResourcesPage'));
 const PricingPage = lazy(() => import('./components/billing/PricingPage'));
 const LegalPage = lazy(() => import('./components/LegalPage'));
 const AuthGate = lazy(() => import('./components/AuthGate'));
+// The Career OS shell is gated behind a feature flag, so its chunk is only
+// fetched for accounts that will actually see it.
+const CareerShell = lazy(() => import('./components/careeros/CareerShell'));
 // The headless preview (?mode=preview) pulls in every template; the landing
 // page must not pay for that.
 const HeadlessPreview = lazy(() => import('./components/HeadlessPreview'));
@@ -41,7 +45,7 @@ function AppContent() {
     const { route, direction, navigate, replace, reset, back } = useNavigation();
     const [previewMode, setPreviewMode] = useState<{template: TemplateId} | null>(null);
     const { startCheckout } = useSubscription();
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
 
     // Error reports carry the account id (never email) so one person's crash
@@ -50,6 +54,23 @@ function AppContent() {
     useEffect(() => {
         setMonitoringUser(userId);
     }, [userId]);
+
+    // Career OS rollout gate. Fails closed: until the flag is known to be on,
+    // a /app/... link opens the legacy dashboard rather than a missing screen.
+    // While the session is still being restored the answer is held (null), so
+    // a signed-in person never sees the guest version flash first.
+    const flagAnswer = useCareerOsEnabled(userId);
+    const careerOsEnabled = authLoading ? null : flagAnswer;
+
+    // Enabled cohort: legacy dashboard entry points continue into their
+    // canonical Career OS destinations (IA ledger REDIRECT/MOVE/MERGE rows),
+    // with `replace` so back still leaves the app the way it did. Smart Studio
+    // opens unchanged as a Library tool (/app/library/studio).
+    useEffect(() => {
+        if (!careerOsEnabled || route.view !== 'dashboard') return;
+        const tab = route.dashboardTab ?? 'dashboard';
+        replace(LEGACY_TO_CAREER[tab]);
+    }, [careerOsEnabled, route, replace]);
 
     /**
      * In the packaged apps every call to action routes through sign-in first;
@@ -139,6 +160,8 @@ function AppContent() {
             case 'auth':
                 return <AuthGate onBack={goBackTo(() => reset({ view: 'landing' }))} />;
             case 'dashboard':
+                // Undecided or redirecting to Career OS: a loader, not a flash of the old dashboard.
+                if (careerOsEnabled !== false) return <RouteLoader />;
                 return (
                     <Dashboard
                         onCreateNew={handleCreateNew}
@@ -174,6 +197,28 @@ function AppContent() {
                         initialTab={route.legalTab ?? 'privacy'}
                     />
                 );
+            case 'career': {
+                // Flag still resolving: hold the spinner rather than mounting
+                // the dashboard only to swap it out a moment later.
+                if (careerOsEnabled === null) return <RouteLoader />;
+                // Disabled destinations retain the legacy fallback: the nearest
+                // dashboard tab opens under the same URL, nothing redirects.
+                if (!careerOsEnabled) {
+                    return (
+                        <Dashboard
+                            onCreateNew={handleCreateNew}
+                            onEditExisting={handleEditExisting}
+                            onEditResume={handleEditResume}
+                            onBackToLanding={goBackTo(() => reset({ view: 'landing' }))}
+                            onViewResources={navigateToResources}
+                            onViewPricing={navigateToPricing}
+                            onViewLegal={navigateToLegal}
+                            initialTab={legacyTabForSpace(route.space)}
+                        />
+                    );
+                }
+                return <CareerShell route={route} />;
+            }
             case 'builder':
             default:
                 return (
@@ -188,13 +233,20 @@ function AppContent() {
     // Keying on the route restarts the enter animation on each navigation, and
     // the direction class makes going back read as going back. The dashboard
     // tab is deliberately not part of the key: switching tabs updates the URL
-    // in place and must not remount the dashboard.
-    const transitionKey = `${route.view}:${route.resumeId ?? ''}:${route.legalTab ?? ''}`;
+    // in place and must not remount the dashboard. Likewise a career subview
+    // is a segment of one screen, but a different subject (id) or application
+    // section is a new screen.
+    const transitionKey =
+        route.view === 'career'
+            ? `career:${route.space}:${route.id ?? ''}:${route.section ?? ''}`
+            : `${route.view}:${route.resumeId ?? ''}:${route.legalTab ?? ''}`;
 
-    // Where a broken screen can escape to. The builder returns to the
-    // dashboard; everything else returns home.
+    // Where a broken screen can escape to. The builder and the career shell
+    // return to the dashboard; everything else returns home.
     const escapeRoute: Route =
-        route.view === 'builder' ? { view: 'dashboard', dashboardTab: 'dashboard' } : { view: 'landing' };
+        route.view === 'builder' || route.view === 'career'
+            ? { view: 'dashboard', dashboardTab: 'dashboard' }
+            : { view: 'landing' };
 
     return (
         <div className="min-h-screen bg-light font-sans text-dark">
@@ -209,7 +261,7 @@ function AppContent() {
                             {...props}
                             hint="Try again, or head back and open it afresh."
                             secondaryAction={{
-                                label: route.view === 'builder' ? 'Back to dashboard' : 'Back to home',
+                                label: escapeRoute.view === 'dashboard' ? 'Back to dashboard' : 'Back to home',
                                 onClick: () => reset(escapeRoute),
                             }}
                         />
@@ -225,8 +277,9 @@ function AppContent() {
 function App() {
     return (
         <ThemeProvider>
-            <ToastProvider>
-                <TranslationProvider>
+            {/* Translation wraps the toast viewport: toast items read labels via useTranslation. */}
+            <TranslationProvider>
+                <ToastProvider>
                     <AuthProvider>
                         <SubscriptionProvider>
                             <NavigationProvider>
@@ -234,8 +287,8 @@ function App() {
                             </NavigationProvider>
                         </SubscriptionProvider>
                     </AuthProvider>
-                </TranslationProvider>
-            </ToastProvider>
+                </ToastProvider>
+            </TranslationProvider>
         </ThemeProvider>
     );
 }

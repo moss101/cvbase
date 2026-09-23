@@ -1,0 +1,195 @@
+/*
+ * Career OS shell. The classic dashboard's identity — ink sidebar with a faint
+ * emerald glow, Instrument Sans for the interface, Fraunces for the wordmark
+ * and one greeting, emerald #047857 as the only accent — re-set as a calm
+ * desktop app: one sidebar that collapses to a rail, one top bar with the
+ * persistent career context, hairlines instead of shadows.
+ */
+
+/* ---- sidebar (dark in both themes) ------------------------------------ */
+.cos-sidebar {
+  position: relative;
+  width: 248px;
+  color: #cbd5e1;
+  background:
+    radial-gradient(130% 55% at 0% 0%, rgba(4, 120, 87, 0.2), transparent 60%),
+    #0f172a;
+  border-right: 1px solid rgba(226, 232, 240, 0.08);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.cos-sidebar.is-rail { width: 64px; }
+.cos-sidebar :focus-visible { outline: 2px solid #34d399; outline-offset: 2px; }
+
+.cos-sidebar-head {
+  display: flex;
+  height: 60px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px 0 14px;
+}
+.cos-sidebar.is-rail .cos-sidebar-head { justify-content: center; padding: 0; }
+.cos-wordmark { display: flex; align-items: center; gap: 10px; border-radius: 10px; padding: 4px 4px 4px 0; }
+.cos-wordmark-mark {
+  display: grid; width: 30px; height: 30px; place-items: center;
+  border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.07);
+  font-family: Fraunces, Georgia, serif; font-size: 13px; font-weight: 600; color: #f8fafc;
+}
+.cos-wordmark-name { font-family: Fraunces, Georgia, serif; font-size: 19px; line-height: 1; letter-spacing: -0.03em; color: #f8fafc; }
+
+.cos-icon-btn {
+  display: grid; width: 32px; height: 32px; place-items: center;
+  border-radius: 8px; color: #94a3b8;
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+.cos-icon-btn:hover { background: rgba(255, 255, 255, 0.07); color: #e2e8f0; }
+
+.cos-ask {
+  display: flex; width: 100%; height: 38px; align-items: center; gap: 10px;
+  padding: 0 8px 0 11px; border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.055);
+  font-size: 13px; color: #94a3b8;
+  transition: background-color 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+}
+.cos-ask:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.14); color: #e2e8f0; }
+.cos-sidebar.is-rail .cos-ask { width: 40px; margin: 0 auto; justify-content: center; padding: 0; }
+.cos-kbd {
+  border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 5px; padding: 2px 6px;
+  font: 500 11px/1.2 "Instrument Sans", system-ui, sans-serif; color: #94a3b8;
+}
+
+.cos-sidebar-nav { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 10px 10px; }
+.cos-nav-group { margin: 20px 10px 6px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.01em; color: #64748b; }
+.cos-rail-rule { height: 1px; margin: 12px 14px; background: rgba(255, 255, 255, 0.08); }
+
+.cos-nav-item {
+  position: relative; display: flex; width: 100%; min-height: 36px; align-items: center; gap: 11px;
+  padding: 0 10px; border-radius: 9px;
+  font-size: 13.5px; font-weight: 500; color: #cbd5e1; text-align: left;
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+.cos-nav-item > svg { flex-shrink: 0; color: #94a3b8; transition: color 150ms ease-out; }
+.cos-nav-item:hover { background: rgba(255, 255, 255, 0.06); color: #f8fafc; }
+.cos-nav-item:hover > svg { color: #e2e8f0; }
+.cos-nav-item.is-active { background: rgba(255, 255, 255, 0.1); color: #fff; font-weight: 600; }
+.cos-nav-item.is-active > svg { color: #34d399; }
+.cos-sidebar.is-rail .cos-nav-item { width: 40px; margin: 0 auto; justify-content: center; padding: 0; }
+.cos-nav-badge {
+  margin-left: auto; display: inline-grid; min-width: 19px; height: 19px; place-items: center;
+  padding: 0 5px; border-radius: 999px; background: #f1f5f9; color: #0f172a;
+  font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.cos-sidebar.is-rail .cos-nav-badge { position: absolute; top: 1px; right: -3px; min-width: 17px; height: 17px; font-size: 10px; }
+
+.cos-sidebar-foot { flex-shrink: 0; padding: 10px; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+.cos-account {
+  display: flex; width: 100%; align-items: center; gap: 10px;
+  padding: 7px 8px; border-radius: 10px;
+  transition: background-color 150ms ease-out;
+}
+.cos-account:hover, .cos-account[aria-expanded="true"] { background: rgba(255, 255, 255, 0.06); }
+.cos-account.is-rail { width: 44px; margin: 0 auto; justify-content: center; padding: 6px; }
+.cos-avatar {
+  display: grid; width: 30px; height: 30px; flex-shrink: 0; place-items: center;
+  border-radius: 8px; background: #047857; color: #ecfdf5; font-size: 13px; font-weight: 600;
+}
+.cos-upgrade {
+  margin-top: 6px; width: 100%; height: 32px; border-radius: 8px;
+  border: 1px solid rgba(52, 211, 153, 0.32); color: #a7f3d0;
+  font-size: 12.5px; font-weight: 600;
+  transition: background-color 150ms ease-out;
+}
+.cos-upgrade:hover { background: rgba(52, 211, 153, 0.1); }
+.cos-signin {
+  display: flex; width: 100%; height: 38px; margin-top: 8px; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 10px; background: #f8fafc; color: #0f172a; font-size: 13px; font-weight: 600;
+}
+.cos-signin.is-rail { width: 40px; margin: 8px auto 0; }
+
+.cos-menu {
+  position: absolute; bottom: calc(100% + 6px); z-index: 60; padding: 6px;
+  border-radius: 12px; border: 1px solid rgb(var(--cb-sem-border-default));
+  background: rgb(var(--cb-sem-surface-elevated));
+  box-shadow: 0 16px 36px -12px rgba(15, 23, 42, 0.4);
+}
+.cos-menu-item {
+  display: flex; width: 100%; height: 36px; align-items: center; gap: 10px; padding: 0 10px;
+  border-radius: 8px; font-size: 13.5px; color: rgb(var(--ct-sem-text-primary)); text-align: left;
+}
+.cos-menu-item > svg { color: rgb(var(--ct-sem-text-muted)); }
+.cos-menu-item:hover, .cos-menu-item:focus-visible { background: rgb(var(--cb-sem-surface-canvas)); outline: none; }
+.cos-menu-item.is-danger, .cos-menu-item.is-danger > svg { color: rgb(var(--ct-sem-status-danger)); }
+
+/* ---- main column -------------------------------------------------------- */
+.cos-main {
+  display: flex; min-width: 0; flex: 1; flex-direction: column;
+  background: rgb(var(--cb-sem-surface-canvas));
+  color: rgb(var(--ct-sem-text-primary));
+  font-family: "Instrument Sans", system-ui, sans-serif;
+}
+.cos-topbar {
+  display: flex; height: 56px; flex-shrink: 0; align-items: center; gap: 16px;
+  padding: 0 24px; border-bottom: 1px solid rgb(var(--cb-sem-border-default));
+  background: rgb(var(--cb-sem-surface-panel));
+}
+.cos-crumb { font-size: 13.5px; color: rgb(var(--ct-sem-text-secondary)); white-space: nowrap; }
+.cos-crumb-current { font-size: 13.5px; font-weight: 600; color: rgb(var(--ct-sem-text-primary)); }
+.cos-chip {
+  display: inline-flex; max-width: 15rem; height: 28px; align-items: center; gap: 6px;
+  padding: 0 10px; border-radius: 999px; border: 1px solid rgb(var(--cb-sem-border-default));
+  background: rgb(var(--cb-sem-surface-canvas));
+  font-size: 12.5px; color: rgb(var(--ct-sem-text-secondary));
+  transition: border-color 150ms ease-out, color 150ms ease-out;
+}
+.cos-chip:hover { border-color: rgb(var(--cb-sem-border-strong)); color: rgb(var(--ct-sem-text-primary)); }
+.cos-chip > svg { flex-shrink: 0; color: rgb(var(--ct-sem-text-muted)); }
+.cos-topbar-btn {
+  display: inline-flex; height: 34px; align-items: center; gap: 8px; padding: 0 10px;
+  border-radius: 9px; border: 1px solid rgb(var(--cb-sem-border-default));
+  font-size: 13px; color: rgb(var(--ct-sem-text-secondary));
+  transition: border-color 150ms ease-out, color 150ms ease-out, background-color 150ms ease-out;
+}
+.cos-topbar-btn:hover { border-color: rgb(var(--cb-sem-border-strong)); color: rgb(var(--ct-sem-text-primary)); }
+.cos-topbar-btn .cos-kbd-light {
+  border: 1px solid rgb(var(--cb-sem-border-default)); border-radius: 5px; padding: 1px 5px;
+  font-size: 11px; color: rgb(var(--ct-sem-text-muted));
+}
+.cos-main :focus-visible { outline: 2px solid rgb(var(--cb-sem-focus-ring)); outline-offset: 2px; }
+.cos-main ::selection { background: rgba(4, 120, 87, 0.18); }
+.cos-scroll { scrollbar-width: thin; scrollbar-color: rgb(var(--cb-sem-border-strong)) transparent; }
+
+/* ---- shared surfaces ---------------------------------------------------- */
+.cos-panel { border: 1px solid rgb(var(--cb-sem-border-default)); border-radius: 16px; background: rgb(var(--cb-sem-surface-panel)); }
+.cos-num { font-variant-numeric: tabular-nums; }
+.cos-greeting { font-family: Fraunces, Georgia, serif; font-weight: 500; letter-spacing: -0.03em; line-height: 1.05; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cos-nav-item, .cos-ask, .cos-account, .cos-chip, .cos-topbar-btn { transition: none; }
+}
+
+/* A menu that opens below its trigger (row "More" menus). */
+.cos-menu.is-below { top: calc(100% + 6px); bottom: auto; right: 0; min-width: 12rem; }
+
+/* ── Lists: one panel, divided rows ──────────────────────────────────────
+   A list of records is one surface. Cards placed inside `.cos-list` shed
+   their own frame and become rows separated by hairlines (no card-on-card). */
+.cos-list {
+  overflow: hidden;
+  border: 1px solid rgb(var(--cb-sem-border-default));
+  border-radius: 16px;
+  background: rgb(var(--cb-sem-surface-panel));
+}
+.cos-list > li + li { border-top: 1px solid rgb(var(--cb-sem-border-default)); }
+.cos-list > li > .cos-entity {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 20px 24px;
+}
+@media (max-width: 639px) {
+  .cos-list > li > .cos-entity { padding: 16px; }
+}

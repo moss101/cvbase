@@ -1,0 +1,34 @@
+sequenceDiagram
+  actor User
+  participant UI as Application or Coach
+  participant Gateway as Action gateway
+  participant DB as Owned context and receipts
+  participant PRISM as Existing PRISM workflow
+  participant Views as Today and Library
+  User->>UI: Tailor CV for this application
+  UI->>Gateway: Typed action and context revisions
+  Gateway->>DB: Validate owner, revisions, entitlement, idempotency
+  alt Existing result or in-progress run
+    DB-->>Gateway: Same run or durable result
+    Gateway-->>UI: Resume or open existing artifact
+  else New valid request
+    Gateway->>DB: Persist run and reserve documented usage
+    Gateway->>PRISM: Analyze with owned source snapshot
+    PRISM-->>UI: Actual stage and clarification questions
+    User->>UI: Confirm missing facts or decline assertion
+    UI->>Gateway: Reviewed answers bound to input revision
+    Gateway->>PRISM: Generate and review
+    PRISM->>DB: Persist checkpoints and draft result
+    alt Checkpoint or artifact persistence fails
+      Gateway->>DB: Record recoverable failure
+      Gateway-->>UI: Retry or resume with same identity
+    else Draft ready
+      PRISM-->>UI: Draft, evidence gaps and actual result
+      User->>UI: Review and accept artifact
+      Gateway->>DB: Persist CV link and durable result receipt
+      Gateway->>PRISM: Finalize existing run
+      Gateway->>DB: Reconcile usage and emit domain event
+      DB-->>Views: Invalidate projections and update action
+      Gateway-->>UI: Completed with owned artifact link
+    end
+  end

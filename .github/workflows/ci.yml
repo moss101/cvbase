@@ -72,12 +72,20 @@ jobs:
       # (webhook dedupe/ordering/user resolution, checkout shaping, prompts).
       - name: Deno test (billing + ai-suggest)
         run: deno test --allow-env --node-modules-dir=none supabase/functions/stripe-webhook/ supabase/functions/stripe-checkout/ supabase/functions/ai-suggest/
+      # Career OS functions (typed action gateway, Coach, interview practice):
+      # typechecked, then unit-tested against in-memory fakes with no network.
+      - name: Deno check (Career OS functions)
+        run: deno check --node-modules-dir=none supabase/functions/career-gateway/index.ts supabase/functions/career-coach/index.ts supabase/functions/ai-interview/index.ts
+      - name: Deno test (Career OS functions)
+        run: deno test --allow-env --node-modules-dir=none supabase/functions/career-gateway/ supabase/functions/career-coach/ supabase/functions/ai-interview/
       # PRISM pipeline tests drive the real LangGraph with a scripted model.
       # --node-modules-dir=none: resolve npm: specifiers from Deno's own cache
       # (the repo package.json would otherwise switch Deno into byonm mode),
       # matching how the Supabase edge runtime resolves them in production.
+      # --allow-env: handler_test.ts imports _shared/auth.ts, which reads
+      # SUPABASE_URL at module scope (same reason as the steps above).
       - name: Deno test (PRISM pipeline)
-        run: deno test --node-modules-dir=none supabase/functions/prism-tailor/
+        run: deno test --allow-env --node-modules-dir=none supabase/functions/prism-tailor/
       # Live golden suite: 10 CV/JD pairs + adversarial cases against the real
       # routed model (DeepSeek V4 Pro primary, Kimi K2.6 fallback). Runs only
       # when the DEEPSEEK_API_KEYS secret is configured (skipped on forks);

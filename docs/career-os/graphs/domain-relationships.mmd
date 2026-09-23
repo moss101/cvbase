@@ -1,0 +1,20 @@
+erDiagram
+  USER ||--|| CAREER : owns
+  CAREER ||--o{ CAREER_FACT : contains
+  CAREER_FACT }o--o{ EVIDENCE : supported_by
+  CAREER ||--o{ GOAL : pursues
+  GOAL ||--o{ CAMPAIGN : coordinates
+  CAMPAIGN }o--o{ OPPORTUNITY : considers
+  OPPORTUNITY ||--o{ APPLICATION : has_attempts
+  CAMPAIGN |o--o{ APPLICATION : owns_pursuit
+  APPLICATION ||--o{ ARTIFACT_LINK : links
+  DOCUMENT ||--o{ ARTIFACT_LINK : referenced_by
+  DOCUMENT ||--o{ DOCUMENT_VERSION : snapshots
+  CAREER_FACT }o--o{ DOCUMENT_VERSION : informs
+  APPLICATION ||--o{ INTERVIEW : prepares
+  APPLICATION ||--o{ OUTCOME : observes
+  CAREER ||--o{ ACTION : coordinates
+  ACTION ||--o{ ACTION_RUN : executes
+  ACTION_RUN ||--o| RESULT_RECEIPT : confirms
+  CAREER ||--o{ CONVERSATION : discusses
+  CONVERSATION }o--o{ ACTION : invokes

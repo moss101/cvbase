@@ -11,6 +11,16 @@ export interface StoredResume {
   templateId: string;
   visibleSections: SectionId[];
   isPrimary: boolean;
+  /** Server-owned: bumped by the `resumes_touch` trigger on every update.
+   *  Read for conflict detection; never written by the client. */
+  updatedAt?: string;
+  /** Server-owned optimistic-concurrency counter (resumeRepo.saveById's
+   *  `expectedRevision`). Never written by the client. */
+  revision?: number;
+  /** Tailored versions link back to the application they were made for. */
+  applicationId?: string | null;
+  /** {kind:'prism'|'copy'|'manual', runId?, sourceResumeId?, sourceRevision?} */
+  origin?: Record<string, unknown> | null;
 }
 
 const obj = (v: unknown): Record<string, unknown> => (v && typeof v === 'object' ? v as Record<string, unknown> : {});
@@ -26,9 +36,18 @@ export function rowToResume(row: Record<string, unknown>): StoredResume {
     templateId: str(row.template_id) || 'default',
     visibleSections: arr<SectionId>(row.visible_sections),
     isPrimary: row.is_primary === true,
+    updatedAt: typeof row.updated_at === 'string' ? row.updated_at : undefined,
+    revision: typeof row.revision === 'number' ? row.revision : undefined,
+    applicationId: typeof row.application_id === 'string' ? row.application_id : null,
+    origin: row.origin && typeof row.origin === 'object' && !Array.isArray(row.origin)
+      ? row.origin as Record<string, unknown>
+      : null,
   };
 }
 
+/** `revision` and `updated_at` are deliberately never written: the database
+ *  trigger owns both, and a client that could set them would defeat the
+ *  optimistic-concurrency check in resumeRepo.saveById. */
 export function resumeToRow(r: Partial<StoredResume>, userId: string): Record<string, unknown> {
   const row: Record<string, unknown> = { user_id: userId };
   if (r.id !== undefined) row.id = r.id;
@@ -38,6 +57,8 @@ export function resumeToRow(r: Partial<StoredResume>, userId: string): Record<st
   if (r.templateId !== undefined) row.template_id = r.templateId;
   if (r.visibleSections !== undefined) row.visible_sections = r.visibleSections;
   if (r.isPrimary !== undefined) row.is_primary = r.isPrimary;
+  if (r.applicationId !== undefined) row.application_id = r.applicationId;
+  if (r.origin !== undefined) row.origin = r.origin;
   return row;
 }
 

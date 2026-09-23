@@ -1,0 +1,12 @@
+<h2>Sign in to CVBase</h2>
+
+<p>Your code is:</p>
+<p style="font-size:28px;letter-spacing:6px;font-weight:700">{{ .Token }}</p>
+<p>It expires in 10 minutes.</p>
+
+<p>Or just tap this link on this device:</p>
+<p>
+  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">
+    Sign in to CVBase
+  </a>
+</p>

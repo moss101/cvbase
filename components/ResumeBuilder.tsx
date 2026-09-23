@@ -39,6 +39,7 @@ import { ConfirmDialog } from './common/ConfirmDialog';
 import { captureException } from '../lib/monitoring';
 import { useHistory } from '../lib/builder/useHistory';
 import { usePersistence, type CloudHydrationPayload } from '../lib/builder/usePersistence';
+import { draftDocKey, draftScope, isBlankResumeData, readDraft, readTemplateHint, writeDraft } from '../lib/builder/draftCache';
 import { printVectorPdf, renderImagePdfBlob, type PdfQuality } from '../lib/export/exportPdf';
 import { saveFile } from '../lib/export/saveFile';
 import UndoRedoButtons from './builder/UndoRedoButtons';
@@ -55,9 +56,11 @@ import { templateMap } from './templates/TemplatePreviewRegistry';
 // Typed by TemplateId so the (CI-blocking) typecheck fails if any advertised
 // template lacks a renderer — every TemplateId must appear as a key here.
 
-const loadState = (): ResumeData => {
+// The initial state comes from the draft cached for this account + document
+// (lib/builder/draftCache.ts), never from a key shared across accounts.
+const loadState = (scope: string, docKey: string): ResumeData => {
     try {
-        const serializedState = localStorage.getItem('cvbase-resume-data');
+        const serializedState = readDraft(scope, docKey, 'data');
         if (serializedState === null) {
             return INITIAL_STATE;
         }
@@ -71,9 +74,9 @@ const loadState = (): ResumeData => {
 
 const DEFAULT_VISIBLE_SECTIONS: SectionId[] = ['certifications', 'languages'];
 
-const loadVisibleSections = (): SectionId[] => {
+const loadVisibleSections = (scope: string, docKey: string): SectionId[] => {
     try {
-        const serialized = localStorage.getItem('cvbase-visible-sections');
+        const serialized = readDraft(scope, docKey, 'visibleSections');
         if (serialized) return JSON.parse(serialized);
     } catch (e) {}
     return DEFAULT_VISIBLE_SECTIONS;
@@ -85,17 +88,17 @@ const INITIAL_SETTINGS: ResumeSettings = {
     fontFamily: 'Arial, sans-serif'
 };
 
-const loadSettings = (): ResumeSettings => {
+const loadSettings = (scope: string, docKey: string): ResumeSettings => {
     try {
-        const serialized = localStorage.getItem('cvbase-settings');
+        const serialized = readDraft(scope, docKey, 'settings');
         if (serialized) return JSON.parse(serialized);
     } catch (e) {}
     return INITIAL_SETTINGS;
 };
 
-const loadSelectedTemplate = (): TemplateId => {
+const loadSelectedTemplate = (scope: string, docKey: string): TemplateId => {
     try {
-        const value = localStorage.getItem('cvbase-selected-template');
+        const value = readTemplateHint(scope, docKey);
         if (value) return value as TemplateId;
     } catch (e) {}
     return 'default';
@@ -119,22 +122,29 @@ interface ResumeBuilderProps {
     onBack: () => void;
     /** When set, edit this specific resume; otherwise fall back to the user's primary. */
     initialResumeId?: string | null;
+    /** Rendered inside the Career OS shell: size to the container, hairline surfaces. */
+    embedded?: boolean;
 }
 
-const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }) => {
-    const { user, userProfile } = useAuth();
+const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId, embedded = false }) => {
+    const { user, userProfile, loading: authLoading } = useAuth();
     const { toast } = useToast();
     const [isHydrated, setIsHydrated] = useState(false);
     const [activeSection, setActiveSection] = useState<SectionId>(loadActiveSection);
-    const history = useHistory<ResumeData>(loadState(), { limit: 50, coalesceMs: 400 });
+    // Which cached draft to start from: the same identity usePersistence
+    // derives, so what is loaded here is what it later writes back.
+    const draftScopeId = draftScope(user?.id);
+    const draftDoc = draftDocKey(initialResumeId);
+    const [initialState] = useState<ResumeData>(() => loadState(draftScopeId, draftDoc));
+    const history = useHistory<ResumeData>(initialState, { limit: 50, coalesceMs: 400 });
     const formData = history.state;
     const setFormData = history.setState;
-    const [visibleSections, setVisibleSections] = useState<SectionId[]>(loadVisibleSections);
-    const [settings, setSettings] = useState<ResumeSettings>(loadSettings);
+    const [visibleSections, setVisibleSections] = useState<SectionId[]>(() => loadVisibleSections(draftScopeId, draftDoc));
+    const [settings, setSettings] = useState<ResumeSettings>(() => loadSettings(draftScopeId, draftDoc));
     const [progress, setProgress] = useState(0);
     const [isAiActionModalOpen, setIsAiActionModalOpen] = useState(false);
     const [isAtsModalOpen, setIsAtsModalOpen] = useState(false);
-    const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>(loadSelectedTemplate);
+    const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>(() => loadSelectedTemplate(draftScopeId, draftDoc));
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
     // The hidden CaptureTemplate only mounts into the real DOM while this is
     // true (i.e. during an export), instead of permanently — previously every
@@ -169,13 +179,25 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
     }, [history.reset]);
 
     const {
-        resumeId, cloudLoaded, saveState, retry: retryCloudSave, conflict, resolveConflict,
+        resumeId, saveState, retry: retryCloudSave, conflict, resolveConflict,
+        documentState, unavailableResumeId, anonymousDraft, claimAnonymousDraft, dismissAnonymousDraft,
     } = usePersistence({
         userId: user?.id ?? null,
         initialResumeId,
+        authResolved: !authLoading,
         formData, visibleSections, settings, selectedTemplate,
         onHydrate,
     });
+
+    // Explicit claim of the draft made on this device before signing in. It
+    // is never applied automatically; replacing content already here asks.
+    const handleClaimAnonymousDraft = useCallback(() => {
+        if (anonymousDraft.hasDuplicate && !isBlankResumeData(formData)
+            && !window.confirm(t('builder.confirmClaimDraft', 'Replace the content of this CV with the draft saved on this device?'))) {
+            return;
+        }
+        claimAnonymousDraft();
+    }, [anonymousDraft.hasDuplicate, formData, claimAnonymousDraft, t]);
 
     // Surface a cloud save failure once per error streak, with a Retry action,
     // instead of the old fixed-timer "Saved!" that claimed success regardless
@@ -251,13 +273,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
     const handleSaveDraft = useCallback(() => {
         try {
             const serializedState = JSON.stringify(formData);
-            localStorage.setItem('cvbase-resume-data', serializedState);
+            writeDraft(draftScopeId, draftDoc, 'data', serializedState);
             toast({ title: t('builder.draftSaved', 'Draft saved on this device'), variant: 'success' });
         } catch (err) {
             console.error("Could not save draft to local storage", err);
             toast({ title: t('builder.draftSaveFailed', 'Could not save draft'), variant: 'error' });
         }
-    }, [formData, toast, t]);
+    }, [formData, draftScopeId, draftDoc, toast, t]);
 
     const handleApplyAiSuggestions = (suggestions: AIAnalysisResult) => {
         setFormData(prev => {
@@ -549,6 +571,45 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
         }
     };
 
+    // The draft made on this device before signing in is offered, never
+    // applied on its own (usePersistence's explicit claim flow).
+    const anonymousDraftNotice = user && documentState === 'ready' && anonymousDraft.available ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+            <span>{t('builder.anonymousDraftFound', 'A draft from before you signed in is saved on this device.')}</span>
+            <button type="button" onClick={handleClaimAnonymousDraft} className="underline underline-offset-2 hover:text-amber-900">
+                {t('builder.restoreDraft', 'Restore it here')}
+            </button>
+            <button type="button" onClick={dismissAnonymousDraft} className="underline underline-offset-2 hover:text-amber-900">
+                {t('builder.dismissDraft', 'Dismiss')}
+            </button>
+        </div>
+    ) : null;
+
+    // The requested CV is missing or belongs to another account. Say so and
+    // offer the way back — never open the primary CV in its place.
+    if (documentState === 'unavailable') {
+        return (
+            <div className={`flex ${embedded ? 'h-full' : 'h-screen'} items-center justify-center bg-light px-4`}>
+                <div role="alert" className="glass-panel w-full max-w-md rounded-2xl border border-white/40 bg-white/70 p-6 text-center shadow-xl backdrop-blur-md">
+                    <h2 className="text-lg font-bold text-dark">{t('builder.unavailableTitle', 'This CV is unavailable')}</h2>
+                    <p className="mt-2 text-sm text-gray-600">
+                        {t('builder.unavailableDesc', 'It may have been deleted, or it belongs to a different account. Nothing else was opened in its place.')}
+                    </p>
+                    {unavailableResumeId && (
+                        <p className="mt-2 break-all text-[11px] text-gray-400">{unavailableResumeId}</p>
+                    )}
+                    <button
+                        type="button"
+                        onClick={onBack}
+                        className="tap-target mt-5 inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-primary/90 active:scale-95"
+                    >
+                        {t('builder.backToDashboard', 'Back to dashboard')}
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         // The transform makes this the containing block for every `fixed`
         // descendant (the modals below, and #print-resume-container). Without
@@ -562,7 +623,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
         // matches the viewport exactly (h-screen), so `fixed inset-0` inside
         // it looks identical to being fixed to the real viewport.
         <div
-            className="flex h-screen bg-transparent overflow-hidden"
+            className={`flex ${embedded ? 'h-full' : 'h-screen'} bg-transparent overflow-hidden`}
             style={{ transform: 'translateZ(0)' }}
         >
             {isMobileShell && (
@@ -614,6 +675,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
                         />
                     </div>
                     <main className="min-h-0 flex-1 overflow-y-auto px-4 pt-5">
+                        {anonymousDraftNotice}
                         {renderActiveForm()}
                     </main>
                 </div>
@@ -634,24 +696,24 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
                 onGoHome={onBack}
                 isMobileOpen={isMobileMenuOpen}
                 onCloseMobile={() => setIsMobileMenuOpen(false)}
+                embedded={embedded}
             />
-            <main className="flex-1 h-full overflow-y-auto bg-light/50 relative">
+            <main className={`flex-1 h-full overflow-y-auto relative ${embedded ? 'bg-surface-canvas' : 'bg-light/50'}`}>
                 {/* Top/bottom padding folds in the safe-area insets so the toolbar
                     clears the status bar and the last field clears the home
                     indicator. env() resolves to 0 on the web. */}
-                <div className="max-w-5xl mx-auto p-3 sm:p-6 md:p-10 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] sm:pt-[calc(1.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(2.5rem+env(safe-area-inset-top,0px))] pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] min-h-screen animate-fade-in">
-                    <div className="glass-panel p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl min-h-[calc(100vh-5rem)] border border-white/40 shadow-xl bg-white/60 backdrop-blur-md">
-                        <div className="flex items-start justify-between gap-3">
-                            <UndoRedoButtons
-                                canUndo={history.canUndo}
-                                canRedo={history.canRedo}
-                                onUndo={history.undo}
-                                onRedo={history.redo}
-                                className="shrink-0"
-                            />
-                        </div>
-
+                <div className={`max-w-5xl mx-auto p-3 sm:p-6 md:p-10 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] sm:pt-[calc(1.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(2.5rem+env(safe-area-inset-top,0px))] pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] ${embedded ? 'min-h-full' : 'min-h-screen'} animate-fade-in`}>
+                    <div className={embedded ? 'p-4 sm:p-6 md:p-8 rounded-2xl border border-border-default bg-surface-panel' : 'glass-panel p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl min-h-[calc(100vh-5rem)] border border-white/40 shadow-xl bg-white/60 backdrop-blur-md'}>
                         <HeaderActions
+                            leading={(
+                                <UndoRedoButtons
+                                    canUndo={history.canUndo}
+                                    canRedo={history.canRedo}
+                                    onUndo={history.undo}
+                                    onRedo={history.redo}
+                                    className="shrink-0"
+                                />
+                            )}
                             onAiEnhanceClick={() => setIsAiActionModalOpen(true)}
                             onLoadExample={handleLoadExample}
                             saveState={saveState === 'error' ? 'idle' : saveState}
@@ -678,6 +740,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
                             </div>
                         )}
 
+                        {anonymousDraftNotice}
+
                         {/* Dynamic Master Profile Integration */}
                         {user && userProfile && (
                             <MasterProfileSyncCard
@@ -686,23 +750,29 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
                                 onHydrate={() => setIsHydrated(true)}
                                 onResync={() => setIsHydrated(false)}
                                 onApply={setFormData}
+                                current={formData}
                             />
                         )}
 
-                        {/* Interactive Gamified Progress Tracker */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-6">
-                            <GamifiedProgressTracker
-                                formData={formData}
-                                visibleSections={visibleSections}
-                                progress={progress}
-                                activeSection={activeSection}
-                                onSectionClick={setActiveSection}
-                            />
-                            <AtsCompatibilityPanel
-                                formData={formData}
-                                visibleSections={visibleSections}
-                                selectedTemplate={selectedTemplate}
-                            />
+                        {/* Completeness and ATS check: one band inside the editor panel, split by
+                            hairlines — sections of the panel, not cards inside it. */}
+                        <div className="mt-6 grid grid-cols-1 divide-y divide-border-default border-y border-border-default lg:grid-cols-2 lg:divide-x lg:divide-y-0">
+                            <div className="py-5 lg:pr-6">
+                                <GamifiedProgressTracker
+                                    formData={formData}
+                                    visibleSections={visibleSections}
+                                    progress={progress}
+                                    activeSection={activeSection}
+                                    onSectionClick={setActiveSection}
+                                />
+                            </div>
+                            <div className="py-5 lg:pl-6">
+                                <AtsCompatibilityPanel
+                                    formData={formData}
+                                    visibleSections={visibleSections}
+                                    selectedTemplate={selectedTemplate}
+                                />
+                            </div>
                         </div>
 
                         <div className="animate-fade-in mt-6">
@@ -772,15 +842,17 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onBack, initialResumeId }
                 onImportData={handleImportJsonData}
             />
 
-            {/* Best-effort conflict detection: staged by usePersistence when the
-                cloud row looks newer than this device's last known sync point
-                (see lib/builder/usePersistence.ts's ConflictInfo doc comment for
-                why this currently never fires in practice — resumeRepo does not
-                yet surface `updated_at`). */}
+            {/* Conflict review: staged by usePersistence when the cloud row is
+                newer than this device's last sync point and the local draft
+                differs, or when a save was rejected because another device
+                saved first (stale revision). Nothing is overwritten until the
+                user chooses. */}
             <ConfirmDialog
                 open={!!conflict}
                 title={t('builder.newerVersionTitle', 'Newer version in the cloud')}
-                description={t('builder.newerVersionDesc', 'This resume was updated from another device since you last opened it here. Load the cloud version, or keep editing your local copy?')}
+                description={conflict?.reason === 'stale-revision'
+                    ? t('builder.staleRevisionDesc', 'This resume was saved from another device while you were editing here. Load the cloud version, or keep your edits and overwrite it?')
+                    : t('builder.newerVersionDesc', 'This resume was updated from another device since you last opened it here. Load the cloud version, or keep editing your local copy?')}
                 confirmLabel={t('builder.useCloudVersion', 'Use cloud version')}
                 cancelLabel={t('builder.keepMine', 'Keep mine')}
                 onConfirm={() => resolveConflict('useCloud')}

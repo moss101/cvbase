@@ -1,0 +1,219 @@
+flowchart TD
+  %% Generated from plan.json. Edges are prerequisites, not dates.
+  subgraph R0["R0"]
+    COS_000["COS-000: Repository audit and planning authority"]
+    COS_001["COS-001: Close runtime unknowns and establish fixtures/budgets"]
+    COS_002["COS-002: Repair document identity, cache scoping and sync conflicts"]
+    COS_003["COS-003: Finalize schema, ownership and extension decisions"]
+    COS_004["COS-004: Implement canonical route contracts and compatibility parsing"]
+    COS_005["COS-005: Extend semantic tokens and shared Career OS primitives"]
+    COS_006["COS-006: Build canonical context projection and invalidation"]
+    COS_007["COS-007: Implement additive migration and lifecycle infrastructure"]
+    COS_008["COS-008: Compose six-space shell for desktop and mobile"]
+  end
+  subgraph R1["R1"]
+    COS_009["COS-009: Import and review canonical career facts"]
+    COS_010["COS-010: Create reusable goals and primary-goal selection"]
+    COS_011["COS-011: Persist imported opportunities and saved views"]
+    COS_012["COS-012: Extend existing application persistence and start flow"]
+    COS_013["COS-013: Bind PRISM to application and harden durable recovery"]
+    COS_014["COS-014: Implement shared action rules and lifecycle"]
+    COS_015["COS-015: Deliver Today using real context and actions"]
+    COS_016["COS-016: Compose the first application workspace with existing CV engine"]
+    COS_017["COS-017: Add product events and privacy-safe measurements"]
+    COS_018["COS-018: Qualify the connected application slice"]
+  end
+  subgraph R2["R2"]
+    COS_019["COS-019: Complete Career evidence and progression surfaces"]
+    COS_020["COS-020: Deliver qualification and career-direction fit"]
+    COS_021["COS-021: Build campaign milestones and application board"]
+    COS_022["COS-022: Persist all application preparation artifacts"]
+    COS_023["COS-023: Track factual changes across generated assets"]
+    COS_024["COS-024: Implement evidence-based interview preparation"]
+    COS_025["COS-025: Record submission, responses and outcomes with provenance"]
+    COS_026["COS-026: Implement the typed Coach action gateway"]
+    COS_027["COS-027: Build one persistent contextual Coach"]
+    COS_028["COS-028: Consolidate Library and asset relationships"]
+    COS_029["COS-029: Add command search and actionable inbox"]
+    COS_030["COS-030: Deliver resumable onboarding and existing-user introduction"]
+    COS_031["COS-031: Qualify existing-user rollout and rollback"]
+    COS_032["COS-032: Qualify mobile, accessibility, localization and visual states"]
+    COS_033["COS-033: Qualify performance, provider failure and cost controls"]
+    COS_034["COS-034: Qualify the complete Career OS release"]
+  end
+  subgraph R3["R3"]
+    COS_035["COS-035: Add outcome-informed recommendations with uncertainty"]
+    COS_036["COS-036: Build goal and offer scenario comparison"]
+    COS_037["COS-037: Add opted-in proactive plans and reminders"]
+    COS_038["COS-038: Assess optional market and personal-data connectors"]
+    COS_040["COS-040: Qualify frontier intelligence against held-out cases"]
+  end
+  subgraph R4["R3 optional"]
+    COS_039["COS-039: Implement one qualified read-only connector"]
+  end
+  subgraph R5["Retirement"]
+    COS_041["COS-041: Retire only qualified legacy surfaces"]
+  end
+  COS_000 --> COS_001
+  COS_000 --> COS_002
+  COS_000 --> COS_003
+  COS_003 --> COS_004
+  COS_000 --> COS_005
+  COS_002 --> COS_006
+  COS_003 --> COS_006
+  COS_001 --> COS_007
+  COS_002 --> COS_007
+  COS_003 --> COS_007
+  COS_004 --> COS_008
+  COS_005 --> COS_008
+  COS_006 --> COS_008
+  COS_006 --> COS_009
+  COS_007 --> COS_009
+  COS_009 --> COS_010
+  COS_006 --> COS_011
+  COS_007 --> COS_011
+  COS_011 --> COS_012
+  COS_007 --> COS_012
+  COS_002 --> COS_013
+  COS_012 --> COS_013
+  COS_006 --> COS_014
+  COS_010 --> COS_014
+  COS_012 --> COS_014
+  COS_008 --> COS_015
+  COS_014 --> COS_015
+  COS_008 --> COS_016
+  COS_012 --> COS_016
+  COS_013 --> COS_016
+  COS_001 --> COS_017
+  COS_003 --> COS_017
+  COS_007 --> COS_018
+  COS_010 --> COS_018
+  COS_011 --> COS_018
+  COS_013 --> COS_018
+  COS_015 --> COS_018
+  COS_016 --> COS_018
+  COS_017 --> COS_018
+  COS_008 --> COS_019
+  COS_009 --> COS_019
+  COS_010 --> COS_019
+  COS_010 --> COS_020
+  COS_011 --> COS_020
+  COS_019 --> COS_020
+  COS_008 --> COS_021
+  COS_010 --> COS_021
+  COS_012 --> COS_021
+  COS_016 --> COS_022
+  COS_020 --> COS_022
+  COS_019 --> COS_023
+  COS_013 --> COS_023
+  COS_022 --> COS_023
+  COS_016 --> COS_024
+  COS_019 --> COS_024
+  COS_017 --> COS_025
+  COS_021 --> COS_025
+  COS_022 --> COS_025
+  COS_024 --> COS_025
+  COS_014 --> COS_026
+  COS_013 --> COS_026
+  COS_021 --> COS_026
+  COS_022 --> COS_026
+  COS_024 --> COS_026
+  COS_025 --> COS_026
+  COS_008 --> COS_027
+  COS_026 --> COS_027
+  COS_021 --> COS_027
+  COS_008 --> COS_028
+  COS_022 --> COS_028
+  COS_024 --> COS_028
+  COS_014 --> COS_029
+  COS_017 --> COS_029
+  COS_027 --> COS_029
+  COS_028 --> COS_029
+  COS_018 --> COS_030
+  COS_019 --> COS_030
+  COS_015 --> COS_030
+  COS_007 --> COS_031
+  COS_018 --> COS_031
+  COS_027 --> COS_031
+  COS_028 --> COS_031
+  COS_030 --> COS_031
+  COS_027 --> COS_032
+  COS_028 --> COS_032
+  COS_029 --> COS_032
+  COS_030 --> COS_032
+  COS_001 --> COS_033
+  COS_018 --> COS_033
+  COS_026 --> COS_033
+  COS_029 --> COS_033
+  COS_019 --> COS_034
+  COS_020 --> COS_034
+  COS_021 --> COS_034
+  COS_022 --> COS_034
+  COS_023 --> COS_034
+  COS_024 --> COS_034
+  COS_025 --> COS_034
+  COS_027 --> COS_034
+  COS_028 --> COS_034
+  COS_029 --> COS_034
+  COS_030 --> COS_034
+  COS_031 --> COS_034
+  COS_032 --> COS_034
+  COS_033 --> COS_034
+  COS_025 --> COS_035
+  COS_034 --> COS_035
+  COS_020 --> COS_036
+  COS_025 --> COS_036
+  COS_034 --> COS_036
+  COS_029 --> COS_037
+  COS_035 --> COS_037
+  COS_034 --> COS_037
+  COS_034 --> COS_038
+  COS_038 --> COS_039
+  COS_037 --> COS_039
+  COS_035 --> COS_040
+  COS_036 --> COS_040
+  COS_037 --> COS_040
+  COS_038 --> COS_040
+  COS_031 --> COS_041
+  COS_034 --> COS_041
+  classDef done fill:#dcfce7,stroke:#15803d,color:#14532d
+  classDef gate fill:#e0e7ff,stroke:#4338ca,color:#312e81
+  classDef optional fill:#f1f5f9,stroke:#64748b,color:#334155,stroke-dasharray:5 5
+  class COS_000 done
+  class COS_001 done
+  class COS_002 done
+  class COS_003 done
+  class COS_004 done
+  class COS_005 done
+  class COS_006 done
+  class COS_007 done
+  class COS_008 done
+  class COS_009 done
+  class COS_010 done
+  class COS_011 done
+  class COS_012 done
+  class COS_013 done
+  class COS_014 done
+  class COS_015 done
+  class COS_016 done
+  class COS_017 done
+  class COS_018 done
+  class COS_019 done
+  class COS_020 done
+  class COS_021 done
+  class COS_022 done
+  class COS_023 done
+  class COS_024 done
+  class COS_025 done
+  class COS_026 done
+  class COS_027 done
+  class COS_028 done
+  class COS_029 done
+  class COS_030 done
+  class COS_031 done
+  class COS_032 done
+  class COS_033 done
+  class COS_034 gate
+  class COS_039 optional
+  class COS_040 gate
+  class COS_041 gate

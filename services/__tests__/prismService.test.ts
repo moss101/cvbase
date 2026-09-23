@@ -80,4 +80,59 @@ describe('prismService', () => {
       phase: 'finalize', runId: 'run-1', resumeId: 'resume-9',
     });
   });
+
+  it('analyze: forwards the application binding fields (application, source resume + revision, idempotency key)', async () => {
+    emits([{ type: 'done', result: { runId: 'run-2', questions: [] } }]);
+    await analyzeGaps({
+      jdText: 'jd', cvText: 'cv', templateId: 'classic',
+      applicationId: 'app-1', sourceResumeId: 'res-1', sourceResumeRevision: 3, idempotencyKey: 'tailor:app-1:3',
+    }, () => {});
+    expect(mockStream).toHaveBeenCalledWith(
+      'prism-tailor',
+      {
+        phase: 'analyze', jdText: 'jd', cvText: 'cv', templateId: 'classic',
+        applicationId: 'app-1', sourceResumeId: 'res-1', sourceResumeRevision: 3, idempotencyKey: 'tailor:app-1:3',
+      },
+      expect.any(Function),
+    );
+  });
+
+  it('generate: an in-band source_stale error surfaces as FnError code source_stale with the current revision', async () => {
+    emits([{ type: 'error', error: 'source_stale', extra: { currentRevision: 4 } }]);
+    await expect(
+      generateResume({ runId: 'run-1', answers: [] }, () => {}),
+    ).rejects.toMatchObject({ code: 'source_stale', extra: { currentRevision: 4 } });
+  });
+
+  it('generate: acknowledgeStale is forwarded so the server proceeds past the review prompt', async () => {
+    emits([{ type: 'done', result: { runId: 'run-1', resume: {}, atsScore: 80, unresolvedIssues: [] } }]);
+    await generateResume({ runId: 'run-1', answers: [], acknowledgeStale: true }, () => {});
+    expect(mockStream).toHaveBeenCalledWith(
+      'prism-tailor',
+      { phase: 'generate', runId: 'run-1', answers: [], acknowledgeStale: true },
+      expect.any(Function),
+    );
+  });
+
+  it('checkpoint_degraded arrives as an ordinary stage update the wizard can show', async () => {
+    const stages: PrismStageUpdate[] = [];
+    emits([
+      { type: 'stage', stage: 'checkpoint_degraded', label: 'Progress could not be saved; if this stops, you will restart this step' },
+      { type: 'done', result: { runId: 'run-1', resume: {}, atsScore: 80, unresolvedIssues: [] } },
+    ]);
+    await generateResume({ runId: 'run-1', answers: [] }, (u) => stages.push(u));
+    expect(stages).toEqual([{ stage: 'checkpoint_degraded', label: 'Progress could not be saved; if this stops, you will restart this step' }]);
+  });
+
+  it('finalize (object form): posts the application link and resolves with the reconciled result', async () => {
+    const result = { runId: 'run-1', status: 'completed', applicationId: 'app-1', resumeId: 'resume-9' };
+    mockCall.mockResolvedValue(result);
+    await expect(finalizeRun({ runId: 'run-1', resumeId: 'resume-9', applicationId: 'app-1' })).resolves.toEqual(result);
+    expect(mockCall).toHaveBeenCalledWith('prism-tailor', {
+      phase: 'finalize', runId: 'run-1', resumeId: 'resume-9', applicationId: 'app-1',
+    });
+    mockCall.mockClear();
+    await finalizeRun({ runId: 'run-1', resumeId: 'resume-9' });
+    expect(mockCall).toHaveBeenCalledWith('prism-tailor', { phase: 'finalize', runId: 'run-1', resumeId: 'resume-9' });
+  });
 });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Award, ChevronDown, Lightbulb, CircleCheck, Circle } from 'lucide-react';
+import { ArrowRight, ChevronDown, CircleCheck, Circle } from 'lucide-react';
 import { useTranslation } from '../../services/translationService';
 import type { ResumeData, SectionId } from '../../types';
 
@@ -31,25 +31,12 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
     const [showMilestoneAlert, setShowMilestoneAlert] = useState<string | null>(null);
     const [prevProgress, setPrevProgress] = useState(progress);
 
-    // Dynamic Level Name / Badge Based on Progress
-    const getBadgeInfo = (pct: number) => {
-        if (pct === 100) return { title: t('gamified.badge.master', '👑 Ultimate Resume Master'), color: 'from-amber-500 to-yellow-400 bg-amber-50 text-amber-800 border-amber-200' };
-        if (pct >= 85) return { title: t('gamified.badge.champion', '🚀 ATS Champion'), color: 'from-secondary to-primary bg-emerald-50 text-emerald-800 border-emerald-200' };
-        if (pct >= 60) return { title: t('gamified.badge.artisan', '🎨 Professional Artisan'), color: 'from-primary to-indigo-500 bg-blue-50 text-blue-800 border-blue-200' };
-        if (pct >= 35) return { title: t('gamified.badge.climber', '⚡ Career Climber'), color: 'from-indigo-400 to-violet-500 bg-violet-50 text-violet-800 border-violet-200' };
-        return { title: t('gamified.badge.novice', '🌱 CV Novice'), color: 'from-gray-400 to-slate-500 bg-slate-50 text-slate-700 border-slate-200' };
-    };
-
-    const badge = getBadgeInfo(progress);
-
-    // Check progress level changes to trigger celebratory milestones!
+    // Crossing a threshold is acknowledged in plain words, not a level name.
     useEffect(() => {
-        const milestones = [
-            { thresh: 35, name: t('gamified.milestone.climber', '⚡ Career Climber unlocked!') },
-            { thresh: 60, name: t('gamified.milestone.artisan', '🎨 Professional Artisan unlocked!') },
-            { thresh: 85, name: t('gamified.milestone.champion', '🚀 ATS Champion unlocked!') },
-            { thresh: 100, name: t('gamified.milestone.master', '👑 Ultimate Resume Master unlocked! You are 100% Ready!') }
-        ];
+        const milestones = [35, 60, 85, 100].map((thresh) => ({
+            thresh,
+            name: t('builder.progress.milestone', 'Your CV is now {pct}% complete.').replace('{pct}', String(thresh)),
+        }));
 
         const unlockedMilestone = milestones.find(m => prevProgress < m.thresh && progress >= m.thresh);
         if (unlockedMilestone) {
@@ -177,104 +164,92 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
 
     return (
         <div className="w-full relative select-none">
-            {/* Gamified Milestone Level Unlock Celebration Toast */}
+            {/* Milestone notice */}
             {showMilestoneAlert && (
-                <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white rounded-2xl px-6 py-4 shadow-2xl flex items-center gap-3 border border-yellow-400 animate-bounce cursor-pointer max-w-sm text-center">
-                    <Award className="w-6 h-6 text-yellow-400" aria-hidden="true" />
-                    <div>
-                        <p className="text-xs tracking-wider uppercase opacity-80 text-yellow-300 font-extrabold">{t('gamified.milestoneAchieved', 'Milestone Achieved!')}</p>
-                        <p className="text-sm font-bold leading-tight">{showMilestoneAlert}</p>
-                    </div>
+                <div role="status" className="fixed top-8 left-1/2 z-50 flex max-w-sm -translate-x-1/2 items-center gap-3 rounded-2xl border border-action-primary/40 bg-slate-900 px-5 py-3.5 text-left text-sm font-semibold text-white shadow-2xl">
+                    <CircleCheck className="h-5 w-5 shrink-0 text-emerald-300" aria-hidden="true" />
+                    <span>{showMilestoneAlert}</span>
                 </div>
             )}
 
             {/* Main Tracker Container */}
-            <div className="p-5 bg-gradient-to-br from-slate-100/70 to-white/90 border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md transition-all">
-                {/* Upper line: Rank and compact progress percent */}
-                <div className="flex flex-wrap items-center justify-between gap-3 shrink-0">
-                    <div className="flex items-center gap-2">
-                        <Award className="w-6 h-6 text-secondary" aria-hidden="true" />
-                        <div className="text-left">
-                            <p className="text-[10px] font-extrabold tracking-wider uppercase text-slate-400 leading-none">{t('gamified.cvLevel', 'CV Level')}</p>
-                            <span className="text-sm font-black text-slate-800">{badge.title}</span>
-                        </div>
+            <div>
+                {/* Heading, count and percentage */}
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 text-left">
+                        <h3 className="text-[15px] font-semibold text-content-primary">{t('builder.progress.title', 'CV completeness')}</h3>
+                        <p className="mt-0.5 text-[13px] text-content-secondary">
+                            {t('builder.progress.count', '{done} of {total} requirements').replace('{done}', String(filledCount)).replace('{total}', String(totalCount))}
+                        </p>
                     </div>
-                    
                     <div className="flex items-center gap-2.5">
-                        <span className="text-xs font-extrabold text-slate-500">
-                            {filledCount}/{totalCount} {t('gamified.requirementsSuffix', 'Requirements')}
-                        </span>
-                        <span className={`text-sm font-black px-2.5 py-1 rounded-xl bg-gradient-to-r text-white ${badge.color}`}>
-                            {progress}%
-                        </span>
-                        
+                        <span className="text-[28px] font-semibold leading-none tabular-nums text-content-primary">{progress}%</span>
                         <button
                             type="button"
                             onClick={() => setIsExpanded(!isExpanded)}
-                            className="p-1 px-2.5 border border-slate-200 bg-white/70 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-bold transition-all flex items-center gap-1 active:scale-95"
+                            aria-expanded={isExpanded}
+                            className="flex items-center gap-1 rounded-lg border border-border-default px-2.5 py-1 text-[12.5px] font-semibold text-content-secondary transition-colors hover:bg-surface-canvas hover:text-content-primary"
                         >
                             <span>{isExpanded ? t('gamified.collapse', 'Collapse') : t('gamified.details', 'Details')}</span>
-                            <ChevronDown className={`w-[1em] h-[1em] text-sm transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
+                            <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
                         </button>
                     </div>
                 </div>
 
-                {/* Progress bar container */}
-                <div className="w-full h-2.5 bg-slate-100 border border-slate-200/40 rounded-full overflow-hidden mt-3.5 relative group">
+                {/* Progress bar */}
+                <div className="relative mt-3.5 h-1.5 w-full overflow-hidden rounded-full bg-surface-canvas">
                     <div
-                        className={`h-full bg-gradient-to-r from-primary via-secondary to-[#4ade80] transition-all duration-700 ease-out`}
+                        className="h-full rounded-full bg-action-primary transition-[width] duration-700 ease-out"
                         style={{ width: `${progress}%` }}
                     ></div>
                     {/* Tick markers representing key milestones */}
                     {[35, 60, 85].map((val) => (
                         <div
                             key={val}
-                            className={`absolute top-0 bottom-0 w-0.5 z-10 transition-colors ${progress >= val ? 'bg-white/40' : 'bg-slate-300'}`}
+                            className={`absolute top-0 bottom-0 z-10 w-0.5 ${progress >= val ? 'bg-white/50' : 'bg-border-default'}`}
                             style={{ left: `${val}%` }}
                             title={`${val}% Milestone`}
                         />
                     ))}
                 </div>
 
-                {/* Next helpful hint / coaching micro-message if not complete */}
+                {/* The next missing requirement, one click from its section */}
                 {nextAction && (
-                    <div 
-                        className="mt-3.5 flex items-center gap-2 bg-primary/4 border border-primary/10 rounded-xl p-3 text-slate-700 cursor-pointer hover:bg-primary/8 transition-colors"
+                    <button
+                        type="button"
+                        className="group -mx-3 mt-2.5 flex w-[calc(100%+1.5rem)] cursor-pointer items-start gap-2.5 rounded-lg px-3 py-2 text-left transition-colors hover:bg-surface-canvas"
                         onClick={() => onSectionClick(nextAction.section)}
                     >
-                        <Lightbulb className="w-4 h-4 text-primary inline-block shrink-0 animate-pulse" aria-hidden="true" />
-                        <p className="text-xs font-medium text-slate-600 leading-normal">
-                            <span className="font-extrabold text-primary uppercase text-[10px] tracking-wider block">{t('gamified.nextLevelTask', 'Next Level Task')}</span>
-                            {nextAction.helpText} {t('gamified.inThe', 'in the')} <strong className="text-slate-800 capitalize">{nextAction.section}</strong> {t('gamified.sectionSuffix', 'section.')}
+                        <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-action-primary" aria-hidden="true" />
+                        <p className="text-[13px] leading-normal text-content-secondary">
+                            <span className="font-semibold text-content-primary">{t('builder.progress.next', 'Next')}: </span>
+                            {nextAction.helpText} {t('gamified.inThe', 'in the')} <strong className="font-semibold capitalize text-content-primary">{nextAction.section}</strong> {t('gamified.sectionSuffix', 'section.')}
                         </p>
-                    </div>
+                    </button>
                 )}
 
                 {/* Expanded Section View detailing precise checkbox required fields */}
                 {isExpanded && (
-                    <div className="mt-4 pt-4 border-t border-slate-200/60 grid grid-cols-1 md:grid-cols-2 gap-2 animate-slide-down">
+                    <div className="mt-4 grid grid-cols-1 gap-2 border-t border-border-default pt-4 md:grid-cols-2">
                         {checklist.map(item => (
-                            <div
+                            <button
+                                type="button"
                                 key={item.id}
                                 onClick={() => onSectionClick(item.section)}
-                                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border cursor-pointer hover:bg-slate-50 transition-colors ${
-                                    item.isFilled 
-                                        ? 'bg-emerald-50/20 border-emerald-100 text-slate-800' 
-                                        : 'bg-white border-slate-150 text-slate-400'
-                                }`}
+                                className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-left transition-colors hover:bg-surface-canvas"
                             >
                                 {item.isFilled
-                                    ? <CircleCheck className="w-4 h-4 select-none text-emerald-500" aria-hidden="true" />
-                                    : <Circle className="w-4 h-4 select-none text-slate-300" aria-hidden="true" />}
-                                <div className="text-left">
-                                    <p className={`text-xs font-semibold ${item.isFilled ? 'text-slate-700' : 'text-slate-500'}`}>
+                                    ? <CircleCheck className="h-4 w-4 shrink-0 text-action-primary" aria-hidden="true" />
+                                    : <Circle className="h-4 w-4 shrink-0 text-content-muted" aria-hidden="true" />}
+                                <div className="min-w-0 text-left">
+                                    <p className={`text-[13px] font-semibold ${item.isFilled ? 'text-content-primary' : 'text-content-secondary'}`}>
                                         {item.label}
                                     </p>
-                                    <p className="text-[10px] text-slate-400 font-medium capitalize">
+                                    <p className="text-[11.5px] font-medium capitalize text-content-muted">
                                         {t('gamified.sectionLabel', 'Section:')} {item.section}
                                     </p>
                                 </div>
-                            </div>
+                            </button>
                         ))}
                     </div>
                 )}

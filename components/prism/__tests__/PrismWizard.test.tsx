@@ -14,14 +14,17 @@ vi.mock('../../../services/prismService', () => ({
   analyzeGaps: vi.fn(),
   generateResume: vi.fn(),
   finalizeRun: vi.fn(),
+  CHECKPOINT_DEGRADED_STAGE: 'checkpoint_degraded',
 }));
 vi.mock('../../../services/repos/resumeRepo', () => ({
   create: vi.fn(),
+  get: vi.fn(),
   getPrimary: vi.fn(),
   count: vi.fn(),
 }));
 vi.mock('../../../services/repos/prismRepo', () => ({
   getResumable: vi.fn(),
+  getResumableForApplication: vi.fn(),
   deleteAllRuns: vi.fn(),
   deleteRun: vi.fn(),
   flagLine: vi.fn(),
@@ -305,6 +308,122 @@ describe('PrismWizard', () => {
     expect(document.body.textContent).toContain('The AI returned an unusable result');
     expect(document.body.textContent).toContain('Job description');
     expect(document.body.textContent).not.toContain('Error:');
+  });
+
+  describe('application binding (Career OS)', () => {
+    const BINDING = {
+      applicationId: 'app-1',
+      jdText: LONG_JD,
+      sourceResumeId: 'resume-src',
+      sourceResumeRevision: 3,
+      idempotencyKey: 'tailor:app-1:resume-src:3',
+      onFinalized: vi.fn(),
+      onRunStarted: vi.fn(),
+    };
+
+    async function mountBound() {
+      vi.mocked(resumeRepo.get).mockResolvedValue({ id: 'resume-src', title: 'My source CV', data: RESUME, revision: 3 } as never);
+      vi.mocked(prismRepo.getResumableForApplication).mockResolvedValue(null);
+      await act(async () => {
+        root = createRoot(container);
+        root.render(<PrismWizard binding={BINDING} />);
+      });
+    }
+
+    it('prefills and locks the JD, reads the source CV, and passes the binding + idempotency key to analyzeGaps', async () => {
+      mockAnalyze.mockResolvedValue({ runId: 'run-b1', questions: [] });
+      mockGenerate.mockResolvedValue({ ...GEN_RESULT, runId: 'run-b1', unresolvedIssues: [] });
+      await mountBound();
+
+      // Standalone banner lookup is never used in bound mode; the application-scoped one is.
+      expect(vi.mocked(prismRepo.getResumable)).not.toHaveBeenCalled();
+      expect(vi.mocked(prismRepo.getResumableForApplication)).toHaveBeenCalledWith('user-1', 'app-1');
+      const [jdBox, cvBox] = [...document.querySelectorAll('textarea')] as HTMLTextAreaElement[];
+      expect(jdBox.value).toBe(LONG_JD);
+      expect(jdBox.readOnly).toBe(true);
+      expect(cvBox.readOnly).toBe(true);
+      expect(cvBox.value).toContain('Jordan Reyes');
+      expect(document.body.textContent).toContain('My source CV');
+      expect(document.body.textContent).not.toContain('Delete my PRISM data');
+
+      await act(async () => { buttonByText('Tailor my resume').click(); });
+      expect(mockAnalyze).toHaveBeenCalledWith(expect.objectContaining({
+        applicationId: 'app-1', sourceResumeId: 'resume-src', sourceResumeRevision: 3, idempotencyKey: 'tailor:app-1:resume-src:3', templateId: 'classic',
+      }), expect.any(Function));
+      expect(BINDING.onRunStarted).toHaveBeenCalledWith('run-b1');
+      expect(document.body.textContent).toContain('Review your tailored resume');
+    });
+
+    it('approve creates the resume WITH applicationId/origin, finalizes with the application, then reports onFinalized', async () => {
+      mockAnalyze.mockResolvedValue({ runId: 'run-b2', questions: QUESTIONS.slice(0, 1) });
+      mockGenerate.mockResolvedValue({ ...GEN_RESULT, runId: 'run-b2', unresolvedIssues: [] });
+      mockCreate.mockResolvedValue({ id: 'resume-77', title: 'x', isPrimary: false } as never);
+      mockFinalize.mockResolvedValue({ runId: 'run-b2', status: 'completed', applicationId: 'app-1', resumeId: 'resume-77' } as never);
+      await mountBound();
+      await act(async () => { buttonByText('Tailor my resume').click(); });
+      const answerBox = [...document.querySelectorAll('textarea')].at(-1) as HTMLTextAreaElement;
+      await act(async () => { setValue(answerBox, 'Ran Kafka at scale for two years.'); });
+      await act(async () => { buttonByText('Generate my resume').click(); });
+      await act(async () => { buttonByText('save & link to this application').click(); });
+
+      expect(mockCreate).toHaveBeenCalledWith('user-1', expect.objectContaining({
+        applicationId: 'app-1',
+        origin: { kind: 'prism', runId: 'run-b2', sourceResumeId: 'resume-src', sourceRevision: 3 },
+      }));
+      expect(mockFinalize).toHaveBeenCalledWith({ runId: 'run-b2', resumeId: 'resume-77', applicationId: 'app-1' });
+      expect(BINDING.onFinalized).toHaveBeenCalledWith('resume-77', 'run-b2', [expect.objectContaining({ questionId: 'q1', answer: 'Ran Kafka at scale for two years.' })]);
+      // The run is never deleted in bound mode (the server links first).
+      expect(vi.mocked(prismRepo.deleteRun)).not.toHaveBeenCalled();
+    });
+
+    it('source_stale shows the review prompt; "continue" re-sends generate with acknowledgeStale', async () => {
+      mockAnalyze.mockResolvedValue({ runId: 'run-b3', questions: [] });
+      mockGenerate
+        .mockRejectedValueOnce(Object.assign(new Error('source_stale'), { code: 'source_stale', extra: { currentRevision: 4 } }))
+        .mockResolvedValueOnce({ ...GEN_RESULT, runId: 'run-b3', unresolvedIssues: [] });
+      await mountBound();
+      await act(async () => { buttonByText('Tailor my resume').click(); });
+
+      expect(document.body.textContent).toContain('Your source CV changed since this run started');
+      expect(document.body.textContent).toContain('revision 4');
+      expect(document.body.textContent).not.toContain('Review your tailored resume');
+
+      await act(async () => { buttonByText('Continue with the old snapshot').click(); });
+      expect(mockGenerate).toHaveBeenLastCalledWith({ runId: 'run-b3', answers: [], acknowledgeStale: true }, expect.any(Function));
+      expect(document.body.textContent).toContain('Review your tailored resume');
+    });
+
+    it('a failed finalize keeps the run (no delete) and offers a retry that then reports onFinalized', async () => {
+      mockAnalyze.mockResolvedValue({ runId: 'run-b4', questions: [] });
+      mockGenerate.mockResolvedValue({ ...GEN_RESULT, runId: 'run-b4', unresolvedIssues: [] });
+      mockCreate.mockResolvedValue({ id: 'resume-88', title: 'x', isPrimary: false } as never);
+      mockFinalize.mockRejectedValue(new Error('network'));
+      await mountBound();
+      await act(async () => { buttonByText('Tailor my resume').click(); });
+      await act(async () => { buttonByText('save & link to this application').click(); });
+
+      expect(document.body.textContent).toContain('could not be linked to this application yet');
+      expect(vi.mocked(prismRepo.deleteRun)).not.toHaveBeenCalled();
+      expect(BINDING.onFinalized).not.toHaveBeenCalledWith('resume-88', 'run-b4', expect.anything());
+
+      mockFinalize.mockResolvedValue({ runId: 'run-b4', status: 'completed', applicationId: 'app-1', resumeId: 'resume-88' } as never);
+      await act(async () => { buttonByText('Retry the link').click(); });
+      expect(BINDING.onFinalized).toHaveBeenCalledWith('resume-88', 'run-b4', []);
+    });
+
+    it('the checkpoint_degraded stage is shown honestly in the feed', async () => {
+      let finish!: () => void;
+      mockAnalyze.mockImplementation((_input, onStage: (u: PrismStageUpdate) => void) => {
+        onStage({ stage: 'gap_analyst', label: 'Comparing your CV against the job requirements' });
+        onStage({ stage: 'checkpoint_degraded', label: 'Progress could not be saved; if this stops, you will restart this step' });
+        return new Promise((resolve) => { finish = () => resolve({ runId: 'run-b5', questions: QUESTIONS }); });
+      });
+      await mountBound();
+      await act(async () => { buttonByText('Tailor my resume').click(); });
+      expect(document.body.textContent).toContain('Progress could not be saved');
+      expect(document.body.textContent).toContain('Comparing your CV against the job requirements');
+      await act(async () => finish());
+    });
   });
 
   it('maps the hardened error codes to specific user-facing messages', async () => {

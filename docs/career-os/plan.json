@@ -1,0 +1,2704 @@
+{
+  "schema_version": 1,
+  "product": "CVBase Career OS",
+  "audited_commit": "9d629cfe64d4ad4bec895f82dae1b100c55d8f32",
+  "updated": "2026-09-22",
+  "status": "R0–R2 implemented and verified on the local stack (G1–G5 local PASS, G6 partial); R3 implemented with deterministic evaluation; production qualification (G7) and retirement blocked pending an authorised environment and hosted schema read",
+  "requirements": [
+    {
+      "id": "REQ-01",
+      "title": "Reuse and continuity",
+      "source_sections": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        57,
+        58,
+        68,
+        69,
+        85,
+        86
+      ]
+    },
+    {
+      "id": "REQ-02",
+      "title": "Canonical ownership",
+      "source_sections": [
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "REQ-03",
+      "title": "Six coherent spaces",
+      "source_sections": [
+        9,
+        10,
+        53,
+        60
+      ]
+    },
+    {
+      "id": "REQ-04",
+      "title": "Trustworthy intelligence",
+      "source_sections": [
+        16,
+        19,
+        20,
+        36,
+        37,
+        40
+      ]
+    },
+    {
+      "id": "REQ-05",
+      "title": "Preservation and recovery",
+      "source_sections": [
+        51,
+        52,
+        74,
+        81
+      ]
+    },
+    {
+      "id": "REQ-06",
+      "title": "Evidence-aware career memory",
+      "source_sections": [
+        15,
+        16,
+        28
+      ]
+    },
+    {
+      "id": "REQ-07",
+      "title": "Strategic fit",
+      "source_sections": [
+        18,
+        19,
+        20,
+        21
+      ]
+    },
+    {
+      "id": "REQ-08",
+      "title": "Bounded planning and execution",
+      "source_sections": [
+        31,
+        38,
+        39,
+        40
+      ]
+    },
+    {
+      "id": "REQ-09",
+      "title": "Outcome learning",
+      "source_sections": [
+        36,
+        55,
+        80,
+        84
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "title": "Proactive assistance",
+      "source_sections": [
+        35,
+        37,
+        38
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "title": "Career scenario comparison",
+      "source_sections": [
+        17,
+        41
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "title": "Today and priority actions",
+      "source_sections": [
+        11,
+        36,
+        37,
+        38,
+        39
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "title": "Career system of record",
+      "source_sections": [
+        12,
+        13,
+        14,
+        15,
+        16
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "title": "Reusable goals",
+      "source_sections": [
+        17
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "title": "Opportunity identity and import",
+      "source_sections": [
+        18,
+        20,
+        21
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "title": "Campaign coordination",
+      "source_sections": [
+        22,
+        23,
+        24
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "title": "Application workspace",
+      "source_sections": [
+        8,
+        25
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "title": "Readiness and submission",
+      "source_sections": [
+        26,
+        28,
+        80
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "title": "CV and PRISM reuse",
+      "source_sections": [
+        27,
+        28
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "title": "Interview preparation",
+      "source_sections": [
+        25,
+        26,
+        46,
+        80
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "title": "One persistent Coach",
+      "source_sections": [
+        29,
+        30,
+        31
+      ]
+    },
+    {
+      "id": "REQ-22",
+      "title": "Professional Library",
+      "source_sections": [
+        32
+      ]
+    },
+    {
+      "id": "REQ-23",
+      "title": "Commands and search",
+      "source_sections": [
+        33,
+        34
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "title": "Onboarding and existing users",
+      "source_sections": [
+        49,
+        50,
+        51,
+        81,
+        82
+      ]
+    },
+    {
+      "id": "REQ-25",
+      "title": "Architecture and ownership",
+      "source_sections": [
+        59,
+        61,
+        62,
+        64,
+        65
+      ]
+    },
+    {
+      "id": "REQ-26",
+      "title": "Durable execution",
+      "source_sections": [
+        39,
+        40,
+        67,
+        68
+      ]
+    },
+    {
+      "id": "REQ-27",
+      "title": "Entitlements and charging",
+      "source_sections": [
+        1,
+        51
+      ]
+    },
+    {
+      "id": "REQ-28",
+      "title": "Events and data lifecycle",
+      "source_sections": [
+        54,
+        55,
+        77,
+        78
+      ]
+    },
+    {
+      "id": "REQ-29",
+      "title": "Canonical design system",
+      "source_sections": [
+        42,
+        43,
+        44,
+        45,
+        63
+      ]
+    },
+    {
+      "id": "REQ-30",
+      "title": "Complete UX states",
+      "source_sections": [
+        47,
+        48,
+        70,
+        72,
+        73
+      ]
+    },
+    {
+      "id": "REQ-31",
+      "title": "Mobile and accessibility",
+      "source_sections": [
+        46,
+        71,
+        76
+      ]
+    },
+    {
+      "id": "REQ-32",
+      "title": "Measured performance",
+      "source_sections": [
+        75
+      ]
+    },
+    {
+      "id": "REQ-33",
+      "title": "Product outcomes and metrics",
+      "source_sections": [
+        55,
+        56,
+        83,
+        84,
+        87
+      ]
+    },
+    {
+      "id": "REQ-34",
+      "title": "AI evaluation",
+      "source_sections": [
+        28,
+        31,
+        71,
+        77
+      ]
+    },
+    {
+      "id": "REQ-35",
+      "title": "Migration and release gates",
+      "source_sections": [
+        51,
+        52,
+        53,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        71,
+        72,
+        73,
+        74,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        87
+      ]
+    }
+  ],
+  "contract_profiles": {
+    "discovery": {
+      "ui_states": "Document observed states and UNKNOWN runtime coverage; no UI changes required.",
+      "responsive": "Inventory desktop, mobile web and native differences.",
+      "accessibility": "Record unverified behaviors; do not claim WCAG compliance from source alone.",
+      "analytics": "Record existing telemetry and missing measurements; do not emit customer events.",
+      "evidence_required": "Decision/audit artifact, exact source references, commands/results and unresolved questions."
+    },
+    "foundation": {
+      "ui_states": "Consumers must distinguish loading, partial, conflict, unavailable, permission, quota, offline and retryable error.",
+      "responsive": "Contract usable by desktop and mobile/native consumers; no layout coupling.",
+      "accessibility": "Expose structured status/error/recovery labels for accessible consumers; no visual-only status.",
+      "analytics": "Versioned domain events after durable changes; no raw CV/JD/PII in telemetry.",
+      "evidence_required": "Implementation revision, targeted unit/integration results, same-owner and failure fixtures, migration/lifecycle result where persistence changes."
+    },
+    "workflow": {
+      "ui_states": "First use, populated, loading, partial, empty, error/retry, offline/degraded, permission/plan denied, AI unavailable and large history.",
+      "responsive": "Desktop/tablet/mobile; 320px reflow; native back/keyboard/safe area where applicable.",
+      "accessibility": "Keyboard, visible focus, labeled controls, announced status, readable charts and non-drag alternatives; both themes and reduced motion.",
+      "analytics": "Emit meaningful progression events only after durable changes; include subject/revision/correlation IDs without private text.",
+      "evidence_required": "Implementation revision, functional/context tests, real-shaped fixtures, screenshots of major states, accessibility checks and API receipt where applicable."
+    },
+    "qualification": {
+      "ui_states": "Exercise all PRD states through complete new/existing/guest journeys, not only isolated happy-path screens.",
+      "responsive": "Mobile/tablet/desktop and iOS/Android back/keyboard/share behavior.",
+      "accessibility": "Automated checks plus manual keyboard/screen-reader evidence; no blanket claim from token tests.",
+      "analytics": "Verify event payloads, dedupe, cohort denominators and operational diagnosis; no raw private content.",
+      "evidence_required": "Named fixture runs, implementation/environment revisions, API/migration receipts, visual/a11y/performance results and explicit gate verdict."
+    }
+  },
+  "tasks": [
+    {
+      "id": "COS-000",
+      "title": "Repository audit and planning authority",
+      "release": "R0",
+      "owner": "Product / architecture",
+      "requirements": [
+        "REQ-01",
+        "REQ-02",
+        "REQ-03",
+        "REQ-25",
+        "REQ-35"
+      ],
+      "workstreams": [
+        "WS-00",
+        "WS-01",
+        "WS-02"
+      ],
+      "dependencies": [],
+      "contract_profile": "discovery",
+      "status": "VERIFIED",
+      "priority": "P0",
+      "kind": "discovery",
+      "purpose": "Establish evidence-backed reuse decisions and an executable planning index.",
+      "existing_implementation": "Routes, repositories, PRISM, styles, CI and supplied authority inspected.",
+      "files": [
+        "App.tsx",
+        "components/NavigationProvider.tsx",
+        "types.ts",
+        "supabase/migrations",
+        "docs/career-os/CURRENT_PRODUCT_MAP.md"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Documentation only.",
+      "api_dependencies": "No runtime API calls.",
+      "acceptance_criteria": [
+        "Every discovered route/capability mapped; source PRD retained.",
+        "Requirements, tasks and DAG cross-validate; baseline commands recorded."
+      ],
+      "tests": "Plan checker; local typecheck, 254 Vitest tests, 212 Deno tests and build.",
+      "legacy_impact": "Historical notes retain content with current-authority pointers.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [
+        "docs/career-os/CURRENT_PRODUCT_MAP.md",
+        "docs/career-os/evidence/BASELINE.md",
+        "docs/career-os/evidence/plan-check.log"
+      ],
+      "blocker": null
+    },
+    {
+      "id": "COS-001",
+      "title": "Close runtime unknowns and establish fixtures/budgets",
+      "release": "R0",
+      "owner": "Platform / QA",
+      "requirements": [
+        "REQ-05",
+        "REQ-27",
+        "REQ-28",
+        "REQ-32",
+        "REQ-35"
+      ],
+      "workstreams": [
+        "WS-00",
+        "WS-16"
+      ],
+      "dependencies": [
+        "COS-000"
+      ],
+      "contract_profile": "discovery",
+      "status": "VERIFIED",
+      "priority": "P0",
+      "kind": "discovery",
+      "purpose": "Make deployment, data volume and rollout assumptions verifiable.",
+      "existing_implementation": "Local suites pass; deployed migrations, flags, latency and customer fixtures UNKNOWN.",
+      "files": [
+        "docs/GO_LIVE.md",
+        "docs/MOBILE_RELEASE.md",
+        "supabase/tests",
+        "lib/monitoring.ts",
+        "scripts/career-os-local-env.sh"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Sanitized fixture metadata; never commit customer content or secrets.",
+      "api_dependencies": "Read-only approved environment checks; health and local Supabase smoke scripts.",
+      "acceptance_criteria": [
+        "Record deployed schema/flags and supported old native versions.",
+        "Create populated/guest/conflict fixtures; record device/network latency baseline and numerical release budgets.",
+        "Select telemetry destination, data-retention policy and cohort observation thresholds."
+      ],
+      "tests": "Run local-stack smoke suite only after its environment safety preconditions; benchmark critical paths.",
+      "legacy_impact": "Keep current production behavior while facts are gathered.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [
+        "docs/career-os/evidence/COS-001-runtime-discovery.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-20: Local Supabase stack booted (all 21 migrations); hosted schema read denied by permission policy (recorded as G7 blocker); fixtures + provisional budgets recorded; latency measurement pending shell (COS-033).",
+        "2026-09-21: Discovery closed for R0: local stack, fixtures, budgets and telemetry destination recorded; hosted schema read is a documented permission blocker (G7)."
+      ]
+    },
+    {
+      "id": "COS-002",
+      "title": "Repair document identity, cache scoping and sync conflicts",
+      "release": "R0",
+      "owner": "Frontend / data",
+      "requirements": [
+        "REQ-02",
+        "REQ-05",
+        "REQ-19",
+        "REQ-26"
+      ],
+      "workstreams": [
+        "WS-05",
+        "WS-14"
+      ],
+      "dependencies": [
+        "COS-000"
+      ],
+      "contract_profile": "foundation",
+      "status": "VERIFIED",
+      "priority": "P0",
+      "kind": "implementation",
+      "purpose": "Make context-bound editing safe before adding shared contexts.",
+      "existing_implementation": "Mapper drops updatedAt; missing requested resume falls back to primary; shared browser keys and full-array tracker writes.",
+      "files": [
+        "lib/builder/usePersistence.ts",
+        "services/repos/mappers.ts",
+        "services/repos/resumeRepo.ts",
+        "components/ResumeBuilder.tsx",
+        "components/SmartStudio.tsx",
+        "lib/builder/draftCache.ts"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Existing resumes/job_applications remain owners; scoped drafts are recoverable caches.",
+      "api_dependencies": "resumeRepo and trackerRepo; additive revision/precondition support.",
+      "acceptance_criteria": [
+        "Missing resume ID never loads a different CV.",
+        "Account/document scoped cache and explicit anonymous claim preserve unsaved drafts.",
+        "Concurrent/stale saves surface conflicts; failed tracker writes remain recoverable after reload."
+      ],
+      "tests": "Targeted persistence/account-switch/missing-ID/two-device and partial-write tests.",
+      "legacy_impact": "Migrate old cache keys through an explicit non-destructive adapter.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [
+        "docs/career-os/evidence/COS-002-persistence.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-20: Implementation dispatched to a parallel agent with an explicit write scope (see session log); orchestrator: Claude Opus 5 session 2026-09-20.",
+        "2026-09-21: Document identity, scoped drafts, explicit anonymous claim, revision conflicts, per-record tracker sync; 60 new tests, suite 430 green."
+      ]
+    },
+    {
+      "id": "COS-003",
+      "title": "Finalize schema, ownership and extension decisions",
+      "release": "R0",
+      "owner": "Domain / platform",
+      "requirements": [
+        "REQ-01",
+        "REQ-02",
+        "REQ-06",
+        "REQ-14",
+        "REQ-15",
+        "REQ-16",
+        "REQ-25",
+        "REQ-27",
+        "REQ-28",
+        "REQ-35"
+      ],
+      "workstreams": [
+        "WS-01",
+        "WS-05"
+      ],
+      "dependencies": [
+        "COS-000"
+      ],
+      "contract_profile": "discovery",
+      "status": "VERIFIED",
+      "priority": "P0",
+      "kind": "design",
+      "purpose": "Turn proposed aggregate ownership into implementable migration contracts.",
+      "existing_implementation": "Profile and CV JSON overlap; tracker lacks career relationships; no goals/campaigns/conversation owner.",
+      "files": [
+        "docs/career-os/CAREER_OS_DOMAIN_MAP.md",
+        "supabase/migrations",
+        "services/profileMapping.ts",
+        "services/repos/mappers.ts",
+        "supabase/migrations/20260920100000_career_os_foundation.sql"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "One Career aggregate, existing application/CV IDs, additive claim/goal/opportunity relationships.",
+      "api_dependencies": "Define RLS/RPC or repository boundaries using existing Supabase.",
+      "acceptance_criteria": [
+        "ADR specifies exact models, same-owner constraints, revisions, retention/export/delete and indexes.",
+        "Every new subsystem has alternatives/reuse rationale and owner.",
+        "Define old-client compatibility, status mapping and metering semantics with no second application/credits system."
+      ],
+      "tests": "Schema prototype/fixture review and ownership matrix; no production migrations.",
+      "legacy_impact": "Preserve specialized profile fields, historical snapshots and tracker status values.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [
+        "docs/career-os/evidence/COS-003-schema-adr.md",
+        "docs/career-os/evidence/migration-local.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-20: ADR accepted; foundation migration applied and exercised on the local stack (Postgres 15.8): idempotent migrate/restart, idempotent start + reapply, stage/status trigger, same-owner FK rejections, primary-goal uniqueness, verified-requires-method CHECK, optimistic concurrency UPDATE 0, RLS on action_runs. Hosted project untouched."
+      ]
+    },
+    {
+      "id": "COS-004",
+      "title": "Implement canonical route contracts and compatibility parsing",
+      "release": "R0",
+      "owner": "Frontend architecture",
+      "requirements": [
+        "REQ-02",
+        "REQ-03",
+        "REQ-05",
+        "REQ-23"
+      ],
+      "workstreams": [
+        "WS-02",
+        "WS-05"
+      ],
+      "dependencies": [
+        "COS-003"
+      ],
+      "contract_profile": "foundation",
+      "status": "VERIFIED",
+      "priority": "P0",
+      "kind": "implementation",
+      "purpose": "Make nested context deep links round-trip before screen rollout.",
+      "existing_implementation": "Existing navigation owns history/native back but parser only supports two segments.",
+      "files": [
+        "components/NavigationProvider.tsx",
+        "components/common/__tests__/navigationRoutes.test.ts",
+        "App.tsx",
+        "vercel.json"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "URLs own subject IDs and section; data remains repository-owned.",
+      "api_dependencies": "Context ID resolution; no private text in URLs.",
+      "acceptance_criteria": [
+        "All IA route families round-trip with validated IDs and next continuation.",
+        "Disabled/unimplemented destinations retain legacy fallback; no unconditional redirect to missing screens.",
+        "Application relations outrank inconsistent query hints; not-found and permission states work."
+      ],
+      "tests": "Route ledger tests, malformed URLs, auth continuation and back-stack tests.",
+      "legacy_impact": "Keep preview query contract and standalone/guest builder flows.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [
+        "docs/career-os/evidence/COS-004-005-008-routes-tokens-shell.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-20: Implementation dispatched to a parallel agent with an explicit write scope (see session log); orchestrator: Claude Opus 5 session 2026-09-20.",
+        "2026-09-21: Route grammar, builders, ledger, App gate + cohort redirects; 21 route tests; live redirect + not-found checks on local stack."
+      ]
+    },
+    {
+      "id": "COS-005",
+      "title": "Extend semantic tokens and shared Career OS primitives",
+      "release": "R0",
+      "owner": "Design / frontend",
+      "requirements": [
+        "REQ-29",
+        "REQ-30",
+        "REQ-31"
+      ],
+      "workstreams": [
+        "WS-03",
+        "WS-16"
+      ],
+      "dependencies": [
+        "COS-000"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P0",
+      "kind": "implementation",
+      "purpose": "Establish reusable surface foundations with existing visual language.",
+      "existing_implementation": "Role-split generated colors, dialogs/toast/sheets and adjustable text already exist.",
+      "files": [
+        "scripts/generate-theme-css.mjs",
+        "tailwind.config.js",
+        "styles/theme.css",
+        "components/common",
+        "components/mobile",
+        "components/careeros/primitives"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Presentation only; components consume typed projections.",
+      "api_dependencies": "No new service.",
+      "acceptance_criteria": [
+        "Semantic aliases build through current generator; document and marketing exceptions retained.",
+        "Action/evidence/context/fit primitives cover common states without page-local token systems.",
+        "Keyboard, contrast and reduced-motion checked in both themes."
+      ],
+      "tests": "Token generator checks and focused component/visual/a11y verification.",
+      "legacy_impact": "Adapt existing primitives; do not re-theme CV output.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [
+        "docs/career-os/evidence/COS-004-005-008-routes-tokens-shell.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-20: Implementation dispatched to a parallel agent with an explicit write scope (see session log); orchestrator: Claude Opus 5 session 2026-09-20.",
+        "2026-09-21: Semantic alias layer (181 contrast checks), 20 primitives with required states, 23 tests."
+      ]
+    },
+    {
+      "id": "COS-006",
+      "title": "Build canonical context projection and invalidation",
+      "release": "R0",
+      "owner": "Domain / frontend",
+      "requirements": [
+        "REQ-02",
+        "REQ-04",
+        "REQ-25",
+        "REQ-26"
+      ],
+      "workstreams": [
+        "WS-05"
+      ],
+      "dependencies": [
+        "COS-002",
+        "COS-003"
+      ],
+      "contract_profile": "foundation",
+      "status": "VERIFIED",
+      "priority": "P0",
+      "kind": "implementation",
+      "purpose": "Resolve one owned context consistently across all consumers.",
+      "existing_implementation": "Current providers are feature/account-specific; contexts and cache projections are absent.",
+      "files": [
+        "components/AuthProvider.tsx",
+        "services/api.ts",
+        "services/repos",
+        "types.ts",
+        "services/careerOs/careerContext.ts"
+      ],
+      "proposed_paths": [
+        "services/careerContext.ts",
+        "components/CareerContextProvider.tsx"
+      ],
+      "data_ownership": "Server owns refs/revisions; provider owns selection and cache state.",
+      "api_dependencies": "Existing repositories plus schema-approved same-owner context queries.",
+      "acceptance_criteria": [
+        "Context resolver validates ownership/relationships and projects minimal data.",
+        "Stale revisions invalidate fit/actions; account switch clears sensitive context.",
+        "Partial/missing data is typed; unsaved drafts cannot override persisted relationships silently."
+      ],
+      "tests": "Two-user/two-application projection, revocation, stale-context and invalidation tests.",
+      "legacy_impact": "Adapter wraps existing models before consumers migrate.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [
+        "docs/career-os/evidence/COS-006-014-017-domain-layer.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-20: Implementation dispatched to a parallel agent with an explicit write scope (see session log); orchestrator: Claude Opus 5 session 2026-09-20.",
+        "2026-09-21: Resolver + provider verified (12 context tests; live shell resolution)."
+      ]
+    },
+    {
+      "id": "COS-007",
+      "title": "Implement additive migration and lifecycle infrastructure",
+      "release": "R0",
+      "owner": "Data / platform",
+      "requirements": [
+        "REQ-05",
+        "REQ-25",
+        "REQ-28",
+        "REQ-35"
+      ],
+      "workstreams": [
+        "WS-14"
+      ],
+      "dependencies": [
+        "COS-001",
+        "COS-002",
+        "COS-003"
+      ],
+      "contract_profile": "foundation",
+      "status": "VERIFIED",
+      "priority": "P0",
+      "kind": "implementation",
+      "purpose": "Guarantee restartable mapping and access during migration.",
+      "existing_implementation": "Existing local imports and lifecycle exports cover current tables, not new objects.",
+      "files": [
+        "supabase/migrations",
+        "supabase/functions/account-export/index.ts",
+        "supabase/functions/account-delete/index.ts",
+        "services/repos/accountRepo.ts",
+        "supabase/tests",
+        "supabase/functions/_shared/careerTables.ts",
+        "supabase/tests/career-os-migration-smoke.sh",
+        "supabase/tests/career-os-lifecycle-smoke.sh"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Original IDs/data authoritative until validated cutover; migration ledger owns mappings.",
+      "api_dependencies": "Same-owner DB constraints, lifecycle endpoints, compatibility adapters.",
+      "acceptance_criteria": [
+        "Partial imports restart with same IDs and no duplicate artifacts.",
+        "Every new owned record included in export/delete and relationship constraints.",
+        "Rollback retains post-switch writes; legacy reads remain usable while projections fail."
+      ],
+      "tests": "Migration dry run, restart/rollback/content parity and two-owner RLS fixtures.",
+      "legacy_impact": "No destructive schema contraction; guest/demo records require explicit provenance.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [
+        "docs/career-os/evidence/COS-007-lifecycle.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-20: Implementation dispatched to a parallel agent with an explicit write scope (see session log); orchestrator: Claude Opus 5 session 2026-09-20.",
+        "2026-09-21: Export v2 covers all 22 new tables (migration-parsing test guards the list); delete cascade audited; migration + lifecycle smoke scripts pass on the local stack (account-delete substituted by admin delete because Stripe env is absent locally). VERIFIED waits on COS-001 latency baseline dependency.",
+        "2026-09-21: COS-001 latency baseline is the remaining discovery item; lifecycle/migration evidence complete."
+      ]
+    },
+    {
+      "id": "COS-008",
+      "title": "Compose six-space shell for desktop and mobile",
+      "release": "R0",
+      "owner": "Frontend",
+      "requirements": [
+        "REQ-03",
+        "REQ-29",
+        "REQ-30",
+        "REQ-31"
+      ],
+      "workstreams": [
+        "WS-04"
+      ],
+      "dependencies": [
+        "COS-004",
+        "COS-005",
+        "COS-006"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Expose one information architecture across platforms.",
+      "existing_implementation": "Dashboard and mobile shell duplicate feature-tab composition.",
+      "files": [
+        "App.tsx",
+        "components/Dashboard.tsx",
+        "components/mobile/DashboardMobile.tsx",
+        "components/mobile/BottomTabBar.tsx",
+        "lib/useMobileShell.ts",
+        "components/careeros/CareerShell.tsx"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Shared navigation descriptors; no new domain state in shell.",
+      "api_dependencies": "Context provider and feature flags with matching server gates.",
+      "acceptance_criteria": [
+        "Six desktop spaces and five mobile entries; utilities/admin preserved.",
+        "Shell renders without AI; placeholders are honest and incomplete features retain legacy routes.",
+        "Native back, safe area, auth continuation and contextual breadcrumbs work."
+      ],
+      "tests": "Navigation integration and mobile shell fixtures.",
+      "legacy_impact": "Retain legacy dashboard behind cohort flag until equivalent destinations qualify.",
+      "events": "career_os_opened",
+      "evidence": [
+        "docs/career-os/evidence/COS-004-005-008-routes-tokens-shell.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Shell composed (desktop sidebar, mobile tabs + More sheet, provider with migration bootstrap and context resolution); live sign-in and backfill verified on local stack. VERIFIED after COS-006 dependency and mobile fixtures.",
+        "2026-09-21: Live shell verified on local stack; mobile shell fixtures continue in COS-032."
+      ]
+    },
+    {
+      "id": "COS-009",
+      "title": "Import and review canonical career facts",
+      "release": "R1",
+      "owner": "Career / data",
+      "requirements": [
+        "REQ-02",
+        "REQ-06",
+        "REQ-13",
+        "REQ-24"
+      ],
+      "workstreams": [
+        "WS-07",
+        "WS-13"
+      ],
+      "dependencies": [
+        "COS-006",
+        "COS-007"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Create reusable career identity without silently promoting tailored text.",
+      "existing_implementation": "Parsing/profile fields and ResumeData provide import sources, but no claim provenance.",
+      "files": [
+        "services/resumeParser.ts",
+        "services/profileMapping.ts",
+        "components/UserProfileForm.tsx",
+        "components/builder/MasterProfileSyncCard.tsx",
+        "lib/ats/resumeParse.ts",
+        "services/careerOs/careerFacts.ts",
+        "services/careerOs/factRepo.ts",
+        "components/careeros/career/ImportPanel.tsx",
+        "components/careeros/career/ReviewQueue.tsx"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Career aggregate and versioned facts; source resume remains unchanged.",
+      "api_dependencies": "Approved career repositories and current parsing endpoints.",
+      "acceptance_criteria": [
+        "Select/import source CV; preview candidate facts, resolve duplicates/contradictions and confirm.",
+        "Imported claims are not Verified; missing/custom fields retained.",
+        "Re-import and interrupted review are idempotent; account export includes reviewed facts."
+      ],
+      "tests": "Parsing/provenance/duplicate/conflict/import-resume fixtures.",
+      "legacy_impact": "Legacy profile and primary CV remain readable during projection.",
+      "events": "career_import_reviewed, career_profile_completed",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/COS-018-r1-qualification.md",
+        "docs/career-os/evidence/final-verification.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Logic/server half implemented and tested; UI composition in progress.",
+        "2026-09-21: Verified: 14 unit + 8 component tests; live J01 (10 candidates, review persisted) and J02 (migrated facts confirmed, events)."
+      ]
+    },
+    {
+      "id": "COS-010",
+      "title": "Create reusable goals and primary-goal selection",
+      "release": "R1",
+      "owner": "Career",
+      "requirements": [
+        "REQ-02",
+        "REQ-14"
+      ],
+      "workstreams": [
+        "WS-07"
+      ],
+      "dependencies": [
+        "COS-009"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Stop repeatedly asking for target role and constraints.",
+      "existing_implementation": "Target-role fields currently live independently in Smart Studio inputs.",
+      "files": [
+        "services/profileMapping.ts",
+        "components/UserProfileForm.tsx",
+        "services/smartStudioService.ts",
+        "services/careerOs/goalRepo.ts",
+        "components/careeros/career/GoalForm.tsx",
+        "components/careeros/career/GoalsView.tsx"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Versioned career_goals; optional primary per user.",
+      "api_dependencies": "Approved goal repository and context invalidation.",
+      "acceptance_criteria": [
+        "Create/edit/archive goals with structured geography/compensation/time fields.",
+        "At most one primary; no-goal and multiple-goal states supported.",
+        "Goal revision invalidates derived recommendations without altering historical application snapshots."
+      ],
+      "tests": "Primary uniqueness, revision and context consumer integration tests.",
+      "legacy_impact": "Suggest existing target-role values for review instead of auto-creating goals.",
+      "events": "career_goal_created, career_goal_updated",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/COS-018-r1-qualification.md",
+        "docs/career-os/evidence/final-verification.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Logic/server half implemented and tested; UI composition in progress.",
+        "2026-09-21: Verified: structured goal, primary selection, revision snapshot on application start; SET_GOAL completes from the durable goal."
+      ]
+    },
+    {
+      "id": "COS-011",
+      "title": "Persist imported opportunities and saved views",
+      "release": "R1",
+      "owner": "Opportunities / data",
+      "requirements": [
+        "REQ-07",
+        "REQ-15"
+      ],
+      "workstreams": [
+        "WS-08"
+      ],
+      "dependencies": [
+        "COS-006",
+        "COS-007"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Turn pasted JD and wishlist state into stable opportunity context.",
+      "existing_implementation": "JD local state and tracker URL/company/role are the only existing sources.",
+      "files": [
+        "components/SmartStudio.tsx",
+        "services/repos/trackerRepo.ts",
+        "services/atsEngine.ts",
+        "supabase/migrations",
+        "services/careerOs/opportunityRepo.ts",
+        "components/careeros/opportunities/ImportOpportunityDialog.tsx",
+        "components/careeros/opportunities/OpportunityList.tsx"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "User-owned opportunity with captured source and optional legacy mapping.",
+      "api_dependencies": "Opportunity repository; existing ATS engine.",
+      "acceptance_criteria": [
+        "Paste/manual import persists source, captured time and complete JD snapshot.",
+        "Saved/watching/archive filters work; duplicate merge retains/reverses associations.",
+        "For You accurately states imported-only coverage; missing or stale listing fields stay unknown."
+      ],
+      "tests": "Reload/source-freshness/dedupe/same-owner and wishlist migration fixtures.",
+      "legacy_impact": "Preserve wishlist application IDs through mapping.",
+      "events": "opportunity_saved, opportunity_reviewed",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/COS-018-r1-qualification.md",
+        "docs/career-os/evidence/final-verification.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Logic/server half implemented and tested; UI composition in progress.",
+        "2026-09-21: Verified: paste import with editable guesses, injected instruction not extracted, saved views, Watch does not stale the analysis."
+      ]
+    },
+    {
+      "id": "COS-012",
+      "title": "Extend existing application persistence and start flow",
+      "release": "R1",
+      "owner": "Execution / data",
+      "requirements": [
+        "REQ-02",
+        "REQ-16",
+        "REQ-17",
+        "REQ-18"
+      ],
+      "workstreams": [
+        "WS-09",
+        "WS-10"
+      ],
+      "dependencies": [
+        "COS-011",
+        "COS-007"
+      ],
+      "contract_profile": "foundation",
+      "status": "VERIFIED",
+      "priority": "P0",
+      "kind": "implementation",
+      "purpose": "Give every application one durable workspace identity.",
+      "existing_implementation": "Existing job_applications table and five statuses must remain authoritative.",
+      "files": [
+        "services/repos/trackerRepo.ts",
+        "services/repos/mappers.ts",
+        "types.ts",
+        "supabase/migrations",
+        "services/careerOs/applicationRepo.ts",
+        "components/careeros/opportunities/useStartApplication.ts",
+        "supabase/tests/career-os-migration-smoke.sh"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Extend job_applications, attempt/revision and opportunity/campaign/artifact links.",
+      "api_dependencies": "Idempotent start/application mutation transaction; current trackerRepo.",
+      "acceptance_criteria": [
+        "Repeated/concurrent Start Application returns same attempt; explicit reapply creates linked new attempt.",
+        "Legacy wishlist activates existing shell; old status contract remains readable.",
+        "Same-owner relations enforced; submission requires explicit record and artifact snapshot."
+      ],
+      "tests": "Concurrent-start, status compatibility, foreign-owner and submission fixtures.",
+      "legacy_impact": "No second application table or destructive status rewrite.",
+      "events": "application_started, application_submitted",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/COS-018-r1-qualification.md",
+        "docs/career-os/evidence/final-verification.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Logic/server half implemented and tested; UI composition in progress.",
+        "2026-09-21: Verified: career_start_application idempotent/reapply live and in the smoke script; legacy status trigger keeps old clients readable."
+      ]
+    },
+    {
+      "id": "COS-013",
+      "title": "Bind PRISM to application and harden durable recovery",
+      "release": "R1",
+      "owner": "AI platform / execution",
+      "requirements": [
+        "REQ-04",
+        "REQ-19",
+        "REQ-26",
+        "REQ-27",
+        "REQ-34"
+      ],
+      "workstreams": [
+        "WS-10"
+      ],
+      "dependencies": [
+        "COS-002",
+        "COS-012"
+      ],
+      "contract_profile": "foundation",
+      "status": "VERIFIED",
+      "priority": "P0",
+      "kind": "implementation",
+      "purpose": "Reuse specialist tailoring with the correct application and reliable receipts.",
+      "existing_implementation": "Staged graph/checkpoints/grounding exist; latest-run resume is user-wide and checkpoint writes can fail non-fatally.",
+      "files": [
+        "services/prismService.ts",
+        "services/repos/prismRepo.ts",
+        "components/prism/PrismWizard.tsx",
+        "supabase/functions/prism-tailor/index.ts",
+        "supabase/functions/prism-tailor/graph.ts",
+        "supabase/functions/prism-tailor/handler.ts"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "PRISM owns specialist state; application links source revisions/run/result resume.",
+      "api_dependencies": "Existing analyze/generate/finalize plus idempotency/charging integration.",
+      "acceptance_criteria": [
+        "Resume exact application run; stale source revisions require review.",
+        "Checkpoint/save/finalize failures reconcile before success; no duplicate resume/quota on retry.",
+        "Grounding and capped writer behavior retained; stage labels reflect real execution."
+      ],
+      "tests": "Extend graph/wizard fixtures for interrupted persistence, finalize retry, two applications and quota rollback.",
+      "legacy_impact": "Standalone PRISM remains reachable with current flags and entitlements.",
+      "events": "cv_tailoring_started, cv_tailored",
+      "evidence": [
+        "docs/career-os/evidence/COS-013-prism-binding.md",
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/COS-018-r1-qualification.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-20: Implementation dispatched to a parallel agent with an explicit write scope (see session log); orchestrator: Claude Opus 5 session 2026-09-20.",
+        "2026-09-21: Server binding/idempotency/stale-source/finalize reconciliation/checkpoint degradation; 21 new Deno tests (72 total in prism-tailor); 17 live local checks. Wizard UI binding is composed in COS-016.",
+        "2026-09-21: Status held at IMPLEMENTED until dependency COS-002 is VERIFIED; server-side verification already complete.",
+        "2026-09-21: Dependency COS-002 verified; promoted.",
+        "2026-09-21: Held at IMPLEMENTED until COS-012 (application start flow) is VERIFIED.",
+        "2026-09-21: Dependency COS-012 verified; wizard binding composed in the workspace and exercised live (bound run failed honestly, charged then released)."
+      ]
+    },
+    {
+      "id": "COS-014",
+      "title": "Implement shared action rules and lifecycle",
+      "release": "R1",
+      "owner": "Intelligence / platform",
+      "requirements": [
+        "REQ-04",
+        "REQ-08",
+        "REQ-10",
+        "REQ-12",
+        "REQ-26"
+      ],
+      "workstreams": [
+        "WS-06",
+        "WS-05"
+      ],
+      "dependencies": [
+        "COS-006",
+        "COS-010",
+        "COS-012"
+      ],
+      "contract_profile": "foundation",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Give Today and Coach one explainable queue.",
+      "existing_implementation": "No canonical action/recommendation owner; existing completeness and application state are inputs.",
+      "files": [
+        "services/repos",
+        "services/profileCompleteness.ts",
+        "services/prismService.ts",
+        "services/careerOs/careerActions.ts",
+        "services/careerOs/actionRepo.ts"
+      ],
+      "proposed_paths": [
+        "services/careerActions.ts"
+      ],
+      "data_ownership": "Actions own status/dedupe/snooze; subjects own outcome data.",
+      "api_dependencies": "Versioned rule engine, context validation and action repository.",
+      "acceptance_criteria": [
+        "Deterministic rules emit reason/evidence/input revisions; normally top three eligible.",
+        "Dedupe, dismissal, snooze and expiry survive reload; no random priority scores.",
+        "Completion follows durable workflow receipt or explicit user-reported completion."
+      ],
+      "tests": "Ordering/dedupe/stale-input/no-data/expiry/completion invariants.",
+      "legacy_impact": "Do not import default sample tracker events into real queues.",
+      "events": "recommendation_opened, recommendation_accepted, recommendation_dismissed",
+      "evidence": [
+        "docs/career-os/evidence/COS-006-014-017-domain-layer.md",
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/COS-018-r1-qualification.md",
+        "docs/career-os/evidence/final-verification.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Rules-1.0.0 engine + action repo lifecycle; 20 tests + held-out prioritisation cases.",
+        "2026-09-21: Held at IMPLEMENTED until COS-010/COS-012 UI tasks verify.",
+        "2026-09-21: Verified: 24 rule tests; live durable completions (SET_GOAL, CAPTURE_ACHIEVEMENT), stale rule expiry, dedupe race tolerated."
+      ]
+    },
+    {
+      "id": "COS-015",
+      "title": "Deliver Today using real context and actions",
+      "release": "R1",
+      "owner": "Frontend / intelligence",
+      "requirements": [
+        "REQ-12",
+        "REQ-30",
+        "REQ-33"
+      ],
+      "workstreams": [
+        "WS-06"
+      ],
+      "dependencies": [
+        "COS-008",
+        "COS-014"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Make the next useful career action obvious.",
+      "existing_implementation": "Dashboard currently reads local CV/ATS summary and feature entry points.",
+      "files": [
+        "components/Dashboard.tsx",
+        "components/mobile/DashboardMobile.tsx",
+        "services/profileCompleteness.ts",
+        "components/careeros/spaces/TodaySpace.tsx",
+        "components/careeros/today/useTodayData.ts",
+        "components/careeros/today/ActionQueue.tsx",
+        "components/careeros/today/WorkspaceShortcuts.tsx"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Read projection over Career/goals/actions; no separate priority logic.",
+      "api_dependencies": "Canonical context/action API; activity stub uses only genuine existing events.",
+      "acceptance_criteria": [
+        "Orientation/action queue work with or without goal/AI; no fake momentum.",
+        "Priority reasons inspectable; begin/resume correct destination with context.",
+        "Empty/offline/large-history states preserve meaningful navigation."
+      ],
+      "tests": "Today integration, action destination and state/visual fixtures.",
+      "legacy_impact": "Legacy home remains available during cohort migration.",
+      "events": "career_action_completed",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/COS-018-r1-qualification.md",
+        "docs/career-os/evidence/final-verification.log",
+        "docs/career-os/evidence/LEGACY-INTEGRATION.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Verified live for a migrated account, a new account and the anonymous claim; localized date; no invented content.",
+        "2026-09-22: Today keeps the legacy dashboard home cards as a Documents & tools panel on owned data."
+      ]
+    },
+    {
+      "id": "COS-016",
+      "title": "Compose the first application workspace with existing CV engine",
+      "release": "R1",
+      "owner": "Execution / frontend",
+      "requirements": [
+        "REQ-17",
+        "REQ-18",
+        "REQ-19",
+        "REQ-30"
+      ],
+      "workstreams": [
+        "WS-10"
+      ],
+      "dependencies": [
+        "COS-008",
+        "COS-012",
+        "COS-013"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Connect role analysis, preparation and reviewed CV without tool hopping.",
+      "existing_implementation": "Tracker/ATS/PRISM/editor are separate screens; export and history exist.",
+      "files": [
+        "components/SmartStudio.tsx",
+        "components/ResumeBuilder.tsx",
+        "components/ResumePreview.tsx",
+        "components/prism/PrismWizard.tsx",
+        "components/careeros/application/ApplicationWorkspace.tsx",
+        "components/careeros/application/sections/CvSection.tsx",
+        "components/careeros/primitives/ReadinessChecklist.tsx"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Application references current and submitted CV revisions; CV owner stays resumes.",
+      "api_dependencies": "Context, tracker and PRISM repositories; export helpers.",
+      "acceptance_criteria": [
+        "Application analysis/CV/notes/activity sections survive route reload.",
+        "Create application version opens correct editor; review new assertions; export works.",
+        "Return to Today resumes same application and CV; incomplete later sections show truthful states."
+      ],
+      "tests": "Goal→opportunity→application→PRISM→editor→Today integration; representative PDF/DOCX regression.",
+      "legacy_impact": "Keep general builder behavior and all supported sections.",
+      "events": "application_ready",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/COS-018-r1-qualification.md",
+        "docs/career-os/evidence/final-verification.log",
+        "docs/career-os/evidence/LEGACY-INTEGRATION.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Verified: J04 slice through the workspace with the existing builder/PRISM; rails stack below 1280 px.",
+        "2026-09-22: Application CV tab can use a saved builder CV (copy or as-is) without PRISM; builder and PRISM verified inside the shell."
+      ]
+    },
+    {
+      "id": "COS-017",
+      "title": "Add product events and privacy-safe measurements",
+      "release": "R1",
+      "owner": "Analytics / platform",
+      "requirements": [
+        "REQ-28",
+        "REQ-32",
+        "REQ-33"
+      ],
+      "workstreams": [
+        "WS-16"
+      ],
+      "dependencies": [
+        "COS-001",
+        "COS-003"
+      ],
+      "contract_profile": "foundation",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Measure meaningful actions and latency without storing private career text.",
+      "existing_implementation": "Sentry is errors only; provider telemetry is operational.",
+      "files": [
+        "lib/monitoring.ts",
+        "services/api.ts",
+        "supabase/functions/_shared/aiLog.ts",
+        "supabase/functions/_shared/llm/callLog.ts",
+        "services/careerOs/careerEvents.ts"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Versioned product-event stream/projection, distinct from operational logs.",
+      "api_dependencies": "Selected telemetry sink and minimal domain-event persistence.",
+      "acceptance_criteria": [
+        "Event dictionary covers source PRD events; dedupe and cohort denominators specified.",
+        "No raw CV/JD/contact/answers/salary values in logs; export/delete/retention documented.",
+        "Capture navigation/context/AI stage timings with known sample/device metadata."
+      ],
+      "tests": "Event schema/redaction/dedupe and one canonical funnel verification.",
+      "legacy_impact": "Preserve existing Sentry and AI logs as operational tools.",
+      "events": "career_goal_created, application_started, coach_action_executed, offer_recorded",
+      "evidence": [
+        "docs/career-os/evidence/COS-006-014-017-domain-layer.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: career_events envelope + redaction; server emits coach_action_executed; export/delete cover the table."
+      ]
+    },
+    {
+      "id": "COS-018",
+      "title": "Qualify the connected application slice",
+      "release": "R1",
+      "owner": "QA / release",
+      "requirements": [
+        "REQ-01",
+        "REQ-02",
+        "REQ-04",
+        "REQ-05",
+        "REQ-17",
+        "REQ-19",
+        "REQ-31",
+        "REQ-35"
+      ],
+      "workstreams": [
+        "WS-16"
+      ],
+      "dependencies": [
+        "COS-007",
+        "COS-010",
+        "COS-011",
+        "COS-013",
+        "COS-015",
+        "COS-016",
+        "COS-017"
+      ],
+      "contract_profile": "qualification",
+      "status": "VERIFIED",
+      "priority": "P0",
+      "kind": "gate",
+      "purpose": "Ship one coherent thin slice before expanding surface area.",
+      "existing_implementation": "Existing local test suite is healthy but no Career OS E2E harness is found.",
+      "files": [
+        "docs/career-os/RELEASE_PLAN.md",
+        "supabase/tests",
+        "components/common/__tests__/navigationRoutes.test.ts"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Fixtures use owned isolated accounts and synthetic content.",
+      "api_dependencies": "Real local/staging Supabase and scripted AI with selected live checks.",
+      "acceptance_criteria": [
+        "J01/J02/J03/J05/J06 connected-slice paths pass on mobile/desktop.",
+        "Missing/wrong documents, retries and rollback do not lose data or double charge.",
+        "R1 evidence bundle records G1/G2 and slice G3/G5/G6 verdicts; R2 not claimed."
+      ],
+      "tests": "Canonical slice browser tests, RLS/migration tests, keyboard/a11y and export checks.",
+      "legacy_impact": "Do not retire legacy paths at R1.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [
+        "docs/career-os/evidence/COS-018-r1-qualification.md",
+        "docs/career-os/evidence/final-verification.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: R1 gate run and verdict recorded: G1/G2 PASS (local), G3/G5 slice PASS (local), G6 PARTIAL (screen reader/axe outstanding), G7 NOT RUN. QUALIFIED withheld until G6 closes; R2 not claimed here."
+      ]
+    },
+    {
+      "id": "COS-019",
+      "title": "Complete Career evidence and progression surfaces",
+      "release": "R2",
+      "owner": "Career / design",
+      "requirements": [
+        "REQ-06",
+        "REQ-13",
+        "REQ-29"
+      ],
+      "workstreams": [
+        "WS-07"
+      ],
+      "dependencies": [
+        "COS-008",
+        "COS-009",
+        "COS-010"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Make professional evidence a durable system of record.",
+      "existing_implementation": "Experience/education/projects/skills exist in CV forms; Career model introduced by COS-009.",
+      "files": [
+        "components/UserProfileForm.tsx",
+        "components/forms",
+        "services/profileMapping.ts",
+        "services/skillTaxonomy.ts",
+        "components/careeros/spaces/CareerSpace.tsx",
+        "components/careeros/career/AchievementsView.tsx",
+        "components/careeros/career/CareerTimeline.tsx"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Career fact/achievement/evidence IDs and revisions.",
+      "api_dependencies": "Career repositories, provenance resolver and context invalidation.",
+      "acceptance_criteria": [
+        "Overview/timeline/achievements/skills/education/evidence/profile views use canonical facts.",
+        "Verified requires method/source/time; inferred/confirmed/incomplete clearly distinct.",
+        "Career update works without any active job search; specialized legacy fields retained."
+      ],
+      "tests": "Provenance correction, large-career, locale and evidence review fixtures.",
+      "legacy_impact": "Replace master-copy writer only after canonical migration parity.",
+      "events": "career_achievement_updated, career_evidence_confirmed",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/final-verification.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Verified: J10 achievement captured live with metric/linked role/cited evidence; timeline and evidence views on real facts."
+      ]
+    },
+    {
+      "id": "COS-020",
+      "title": "Deliver qualification and career-direction fit",
+      "release": "R2",
+      "owner": "Intelligence / opportunities",
+      "requirements": [
+        "REQ-04",
+        "REQ-07",
+        "REQ-15",
+        "REQ-34"
+      ],
+      "workstreams": [
+        "WS-08"
+      ],
+      "dependencies": [
+        "COS-010",
+        "COS-011",
+        "COS-019"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Explain both capability match and goal tradeoffs.",
+      "existing_implementation": "Deterministic ATS and trajectory inference exist; direction fit not persisted.",
+      "files": [
+        "lib/ats/atsEngine.ts",
+        "components/ats/AtsAnalyzer.tsx",
+        "services/smartStudioService.ts",
+        "supabase/functions/ai-trajectory/index.ts",
+        "services/careerOs/careerFit.ts",
+        "services/careerOs/analysisRepo.ts",
+        "components/careeros/opportunities/FitPanel.tsx"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Versioned analysis projection references goal/fact/JD revisions.",
+      "api_dependencies": "Existing ATS engine plus bounded structured AI explanation if needed.",
+      "acceptance_criteria": [
+        "Two fit panels cite evidence, constraints, missing information and source date.",
+        "Missing salary or uncertain skills are unknown; no hiring-probability claims.",
+        "Goal/JD/fact changes stale the report; conflicts and user override are inspectable."
+      ],
+      "tests": "Held-out fit rubric, stale-input and hard-constraint cases; ATS regression suite.",
+      "legacy_impact": "Legacy match score stays a labeled historical signal.",
+      "events": "opportunity_fit_reviewed",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/COS-018-r1-qualification.md",
+        "docs/career-os/evidence/heldout-eval-report.json"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Logic/server half implemented and tested; UI composition in progress.",
+        "2026-09-21: Verified: qualification vs direction fit separated live; unknown pay stays unknown; ATS a distinct signal; input fingerprint staleness; held-out GF/QF cases pass."
+      ]
+    },
+    {
+      "id": "COS-021",
+      "title": "Build campaign milestones and application board",
+      "release": "R2",
+      "owner": "Execution",
+      "requirements": [
+        "REQ-16",
+        "REQ-18",
+        "REQ-30"
+      ],
+      "workstreams": [
+        "WS-09"
+      ],
+      "dependencies": [
+        "COS-008",
+        "COS-010",
+        "COS-012"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Coordinate pursuit around explicit goals.",
+      "existing_implementation": "Existing five-column application board provides reusable interactions.",
+      "files": [
+        "components/SmartStudio.tsx",
+        "services/repos/trackerRepo.ts",
+        "types.ts",
+        "services/careerOs/campaignRepo.ts",
+        "services/careerOs/campaignFunnel.ts",
+        "components/careeros/campaigns/CampaignDetail.tsx",
+        "components/careeros/campaigns/ApplicationBoard.tsx"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Campaign owner and memberships; one existing application identity.",
+      "api_dependencies": "Campaign repository and tracker mutation boundaries.",
+      "acceptance_criteria": [
+        "Create/pause/close campaign; assign/unassign existing applications without copying.",
+        "Funnel counts/milestones reflect observed state; unassigned legacy records remain visible.",
+        "Board/list and keyboard controls work; inferred status changes are labeled/correctable."
+      ],
+      "tests": "Membership/count/status-transition and non-drag interaction fixtures.",
+      "legacy_impact": "Map five legacy statuses; no invented interviews/dates.",
+      "events": "campaign_created, campaign_completed",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/final-verification.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Verified live: explicit campaign creation, assign existing application, board move via Earlier/Later with undo through the stage trigger; observed funnel; heading wrap fix."
+      ]
+    },
+    {
+      "id": "COS-022",
+      "title": "Persist all application preparation artifacts",
+      "release": "R2",
+      "owner": "Execution",
+      "requirements": [
+        "REQ-17",
+        "REQ-18",
+        "REQ-22"
+      ],
+      "workstreams": [
+        "WS-10"
+      ],
+      "dependencies": [
+        "COS-016",
+        "COS-020"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Keep cover letter, questions, positioning and networking in one workspace.",
+      "existing_implementation": "Existing optimizers return transient content; questions/network notes need bounded persistence.",
+      "files": [
+        "components/SmartStudio.tsx",
+        "services/smartStudioService.ts",
+        "supabase/functions/ai-cover-letter/index.ts",
+        "supabase/functions/ai-linkedin/index.ts",
+        "services/careerOs/artifactRepo.ts",
+        "components/careeros/application/ArtifactEditor.tsx"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Application artifact metadata/content and immutable submission references.",
+      "api_dependencies": "Existing optimizer endpoints through approved typed artifact repository.",
+      "acceptance_criteria": [
+        "All preparation sections save/reopen in same application.",
+        "Employer questions separate from PRISM clarifications; readiness checklist explains optional/required items.",
+        "Networking drafts/private notes work without invented contacts or automatic sends."
+      ],
+      "tests": "Artifact reload/version, app context, partial AI failure and truthful-readiness tests.",
+      "legacy_impact": "Extract Smart Studio panels; keep legacy launcher while migration pending.",
+      "events": "application_artifact_saved, application_ready",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/final-verification.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Verified: artifact save/review/revision live on the cover letter (revisions 2→5), stale flag cleared by the reviewed save; unit coverage for kinds and references."
+      ]
+    },
+    {
+      "id": "COS-023",
+      "title": "Track factual changes across generated assets",
+      "release": "R2",
+      "owner": "Career / AI platform",
+      "requirements": [
+        "REQ-04",
+        "REQ-06",
+        "REQ-19",
+        "REQ-34"
+      ],
+      "workstreams": [
+        "WS-07",
+        "WS-10"
+      ],
+      "dependencies": [
+        "COS-019",
+        "COS-013",
+        "COS-022"
+      ],
+      "contract_profile": "foundation",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Make career-memory corrections propagate safely.",
+      "existing_implementation": "PRISM grounding and user flags exist without cross-document provenance.",
+      "files": [
+        "supabase/functions/prism-tailor/grounding.ts",
+        "supabase/functions/prism-tailor/mapping.ts",
+        "components/AIAssist.tsx",
+        "components/builder/MasterProfileSyncCard.tsx",
+        "services/careerOs/careerFacts.ts",
+        "components/careeros/career/ImpactBanner.tsx",
+        "components/careeros/career/useCareerFacts.ts"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Claim-to-artifact revision edges; historical submitted snapshot remains owned by document.",
+      "api_dependencies": "Provenance queries and reviewed patch API; existing AI helpers.",
+      "acceptance_criteria": [
+        "Claim changes list affected drafts and mark derived analyses stale.",
+        "User accepts a diff to update drafts; submitted snapshots remain unchanged.",
+        "All generative entry points distinguish rewriting from new fact and require fact confirmation."
+      ],
+      "tests": "Cross-asset traceability, correction/deletion and unsupported-assertion adversarial tests.",
+      "legacy_impact": "No silent overwrite of existing CV/profile content.",
+      "events": "career_claim_corrected, artifact_update_reviewed",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/final-verification.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Verified live with a synthetic referenced draft + snapshot: impact banner, diff, draft/analysis stale, snapshot untouched, correction event with ids only."
+      ]
+    },
+    {
+      "id": "COS-024",
+      "title": "Implement evidence-based interview preparation",
+      "release": "R2",
+      "owner": "Execution / AI experience",
+      "requirements": [
+        "REQ-06",
+        "REQ-20",
+        "REQ-30"
+      ],
+      "workstreams": [
+        "WS-10"
+      ],
+      "dependencies": [
+        "COS-016",
+        "COS-019"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Add the missing interview session workflow.",
+      "existing_implementation": "Only interview status and resource content exist; AI handler is reusable.",
+      "files": [
+        "services/smartStudioService.ts",
+        "supabase/functions/_shared/handler.ts",
+        "lib/articles/articles.ts",
+        "services/careerOs/interviewRepo.ts",
+        "services/careerOs/interviewApi.ts",
+        "supabase/functions/ai-interview/index.ts",
+        "components/careeros/application/sections/InterviewSection.tsx"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Owned interview sessions linked to application and evidence/story references.",
+      "api_dependencies": "New bounded interview operation using existing AI router/handler.",
+      "acceptance_criteria": [
+        "Record scheduled time/timezone/type; prepare themes/questions with evidence citations.",
+        "Text practice saves answers and inspectable feedback; readiness is a checklist.",
+        "Resume after leaving; no fabricated feedback or emotion/personality scoring."
+      ],
+      "tests": "Timezone, evidence-reference, save/reload and AI-unavailable fixtures.",
+      "legacy_impact": "Legacy interview status stays intact without invented session history.",
+      "events": "interview_preparation_started, interview_practice_completed",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/COS-018-r1-qualification.md",
+        "docs/career-os/evidence/final-verification.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Logic/server half implemented and tested; UI composition in progress.",
+        "2026-09-21: Verified: session with IANA zone, themes from requirements, stories from confirmed facts, abstain uncharged; Today ranks the recorded interview first."
+      ]
+    },
+    {
+      "id": "COS-025",
+      "title": "Record submission, responses and outcomes with provenance",
+      "release": "R2",
+      "owner": "Execution / analytics",
+      "requirements": [
+        "REQ-09",
+        "REQ-16",
+        "REQ-18",
+        "REQ-28",
+        "REQ-33"
+      ],
+      "workstreams": [
+        "WS-09",
+        "WS-10"
+      ],
+      "dependencies": [
+        "COS-017",
+        "COS-021",
+        "COS-022",
+        "COS-024"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Close the career loop using observed outcomes.",
+      "existing_implementation": "Status and notes exist, but no structured observations or outcome source.",
+      "files": [
+        "services/repos/trackerRepo.ts",
+        "components/SmartStudio.tsx",
+        "types.ts",
+        "services/careerOs/outcomeRepo.ts",
+        "services/careerOs/outcomes.ts",
+        "components/careeros/application/SubmissionDialog.tsx",
+        "components/careeros/application/OutcomeDialog.tsx"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Application outcome observations with source/date; campaign metrics are projections.",
+      "api_dependencies": "Application transitions and domain events; manual record first.",
+      "acceptance_criteria": [
+        "Submission records user confirmation and exact document versions.",
+        "Responses/interviews/offers/withdrawals/rejections and corrections preserve observation history.",
+        "Unknown response remains unknown; campaign updates and eligible actions recompute once."
+      ],
+      "tests": "Outcome correction, missing data, duplicate event and cohort denominator tests.",
+      "legacy_impact": "Preserve historical status even when precise dates/feedback missing.",
+      "events": "application_response_recorded, offer_recorded, career_outcome_recorded",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/COS-018-r1-qualification.md",
+        "docs/career-os/evidence/final-verification.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Verified: user-reported submission snapshot and outcomes with provenance; stage/legacy trigger; opening the employer site never changes stage."
+      ]
+    },
+    {
+      "id": "COS-026",
+      "title": "Implement the typed Coach action gateway",
+      "release": "R2",
+      "owner": "AI platform",
+      "requirements": [
+        "REQ-08",
+        "REQ-26",
+        "REQ-27",
+        "REQ-34"
+      ],
+      "workstreams": [
+        "WS-11"
+      ],
+      "dependencies": [
+        "COS-014",
+        "COS-013",
+        "COS-021",
+        "COS-022",
+        "COS-024",
+        "COS-025"
+      ],
+      "contract_profile": "foundation",
+      "status": "VERIFIED",
+      "priority": "P0",
+      "kind": "implementation",
+      "purpose": "Allow real bounded execution through existing workflows.",
+      "existing_implementation": "Transport/handler/PRISM exist; generalized tool policy and durable receipts do not.",
+      "files": [
+        "services/api.ts",
+        "supabase/functions/_shared/handler.ts",
+        "supabase/functions/_shared/entitlement.ts",
+        "supabase/functions/_shared/llm/router.ts",
+        "supabase/functions/career-gateway"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Action runs/receipts reference existing specialist results; server derives identity.",
+      "api_dependencies": "Registered tools only; entitlement/reserve/settle and same-owner checks.",
+      "acceptance_criteria": [
+        "Tool schemas/scopes/preconditions/idempotency/charging and result types validated.",
+        "Material factual/destructive/external proposals bind confirmation to exact content/destination/revision.",
+        "Failure/cancel/retry reconciles durable receipts; no success claim before owned result exists."
+      ],
+      "tests": "Wrong-owner, injection, stale confirmation, duplicate tool, quota and timeout reconciliation tests.",
+      "legacy_impact": "Reuse PRISM/ATS/optimizers; do not create a new provider stack.",
+      "events": "coach_action_executed",
+      "evidence": [
+        "docs/career-os/evidence/COS-026-gateway.md",
+        "docs/career-os/evidence/COS-R2-surfaces.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Typed registry, confirmation policy, receipts, charging; 19 Deno tests + live local smoke (idempotent start, confirmation mismatch, RLS).",
+        "2026-09-21: Held at IMPLEMENTED until its dependencies (COS-014, COS-021, COS-022, COS-024, COS-025) verify.",
+        "2026-09-21: Dependencies verified; live gateway script (idempotent start, stale_context, confirmation mismatch, cancel, RLS) stands as evidence."
+      ]
+    },
+    {
+      "id": "COS-027",
+      "title": "Build one persistent contextual Coach",
+      "release": "R2",
+      "owner": "AI experience / frontend",
+      "requirements": [
+        "REQ-04",
+        "REQ-08",
+        "REQ-21",
+        "REQ-30"
+      ],
+      "workstreams": [
+        "WS-11"
+      ],
+      "dependencies": [
+        "COS-008",
+        "COS-026",
+        "COS-021"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Make conversation a connected operating interface.",
+      "existing_implementation": "Existing feature assistants are reusable affordances, not a persistent chat.",
+      "files": [
+        "components/AIActionModal.tsx",
+        "components/AIAssist.tsx",
+        "services/api.ts",
+        "supabase/functions/_shared/llm/router.ts",
+        "supabase/functions/career-coach/index.ts",
+        "services/careerOs/coachApi.ts",
+        "components/careeros/spaces/CoachSpace.tsx",
+        "components/careeros/coach/useCoach.ts"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Conversation/messages/summary refs/tool receipts; career facts remain separate authority.",
+      "api_dependencies": "Context projection, gateway and conversation persistence/export/delete.",
+      "acceptance_criteria": [
+        "Visible editable context; cited answers and registered tool actions open real result.",
+        "Refresh/re-auth resumes history without mixing applications; summaries cannot override facts.",
+        "Delete/export selected conversation memory; AI unavailable and streaming failures recover."
+      ],
+      "tests": "Conversation continuity, context override, memory revocation and tool receipt end-to-end tests.",
+      "legacy_impact": "Contextual feature assistance enters same Coach/action vocabulary.",
+      "events": "coach_conversation_started, coach_action_executed",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/COS-018-r1-qualification.md",
+        "docs/career-os/evidence/final-verification.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Logic/server half implemented and tested; UI composition in progress.",
+        "2026-09-21: Verified: scoped persistent conversation live, abstained assistant row, nothing charged; 13 component tests; StrictMode scoping fix."
+      ]
+    },
+    {
+      "id": "COS-028",
+      "title": "Consolidate Library and asset relationships",
+      "release": "R2",
+      "owner": "Frontend / documents",
+      "requirements": [
+        "REQ-19",
+        "REQ-22",
+        "REQ-30"
+      ],
+      "workstreams": [
+        "WS-12"
+      ],
+      "dependencies": [
+        "COS-008",
+        "COS-022",
+        "COS-024"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Give every professional asset a durable place.",
+      "existing_implementation": "CVs/versions/ATS reports/headshots already persist.",
+      "files": [
+        "components/ResumeManager.tsx",
+        "components/common/VersionHistoryModal.tsx",
+        "services/repos/atsReportRepo.ts",
+        "services/repos/headshotRepo.ts",
+        "lib/export",
+        "components/careeros/spaces/LibrarySpace.tsx",
+        "components/careeros/library/useLibraryAssets.ts",
+        "components/careeros/library/TemplateGallery.tsx",
+        "components/resumes/useResumeActions.tsx"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Heterogeneous asset metadata links existing owners; no duplicate CV blobs.",
+      "api_dependencies": "Existing repositories plus artifact metadata and private signed URLs.",
+      "acceptance_criteria": [
+        "Filter/search CVs, reports, headshots, cover letters, stories and evidence.",
+        "Application/goal associations and version history visible; export/download preserves formats.",
+        "Missing asset/expired URL/large library and downgrade read access work."
+      ],
+      "tests": "Library pagination/association/version/download/lifecycle fixtures.",
+      "legacy_impact": "Preserve template gallery and standalone tailoring/ATS entry points.",
+      "events": "library_asset_opened",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/COS-032-033-experience-performance.md",
+        "docs/career-os/evidence/LEGACY-INTEGRATION.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Verified: real assets listed on web and the native iOS build; downloads through the existing saveFile; 9 component tests.",
+        "2026-09-22: Legacy module integration: ResumeManager actions shared with the Library; Smart Studio mounted at /app/library/studio; resources link fixed; toast provider-order crash fixed (see LEGACY-INTEGRATION.md)."
+      ]
+    },
+    {
+      "id": "COS-029",
+      "title": "Add command search and actionable inbox",
+      "release": "R2",
+      "owner": "Frontend / platform",
+      "requirements": [
+        "REQ-10",
+        "REQ-23",
+        "REQ-28"
+      ],
+      "workstreams": [
+        "WS-04",
+        "WS-06"
+      ],
+      "dependencies": [
+        "COS-014",
+        "COS-017",
+        "COS-027",
+        "COS-028"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Expose navigation, owned search and durable attention signals.",
+      "existing_implementation": "No global career search or user inbox found; existing dialogs/repositories suffice initially.",
+      "files": [
+        "components/NavigationProvider.tsx",
+        "components/common/Dialog.tsx",
+        "services/repos",
+        "components/careeros/search/CommandPalette.tsx",
+        "components/careeros/spaces/NotificationsSpace.tsx",
+        "services/careerOs/notificationRepo.ts"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Search is a permission-filtered projection; inbox references events/actions.",
+      "api_dependencies": "Bounded Postgres/repository queries and action/inbox endpoints.",
+      "acceptance_criteria": [
+        "Cmd/Ctrl-K navigates or offers registered actions; labeled grouped search results.",
+        "Search respects ownership, deletion, pagination, cancellation and empty states.",
+        "Inbox distinguishes information/action; read/dismiss state and dedupe persist."
+      ],
+      "tests": "Keyboard/focus, two-user search, revoked evidence and notification dedupe fixtures.",
+      "legacy_impact": "Operator ops_alerts stay separate; no push/email introduced.",
+      "events": "career_search_used, notification_action_opened",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/COS-018-r1-qualification.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Verified: Cmd/Ctrl-K grouped owned search live; inbox action rows from the proactive run; dedupe/dismiss persisted."
+      ]
+    },
+    {
+      "id": "COS-030",
+      "title": "Deliver resumable onboarding and existing-user introduction",
+      "release": "R2",
+      "owner": "Career / frontend",
+      "requirements": [
+        "REQ-05",
+        "REQ-24",
+        "REQ-30"
+      ],
+      "workstreams": [
+        "WS-13",
+        "WS-14"
+      ],
+      "dependencies": [
+        "COS-018",
+        "COS-019",
+        "COS-015"
+      ],
+      "contract_profile": "workflow",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Provide first value without blocking access to existing work.",
+      "existing_implementation": "Dashboard currently forces incomplete profiles back to profile on every tab change.",
+      "files": [
+        "components/Dashboard.tsx",
+        "components/UserProfileForm.tsx",
+        "components/AuthGate.tsx",
+        "services/profileCompleteness.ts",
+        "components/careeros/onboarding/OnboardingFlow.tsx",
+        "components/careeros/onboarding/useOnboardingState.ts",
+        "components/careeros/today/ClaimDraftDialog.tsx",
+        "components/careeros/today/anonymousClaims.ts"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Onboarding progress and reviewed imports; explicit guest ownership claim.",
+      "api_dependencies": "Career/goal/import endpoints and authentication continuation.",
+      "acceptance_criteria": [
+        "New user can pause objective/import/review/goal flow and reach useful Today action.",
+        "Existing user can open historical CVs/applications without forced full onboarding.",
+        "Guest claim preview, duplicate handling and sign-in continuation preserve intended destination."
+      ],
+      "tests": "J01/J02/J03 interrupted-onboarding and incomplete-profile access tests.",
+      "legacy_impact": "Replace blanket profile gate with contextual prerequisites; retain field validation.",
+      "events": "career_onboarding_completed",
+      "evidence": [
+        "docs/career-os/evidence/COS-R2-surfaces.md",
+        "docs/career-os/evidence/COS-018-r1-qualification.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Verified: J01 resumable onboarding (reload resumed at Review), J02 no forced onboarding, J03 explicit claim preview."
+      ]
+    },
+    {
+      "id": "COS-031",
+      "title": "Qualify existing-user rollout and rollback",
+      "release": "R2",
+      "owner": "Data / release",
+      "requirements": [
+        "REQ-05",
+        "REQ-28",
+        "REQ-35"
+      ],
+      "workstreams": [
+        "WS-14"
+      ],
+      "dependencies": [
+        "COS-007",
+        "COS-018",
+        "COS-027",
+        "COS-028",
+        "COS-030"
+      ],
+      "contract_profile": "qualification",
+      "status": "VERIFIED",
+      "priority": "P0",
+      "kind": "gate",
+      "purpose": "Move cohorts without lost artifacts or incompatible clients.",
+      "existing_implementation": "Migration framework exists from COS-007; full destinations now available.",
+      "files": [
+        "supabase/tests",
+        "docs/DATA.md",
+        "docs/GO_LIVE.md",
+        "docs/MOBILE_RELEASE.md",
+        "supabase/tests/career-os-migration-smoke.sh",
+        "supabase/tests/career-os-lifecycle-smoke.sh",
+        "supabase/functions/_shared/careerTables.ts"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Per-user migration ledger, old/new mappings and original data.",
+      "api_dependencies": "Feature flags, lifecycle endpoints and compatibility readers/writers.",
+      "acceptance_criteria": [
+        "Populated old/native/guest fixtures retain IDs/content/history/preferences.",
+        "Account export/delete cover every new object; partial migration keeps originals available.",
+        "Rollback after new writes preserves those writes; document supported old-client window."
+      ],
+      "tests": "J02/J03/J07 plus lifecycle/RLS/full backup-restore reconciliation drills.",
+      "legacy_impact": "No legacy deletion yet.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [
+        "docs/career-os/evidence/COS-031-rollout-rollback.md",
+        "docs/career-os/evidence/final-verification.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Local verdict PASS (fixtures, export/delete coverage, rollback keeps new writes, old-client window documented in the ADR). QUALIFIED withheld: hosted schema unread, no staging."
+      ]
+    },
+    {
+      "id": "COS-032",
+      "title": "Qualify mobile, accessibility, localization and visual states",
+      "release": "R2",
+      "owner": "Design / QA",
+      "requirements": [
+        "REQ-29",
+        "REQ-30",
+        "REQ-31"
+      ],
+      "workstreams": [
+        "WS-15",
+        "WS-16"
+      ],
+      "dependencies": [
+        "COS-027",
+        "COS-028",
+        "COS-029",
+        "COS-030"
+      ],
+      "contract_profile": "qualification",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "gate",
+      "purpose": "Make the complete OS usable across supported surfaces.",
+      "existing_implementation": "Mobile shell, theme/text size and en/es/fr/de exist; full journey quality UNKNOWN.",
+      "files": [
+        "components/mobile",
+        "lib/nativeShell.ts",
+        "services/translationService.tsx",
+        "styles",
+        "docs/MOBILE_RELEASE.md",
+        "components/careeros/shell/MobileNav.tsx",
+        "scripts/career-os-i18n.mjs",
+        "services/__tests__/translationCoverage.test.ts"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Presentation only; state continuity follows canonical owners.",
+      "api_dependencies": "All workflow APIs under success/partial/error conditions.",
+      "acceptance_criteria": [
+        "J08 passes native back/keyboard/share and mobile/tablet/desktop journeys.",
+        "WCAG 2.2 AA evidence includes keyboard and screen reader; 320px/zoom/both themes/reduced motion.",
+        "No untranslated new strings in four supported locales; long content and all required UX states reviewed."
+      ],
+      "tests": "Automated a11y, manual assistive-tech, visual regression and native device evidence.",
+      "legacy_impact": "Retain ink-on-white exports and marketing exception.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [
+        "docs/career-os/evidence/COS-032-033-experience-performance.md",
+        "docs/career-os/evidence/COS-R2-surfaces.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Mobile web, native iOS build, dark theme, every UX state and es/fr/de parity verified; screen-reader/axe pass outstanding (G6 PARTIAL) so QUALIFIED withheld."
+      ]
+    },
+    {
+      "id": "COS-033",
+      "title": "Qualify performance, provider failure and cost controls",
+      "release": "R2",
+      "owner": "Platform / QA",
+      "requirements": [
+        "REQ-26",
+        "REQ-27",
+        "REQ-32",
+        "REQ-34"
+      ],
+      "workstreams": [
+        "WS-16"
+      ],
+      "dependencies": [
+        "COS-001",
+        "COS-018",
+        "COS-026",
+        "COS-029"
+      ],
+      "contract_profile": "qualification",
+      "status": "VERIFIED",
+      "priority": "P1",
+      "kind": "gate",
+      "purpose": "Keep shell immediate and execution economically predictable.",
+      "existing_implementation": "Build passes with large export chunk; provider budget/fallback infrastructure exists.",
+      "files": [
+        "vite.config.ts",
+        "lib/monitoring.ts",
+        "supabase/functions/_shared/llm",
+        "supabase/functions/_shared/handler.ts",
+        "supabase/functions/prism-tailor/handler.ts"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Operational run metrics and versioned release budgets.",
+      "api_dependencies": "Existing provider router, quota functions and action receipts.",
+      "acceptance_criteria": [
+        "Measured budgets from COS-001 met by named device/network cohorts.",
+        "Slow AI/export does not block navigation; actual stages and cancellation/recovery work.",
+        "Quota/charging correct across retries/fallback; failure and cost limits verified."
+      ],
+      "tests": "Performance traces, bundle attribution, provider chaos/fallback and metering-race tests.",
+      "legacy_impact": "Optimize proven hotspots; no architectural rewrite to satisfy assumed targets.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [
+        "docs/career-os/evidence/COS-032-033-experience-performance.md",
+        "docs/career-os/evidence/final-verification.log"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Dev-profile budgets met; provider failure and charge/release verified live; production cohorts unmeasured."
+      ]
+    },
+    {
+      "id": "COS-034",
+      "title": "Qualify the complete Career OS release",
+      "release": "R2",
+      "owner": "Product / release",
+      "requirements": [
+        "REQ-01",
+        "REQ-02",
+        "REQ-03",
+        "REQ-04",
+        "REQ-05",
+        "REQ-06",
+        "REQ-07",
+        "REQ-08",
+        "REQ-09",
+        "REQ-12",
+        "REQ-13",
+        "REQ-14",
+        "REQ-15",
+        "REQ-16",
+        "REQ-17",
+        "REQ-18",
+        "REQ-19",
+        "REQ-20",
+        "REQ-21",
+        "REQ-22",
+        "REQ-23",
+        "REQ-24",
+        "REQ-30",
+        "REQ-31",
+        "REQ-33",
+        "REQ-34",
+        "REQ-35"
+      ],
+      "workstreams": [
+        "WS-16"
+      ],
+      "dependencies": [
+        "COS-019",
+        "COS-020",
+        "COS-021",
+        "COS-022",
+        "COS-023",
+        "COS-024",
+        "COS-025",
+        "COS-027",
+        "COS-028",
+        "COS-029",
+        "COS-030",
+        "COS-031",
+        "COS-032",
+        "COS-033"
+      ],
+      "contract_profile": "qualification",
+      "status": "BLOCKED",
+      "priority": "P0",
+      "kind": "gate",
+      "purpose": "Prove that six spaces operate as one continuous career system.",
+      "existing_implementation": "R1 verified a limited slice; this covers full source authority journeys.",
+      "files": [
+        "docs/career-os/RELEASE_PLAN.md",
+        "docs/career-os/evidence/COS-R2-surfaces.md"
+      ],
+      "proposed_paths": [
+        "docs/career-os/CAREER_OS_ACCEPTANCE_LEDGER.md"
+      ],
+      "data_ownership": "All canonical owners; release verdict separate from implementation status.",
+      "api_dependencies": "Full application stack on approved production-like fixtures.",
+      "acceptance_criteria": [
+        "J01 through J10 pass where applicable; same context through outcome and improved action.",
+        "G1-G7 have traceable artifacts and no unresolved invariant failure.",
+        "Employed user receives useful non-CV career value; no unsupported production or outcome claim."
+      ],
+      "tests": "Complete browser/native workflow, migration, a11y, AI trust and telemetry acceptance bundle.",
+      "legacy_impact": "Legacy retirement remains a separate gate after observation.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [
+        "docs/career-os/evidence/COS-034-r2-gate.md"
+      ],
+      "blocker": "G7 needs an approved staging/production-like environment and a hosted schema read (denied in this session) plus deployment authority; G6 needs a screen-reader/axe pass.",
+      "work_notes": [
+        "2026-09-21: R2 gate run locally: G1–G5 PASS (local), G6 PARTIAL, G7 NOT RUN; no open invariant failure. Blocked on the production prerequisites below."
+      ]
+    },
+    {
+      "id": "COS-035",
+      "title": "Add outcome-informed recommendations with uncertainty",
+      "release": "R3",
+      "owner": "Intelligence / analytics",
+      "requirements": [
+        "REQ-09",
+        "REQ-33",
+        "REQ-34"
+      ],
+      "workstreams": [
+        "WS-06",
+        "WS-09"
+      ],
+      "dependencies": [
+        "COS-025",
+        "COS-034"
+      ],
+      "contract_profile": "workflow",
+      "status": "IMPLEMENTED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Learn from observed outcomes without overstating causal explanations.",
+      "existing_implementation": "Outcomes and telemetry introduced in R2; no historical learning model established.",
+      "files": [
+        "lib/monitoring.ts",
+        "supabase/functions/_shared/llm/router.ts",
+        "services/careerOs/frontier/outcomeInsights.ts",
+        "services/careerOs/frontier/scenarios.ts",
+        "services/careerOs/frontier/proactive.ts"
+      ],
+      "proposed_paths": [
+        "services/careerActions.ts"
+      ],
+      "data_ownership": "Derived recommendation policy references observation cohorts and source revisions.",
+      "api_dependencies": "Outcome projection and versioned rule/evaluation interface.",
+      "acceptance_criteria": [
+        "Show sample sizes, time windows, missing outcomes and source dates.",
+        "A correction/revocation recomputes affected insights; rejection does not automatically lower a skill.",
+        "Compare against deterministic baseline; human review establishes usefulness before rollout."
+      ],
+      "tests": "J11 sparse/confounded/corrected outcome fixtures and held-out rubric comparison.",
+      "legacy_impact": "Keep deterministic baseline and feature rollback.",
+      "events": "career_insight_reviewed",
+      "evidence": [
+        "docs/career-os/evidence/COS-035-037-frontier-logic.md",
+        "docs/career-os/evidence/heldout-eval-report.json"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Logic/server half implemented and tested; UI composition in progress.",
+        "2026-09-21: Logic + UI implemented; 13 frontier + 16 evaluation tests and the held-out report pass; proactive run exercised live (2 reminders, skips recorded). Held at IMPLEMENTED because dependency COS-034 is BLOCKED."
+      ]
+    },
+    {
+      "id": "COS-036",
+      "title": "Build goal and offer scenario comparison",
+      "release": "R3",
+      "owner": "Intelligence / Career",
+      "requirements": [
+        "REQ-07",
+        "REQ-11",
+        "REQ-34"
+      ],
+      "workstreams": [
+        "WS-07",
+        "WS-08"
+      ],
+      "dependencies": [
+        "COS-020",
+        "COS-025",
+        "COS-034"
+      ],
+      "contract_profile": "workflow",
+      "status": "IMPLEMENTED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Help users reason about alternatives and tradeoffs.",
+      "existing_implementation": "Trajectory suggestions exist; no scenario persistence or comparison.",
+      "files": [
+        "supabase/functions/ai-trajectory/index.ts",
+        "services/smartStudioService.ts",
+        "services/careerOs/frontier/outcomeInsights.ts",
+        "services/careerOs/frontier/scenarios.ts",
+        "services/careerOs/frontier/proactive.ts"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Saved comparison references goals/opportunities/offers and user assumptions.",
+      "api_dependencies": "Existing AI router plus deterministic constraints/weighted comparison.",
+      "acceptance_criteria": [
+        "Compare options across user priorities, pay currency/period, location and evidence gaps.",
+        "Separate verified inputs from assumptions; no fabricated market data or guaranteed trajectory.",
+        "Changing a priority shows its impact; unknown values stay visible."
+      ],
+      "tests": "Scenario consistency, missing/contradictory data and human-reviewed decision-quality fixtures.",
+      "legacy_impact": "Preserve single trajectory tool as contextual entry.",
+      "events": "career_scenario_compared",
+      "evidence": [
+        "docs/career-os/evidence/COS-035-037-frontier-logic.md",
+        "docs/career-os/evidence/heldout-eval-report.json"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Logic/server half implemented and tested; UI composition in progress.",
+        "2026-09-21: Logic + UI implemented; 13 frontier + 16 evaluation tests and the held-out report pass; proactive run exercised live (2 reminders, skips recorded). Held at IMPLEMENTED because dependency COS-034 is BLOCKED."
+      ]
+    },
+    {
+      "id": "COS-037",
+      "title": "Add opted-in proactive plans and reminders",
+      "release": "R3",
+      "owner": "Platform / intelligence",
+      "requirements": [
+        "REQ-08",
+        "REQ-10",
+        "REQ-26",
+        "REQ-27"
+      ],
+      "workstreams": [
+        "WS-06",
+        "WS-11"
+      ],
+      "dependencies": [
+        "COS-029",
+        "COS-035",
+        "COS-034"
+      ],
+      "contract_profile": "workflow",
+      "status": "IMPLEMENTED",
+      "priority": "P1",
+      "kind": "implementation",
+      "purpose": "Respond to meaningful career changes with bounded durable work.",
+      "existing_implementation": "Ops cron exists but is not a user reminder scheduler.",
+      "files": [
+        "supabase/migrations/20260901400000_ops_scheduling.sql",
+        "supabase/functions/_shared/rateLimit.ts",
+        "services/careerOs/frontier/outcomeInsights.ts",
+        "services/careerOs/frontier/scenarios.ts",
+        "services/careerOs/frontier/proactive.ts"
+      ],
+      "proposed_paths": [
+        "services/careerActions.ts"
+      ],
+      "data_ownership": "User preferences, scheduled action-run metadata, dedupe and cursor/checkpoints.",
+      "api_dependencies": "Approved scheduler design using existing infrastructure first.",
+      "acceptance_criteria": [
+        "Opt-in trigger/timezone/quiet-hour/volume controls persist and can be disabled.",
+        "Meaningful changes create at most one relevant action; unchanged/nonactionable state stays quiet.",
+        "Cancellation/retry/disconnect obey budgets and confirmations; overdue reminders do not pretend timely delivery."
+      ],
+      "tests": "Scheduler timezone/DST, duplicate delivery, missed run, cancellation and budget fixtures.",
+      "legacy_impact": "Manual Today remains fully usable without scheduling.",
+      "events": "career_reminder_opened",
+      "evidence": [
+        "docs/career-os/evidence/COS-035-037-frontier-logic.md",
+        "docs/career-os/evidence/heldout-eval-report.json"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Logic/server half implemented and tested; UI composition in progress.",
+        "2026-09-21: Logic + UI implemented; 13 frontier + 16 evaluation tests and the held-out report pass; proactive run exercised live (2 reminders, skips recorded). Held at IMPLEMENTED because dependency COS-034 is BLOCKED."
+      ]
+    },
+    {
+      "id": "COS-038",
+      "title": "Assess optional market and personal-data connectors",
+      "release": "R3",
+      "owner": "Integrations / product",
+      "requirements": [
+        "REQ-10",
+        "REQ-15",
+        "REQ-25",
+        "REQ-28"
+      ],
+      "workstreams": [
+        "WS-08",
+        "WS-11"
+      ],
+      "dependencies": [
+        "COS-034"
+      ],
+      "contract_profile": "discovery",
+      "status": "IMPLEMENTED",
+      "priority": "P2",
+      "kind": "discovery",
+      "purpose": "Choose a permitted, useful source before implementing external access.",
+      "existing_implementation": "No career feeds, mailbox, calendar or LinkedIn account integration found.",
+      "files": [
+        "services/api.ts",
+        "config/env.ts",
+        "supabase/functions/_shared/auth.ts",
+        "components/careeros/settings/connectorAssessment.ts",
+        "components/careeros/settings/IntegrationsPage.tsx"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "User consent, source rights and retention boundaries.",
+      "api_dependencies": "Provider documentation and read-only feasibility checks; no credential collection in docs.",
+      "acceptance_criteria": [
+        "Record source permissions, API/scope/rate/retention/cost constraints and disconnect behavior.",
+        "Choose one bounded read-only adapter or record a no-go; retain manual import.",
+        "Define provenance/freshness and exactly what product value the connector adds."
+      ],
+      "tests": "Contract spike and synthetic payload mapping; no external sends.",
+      "legacy_impact": "No scraping or bulk contact ingestion implied.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [
+        "docs/career-os/evidence/COS-038-connector-assessment.md"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: Assessment recorded: no-go for job-board feeds, mailbox, calendar and LinkedIn (rights/scope/retention); manual import retained and shown in Settings → Integrations. Held at IMPLEMENTED because dependency COS-034 is BLOCKED."
+      ]
+    },
+    {
+      "id": "COS-039",
+      "title": "Implement one qualified read-only connector",
+      "release": "R3 optional",
+      "owner": "Integrations",
+      "requirements": [
+        "REQ-10",
+        "REQ-15",
+        "REQ-26",
+        "REQ-28"
+      ],
+      "workstreams": [
+        "WS-08",
+        "WS-11"
+      ],
+      "dependencies": [
+        "COS-038",
+        "COS-037"
+      ],
+      "contract_profile": "foundation",
+      "status": "BLOCKED",
+      "priority": "P2",
+      "kind": "implementation",
+      "purpose": "Bring permitted external signals into canonical opportunities/actions.",
+      "existing_implementation": "Connector contract must be selected by COS-038; current APIs absent.",
+      "files": [
+        "supabase/functions/_shared/auth.ts",
+        "supabase/functions/_shared/handler.ts",
+        "supabase/functions/account-delete/index.ts"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Scoped tokens and imported signal references owned by user.",
+      "api_dependencies": "Only the approved connector API; dedupe/webhook or cursor polling.",
+      "acceptance_criteria": [
+        "Consent, minimal scopes, freshness attribution and disconnect/purge work.",
+        "Duplicates/out-of-order events do not create duplicate applications/actions.",
+        "Unavailable/revoked source falls back to manual entry; no sending capability added."
+      ],
+      "tests": "J12 connector contract/revocation/duplicate/retry/lifecycle tests.",
+      "legacy_impact": "Optional enhancement; never blocks core Career OS release.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [],
+      "blocker": "COS-038 no-go: no permitted, useful read-only source with authorised credentials; re-assess before any connector work.",
+      "work_notes": [
+        "2026-09-21: Not started: COS-038 recorded a no-go for every assessed source."
+      ]
+    },
+    {
+      "id": "COS-040",
+      "title": "Qualify frontier intelligence against held-out cases",
+      "release": "R3",
+      "owner": "Product / AI QA",
+      "requirements": [
+        "REQ-04",
+        "REQ-06",
+        "REQ-07",
+        "REQ-08",
+        "REQ-09",
+        "REQ-10",
+        "REQ-11",
+        "REQ-33",
+        "REQ-34",
+        "REQ-35"
+      ],
+      "workstreams": [
+        "WS-16"
+      ],
+      "dependencies": [
+        "COS-035",
+        "COS-036",
+        "COS-037",
+        "COS-038"
+      ],
+      "contract_profile": "qualification",
+      "status": "IMPLEMENTED",
+      "priority": "P1",
+      "kind": "gate",
+      "purpose": "Earn frontier capability claims with evidence.",
+      "existing_implementation": "R2 provides coherent execution; new learning/scenarios/proactivity require additional proof.",
+      "files": [
+        "supabase/functions/prism-tailor/golden",
+        "docs/career-os/RELEASE_PLAN.md",
+        "scripts/career-os-eval.ts",
+        "services/careerOs/frontier/evaluation.ts"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "Versioned evaluation cases, rubrics and release verdicts.",
+      "api_dependencies": "Scripted tests plus explicitly selected cost-capped live runs.",
+      "acceptance_criteria": [
+        "G8 records usefulness, truth, action integrity, uncertainty, latency and cost by cohort.",
+        "J10/J11 and adversarial variants pass; optional connector claims require separate COS-039 evidence.",
+        "Every promoted policy has comparison to baseline and rollback; no guaranteed employment claims."
+      ],
+      "tests": "Held-out human review, adversarial/abstention cases and policy regression report.",
+      "legacy_impact": "Keep existing deterministic policy available for rollback.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [
+        "docs/career-os/evidence/COS-040-g8-verdict.md",
+        "docs/career-os/evidence/heldout-eval-report.json"
+      ],
+      "blocker": null,
+      "work_notes": [
+        "2026-09-21: G8 PARTIAL: deterministic truth/action-integrity/uncertainty/consent pass (15/15 held-out); human usefulness review, latency and cost by cohort need an authorised live-model session. Held at IMPLEMENTED because dependency COS-034 is BLOCKED."
+      ]
+    },
+    {
+      "id": "COS-041",
+      "title": "Retire only qualified legacy surfaces",
+      "release": "Retirement",
+      "owner": "Frontend / release",
+      "requirements": [
+        "REQ-01",
+        "REQ-03",
+        "REQ-05",
+        "REQ-35"
+      ],
+      "workstreams": [
+        "WS-17"
+      ],
+      "dependencies": [
+        "COS-031",
+        "COS-034"
+      ],
+      "contract_profile": "qualification",
+      "status": "BLOCKED",
+      "priority": "P1",
+      "kind": "gate",
+      "purpose": "Remove superseded UI after migration and observation prove safe.",
+      "existing_implementation": "Legacy routes deliberately preserved through R1/R2.",
+      "files": [
+        "components/Dashboard.tsx",
+        "components/SmartStudio.tsx",
+        "components/NavigationProvider.tsx",
+        "docs/career-os/CAREER_OS_INFORMATION_ARCHITECTURE.md"
+      ],
+      "proposed_paths": [],
+      "data_ownership": "No removal of canonical data or export formats.",
+      "api_dependencies": "Redirect adapters and release observation telemetry.",
+      "acceptance_criteria": [
+        "Every retired route has replacement parity and recorded usage/old-client window evidence.",
+        "Deep-link/auth/native compatibility and rollback drill pass after observation threshold from COS-001.",
+        "Delete only superseded presentation/temporary adapters; keep proven business logic."
+      ],
+      "tests": "Complete route ledger regression, no-orphan links and historical data access checks.",
+      "legacy_impact": "Destructive data cleanup is excluded; schema contraction needs its own evidenced migration.",
+      "events": "Use the inherited event policy; no additional product event for this task.",
+      "evidence": [],
+      "blocker": "Requires production observation (route usage, old-client share) after COS-031/COS-034 qualify; nothing has run in production.",
+      "work_notes": [
+        "2026-09-21: No legacy surface retired; cohort redirects keep every legacy route reachable."
+      ]
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # CVBase — Feature Inventory (Pre-Production Audit)
 
+> Historical June audit. Several findings below have since changed, including Supabase persistence and server-side AI. Use [CURRENT_PRODUCT_MAP.md](docs/career-os/CURRENT_PRODUCT_MAP.md) for the September 2026 source audit and [tasks.md](tasks.md) for Career OS implementation. Retained for history, not current implementation authority.
+
 **Date:** 2026-06-21
 **Scope:** Complete inventory of existing resume / ATS / job-matching / career features **before** any architecture, backend, billing, or AI changes.
 **Method:** Read-only static inspection of the actual source (no code was changed). Every claim below is backed by a `file:line` reference. Features were verified by reading the implementation, **not** assumed from UI presence.

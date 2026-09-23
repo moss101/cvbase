@@ -1,0 +1,35 @@
+{
+  "renderer": "Mermaid CLI",
+  "version": "11.17.0",
+  "config_sha256": "fc558fe815193534096a91fc1fdfdaffc7be5fcd8a30a7ff3e77eba2288dcb21",
+  "graphs": {
+    "action-lifecycle.mmd": {
+      "source_sha256": "4f5603649dcb9288d421bb697136baf3650437c0bbe2afdc6508ea0c5e3226d6",
+      "svg_sha256": "4c95da1d4814e29368924d7e56ac0702c00e5b6e17119a0531d69a847eb5f2b9"
+    },
+    "domain-relationships.mmd": {
+      "source_sha256": "3fe916ecad20967d4ac48cfcd616d1a05971793f1b44fd4b87d5c1678766bc3e",
+      "svg_sha256": "747ed9e6b9d281d095a8811508aa720cceda77e82625504ec40d1582b9ca681d"
+    },
+    "execution-sequence.mmd": {
+      "source_sha256": "50d6f4f048560924366ff10fa39a0ef17b438885bfb4eaea9c26941e0fb096aa",
+      "svg_sha256": "9463817e363859140671ee2398ff086e4d3480b6b4026c190d02383e1c4986c1"
+    },
+    "orchestration-loop.mmd": {
+      "source_sha256": "413cd8219101bd0851bbb5b7a3a5f6d625f5a83d689991ffcca3388c3eb79c8d",
+      "svg_sha256": "d3f61c41c273cb12e4e9642bc6ab2a06384bd235d5df316b6ea8e816310b3560"
+    },
+    "release-roadmap.mmd": {
+      "source_sha256": "7d4c08ba87f8ea93c3c5453af7135125e8201757e889090857e47566f01a22a8",
+      "svg_sha256": "27f8e1708212791afc0194e1e1ff193f202026866645baca77056011a15265b8"
+    },
+    "system-architecture.mmd": {
+      "source_sha256": "b6ee678fd3c4c399eb492acb513021ed1375e9894c438fa2d9baf939fdff9a43",
+      "svg_sha256": "93f6b33adc536cefb85b99a62a3adb99a32abc58104acaa6166eda73c012812a"
+    },
+    "task-dependencies.mmd": {
+      "source_sha256": "5676a2d78f4e42409e4b99b3a04e629ffdd7dd776c94bb9c220c4d98084a2662",
+      "svg_sha256": "39f3af1b97f4e7ba4468e5703993ba530aaeb5e36a10094a4480eed643571a20"
+    }
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "rubricVersion": "heldout-rubric-1.0.0",
+  "testSetVersion": "heldout-cases-2026-09-21",
+  "modelConfiguration": "deterministic engines only (fit-1.0.0, rules-1.0.0, scenario-1.0.0, outcome-policy-1.0.0); no LLM",
+  "ranAt": "2026-09-21T04:27:46.110Z",
+  "sampleCounts": {
+    "qualification_truth": 2,
+    "goal_fit": 4,
+    "prioritisation": 3,
+    "scenario_tradeoff": 2,
+    "uncertainty": 2,
+    "adversarial": 2
+  },
+  "passed": 15,
+  "failed": 0,
+  "failures": [],
+  "results": [
+    {
+      "id": "QF-01",
+      "dimension": "qualification_truth",
+      "title": "Supported only with confirmed evidence; inferred is partial; absent is missing",
+      "pass": true,
+      "detail": "sql=supported, python/sql=partial, spark=partial, kubernetes=missing"
+    },
+    {
+      "id": "QF-02",
+      "dimension": "qualification_truth",
+      "title": "No facts → nothing supported, no hiring probability field",
+      "pass": true,
+      "detail": "supported=0, keys=opportunityId,goalId,applicationId,opportunityRevision,goalRevision,factsRevision,engineVersion,qualification,direction,atsScore,hiddenByConstraint,stale,computedAt"
+    },
+    {
+      "id": "GF-01",
+      "dimension": "goal_fit",
+      "title": "Missing pay stays unknown; never estimated",
+      "pass": true,
+      "detail": "unknown: Pay not stated."
+    },
+    {
+      "id": "GF-02",
+      "dimension": "goal_fit",
+      "title": "Currency mismatch is unknown, not a comparison",
+      "pass": true,
+      "detail": "unknown: Listing pays in USD; goal is in EUR."
+    },
+    {
+      "id": "GF-03",
+      "dimension": "goal_fit",
+      "title": "Hard constraint broken hides with an inspectable reason; soft does not hide",
+      "pass": true,
+      "detail": "onsite hidden=true (No fully on-site roles — Listing is onsite, constraint asks for remote.); remote hidden=false"
+    },
+    {
+      "id": "GF-04",
+      "dimension": "goal_fit",
+      "title": "Without a goal the direction panel is unavailable rather than invented",
+      "pass": true,
+      "detail": "No goal is set, so direction fit cannot be evaluated."
+    },
+    {
+      "id": "PR-01",
+      "dimension": "prioritisation",
+      "title": "Recorded interview date outranks everything; missing date never becomes a deadline",
+      "pass": true,
+      "detail": "first=PREPARE_INTERVIEW deadline=2026-09-23T09:00:00.000Z; undated deadline=n/a"
+    },
+    {
+      "id": "PR-02",
+      "dimension": "prioritisation",
+      "title": "Empty account gets at most a profile review — no invented goal or campaign",
+      "pass": true,
+      "detail": "REVIEW_PROFILE"
+    },
+    {
+      "id": "PR-03",
+      "dimension": "prioritisation",
+      "title": "Ranking is stable across runs (no random scores)",
+      "pass": true,
+      "detail": "4 candidates, identical order=true"
+    },
+    {
+      "id": "SC-01",
+      "dimension": "scenario_tradeoff",
+      "title": "Unknown inputs are excluded and listed; assumptions are labelled",
+      "pass": true,
+      "detail": "unknown=compMin,compMax,compPeriod,stability,flexibility,mission,learning,evidenceGaps assumed=growth"
+    },
+    {
+      "id": "SC-02",
+      "dimension": "scenario_tradeoff",
+      "title": "Changing a priority weight is reported as a sensitivity, never as a guaranteed outcome",
+      "pass": true,
+      "detail": "sensitivity=compensation:false,flexibility:true"
+    },
+    {
+      "id": "UN-01",
+      "dimension": "uncertainty",
+      "title": "Sparse outcomes: small sample labelled, unknowns not counted as rejections, no policy promoted",
+      "pass": true,
+      "detail": "1 of 3 submitted applications had a recorded response within 21 days; 2 have no outcome recorded yet (unknown, not counted as rejections). Too few applications to generalise."
+    },
+    {
+      "id": "UN-02",
+      "dimension": "uncertainty",
+      "title": "A correction supersedes the earlier observation in every insight",
+      "pass": true,
+      "detail": "1 of 1 submitted applications had a recorded response within 21 days. Too few applications to generalise."
+    },
+    {
+      "id": "AD-01",
+      "dimension": "adversarial",
+      "title": "Instructions embedded in a job description cannot mark requirements as supported",
+      "pass": true,
+      "detail": "supported clean=1 attacked=1; instruction line extracted as requirement=false"
+    },
+    {
+      "id": "AD-02",
+      "dimension": "adversarial",
+      "title": "Withdrawn or deleted facts never count as evidence",
+      "pass": true,
+      "detail": "python/sql after withdrawal=missing"
+    }
+  ]
+}

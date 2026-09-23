@@ -96,6 +96,8 @@ interface NavSidebarProps {
     settings: ResumeSettings;
     isMobileOpen?: boolean;
     onCloseMobile?: () => void;
+    /** Inside the Career OS shell: hairline edge instead of a floating shadow. */
+    embedded?: boolean;
 }
 
 const NavIcon: React.FC<{ id: SectionId; active: boolean }> = ({ id, active }) => {
@@ -120,7 +122,7 @@ const NavIcon: React.FC<{ id: SectionId; active: boolean }> = ({ id, active }) =
 };
 
 
-const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, progress, formData, onDownloadPDF, selectedTemplate, visibleSections, onToggleSection, onGoHome, settings, isMobileOpen, onCloseMobile }) => {
+const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, progress, formData, onDownloadPDF, selectedTemplate, visibleSections, onToggleSection, onGoHome, settings, isMobileOpen, onCloseMobile, embedded = false }) => {
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     // The template renders at a fixed A4 width, so the preview is scaled to
     // whatever width the card actually gets rather than a fixed guess.
@@ -246,25 +248,39 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
                     onClick={onCloseMobile}
                 />
             )}
-            <aside className={`w-[290px] md:w-[400px] fixed lg:sticky left-0 top-0 h-full z-40 bg-white/95 backdrop-blur-2xl border-r border-white/20 shadow-2xl flex flex-col font-sans transition-transform duration-300 lg:translate-x-0 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+            <aside className={`w-[290px] md:w-[400px] fixed lg:sticky left-0 top-0 h-full z-40 flex flex-col font-sans transition-transform duration-300 lg:translate-x-0 ${embedded ? 'bg-surface-panel border-r border-border-default shadow-2xl lg:shadow-none' : 'bg-white/95 backdrop-blur-2xl border-r border-white/20 shadow-2xl'} ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
                 
                 {/* Scrollable Container for ALL content */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
                     
                     {/* Header */}
                     <div className="flex items-center justify-between border-b border-gray-100/50 pr-4 shrink-0">
-                        <div 
-                            className="p-6 font-bold text-2xl cursor-pointer flex items-center gap-3 hover:bg-white/55 transition-colors flex-1"
-                            onClick={onGoHome}
-                            title={t('label.backToDashboard', 'Back to Dashboard')}
-                        >
-                            <div className="bg-gradient-to-br from-primary to-secondary text-white p-2.5 rounded-xl shadow-lg shadow-primary/20">
-                                 <ArrowLeft className="w-[22px] h-[22px]" aria-hidden="true" />
-                            </div>
-                            <div>
-                                <span className="text-dark">CV<span className="text-primary">Base</span></span>
-                            </div>
-                        </div>
+                        {embedded ? (
+                            // Inside the Career OS shell the brand lives in the shell; this is the way back to every CV.
+                            <button
+                                type="button"
+                                onClick={onGoHome}
+                                className="m-3 flex flex-1 items-center gap-2 rounded-lg px-3 py-2.5 text-left text-[14px] font-semibold text-content-secondary transition-colors hover:bg-surface-canvas hover:text-content-primary"
+                            >
+                                <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
+                                {t('careeros.today.work.allCvs', 'All CVs')}
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                className="p-6 font-bold text-2xl cursor-pointer flex items-center gap-3 hover:bg-white/55 transition-colors flex-1 text-left"
+                                onClick={onGoHome}
+                                title={t('label.backToDashboard', 'Back to Dashboard')}
+                                aria-label={t('label.backToDashboard', 'Back to Dashboard')}
+                            >
+                                <div className="bg-gradient-to-br from-primary to-secondary text-white p-2.5 rounded-xl shadow-lg shadow-primary/20">
+                                     <ArrowLeft className="w-[22px] h-[22px]" aria-hidden="true" />
+                                </div>
+                                <div>
+                                    <span className="text-dark">CV<span className="text-primary">Base</span></span>
+                                </div>
+                            </button>
+                        )}
                         {onCloseMobile && (
                             <button 
                                 onClick={onCloseMobile}
@@ -307,7 +323,7 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
                         >
                             <div className="flex items-center gap-2">
                                 <Eye className="w-[18px] h-[18px] text-gray-500" aria-hidden="true" />
-                                <span className="text-[12px] font-bold text-gray-700 tracking-wide uppercase">{t('label.toggleSections', 'Toggle Sections')}</span>
+                                <span className="text-[13px] font-semibold text-gray-700">{t('label.toggleSections', 'Toggle Sections')}</span>
                                 <span className="bg-primary/12 text-primary text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">
                                     {visibleSections.length}
                                 </span>
@@ -350,7 +366,7 @@ const NavSidebar: React.FC<NavSidebarProps> = ({ activeSection, onSectionClick, 
                     {/* Preview Section - Pushed to bottom via mt-auto, but scrolls if needed */}
                     <div className="mt-auto p-6 bg-gradient-to-t from-white/80 to-transparent border-t border-gray-100">
                         <div className="flex justify-between items-end mb-3">
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">{t('label.livePreview', 'Live Preview')}</span>
+                            <span className="text-[13px] font-semibold text-gray-500">{t('label.livePreview', 'Live Preview')}</span>
                             <span className="text-sm font-bold text-primary">{progress}% {t('label.ready', 'Ready')}</span>
                         </div>
                         

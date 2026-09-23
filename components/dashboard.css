@@ -434,12 +434,12 @@ button.dashboard-card:hover,
     font-size: clamp(2.2rem, 12vw, 3.1rem) !important;
   }
 
-  #profile-edit-form {
+  #profile-edit-form:not(.cos-embedded) {
     padding: 1rem !important;
     gap: 1rem;
   }
 
-  #profile-edit-form > div[class*="bg-slate-50"] {
+  #profile-edit-form:not(.cos-embedded) > div[class*="bg-slate-50"] {
     padding: 1rem !important;
   }
 

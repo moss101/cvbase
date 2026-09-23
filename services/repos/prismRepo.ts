@@ -14,7 +14,19 @@ export interface PrismRunSummary {
   result: { resume: ResumeData; atsScore: number; unresolvedIssues: string[] } | null;
   errorCode: string | null;
   updatedAt: string;
+  /** Application binding (null for standalone wizard runs; optional so
+   *  fixtures built before the binding existed still type-check). */
+  applicationId?: string | null;
+  sourceResumeId?: string | null;
+  sourceResumeRevision?: number | null;
+  idempotencyKey?: string | null;
 }
+
+// One literal so supabase-js can type the selection (a concatenated string
+// degrades to GenericStringError).
+const RUN_COLUMNS =
+  'id,status,template_id,questions,answers,result,error_code,updated_at,application_id,source_resume_id,source_resume_revision,idempotency_key';
+const RESUMABLE_STATUSES = ['awaiting_answers', 'review', 'failed'];
 
 function rowToRun(r: Record<string, unknown>): PrismRunSummary {
   return {
@@ -26,16 +38,41 @@ function rowToRun(r: Record<string, unknown>): PrismRunSummary {
     result: (r.result as PrismRunSummary['result']) ?? null,
     errorCode: (r.error_code as string) ?? null,
     updatedAt: String(r.updated_at ?? ''),
+    applicationId: (r.application_id as string) ?? null,
+    sourceResumeId: (r.source_resume_id as string) ?? null,
+    sourceResumeRevision: typeof r.source_resume_revision === 'number' ? r.source_resume_revision : null,
+    idempotencyKey: (r.idempotency_key as string) ?? null,
   };
 }
 
-/** The most recent run the user can pick back up (abandoned wizard, pending
- *  review, or a failed run that checkpointing can resume). */
+/** The most recent STANDALONE run the user can pick back up (abandoned
+ *  wizard, pending review, or a failed run that checkpointing can resume).
+ *  Runs bound to an application are excluded: they belong to that
+ *  application's workspace (getResumableForApplication), so the standalone
+ *  banner never offers another surface's run. */
 export async function getResumable(userId: string): Promise<PrismRunSummary | null> {
   const { data, error } = await getSupabase().from('prism_runs')
-    .select('id,status,template_id,questions,answers,result,error_code,updated_at')
+    .select(RUN_COLUMNS)
     .eq('user_id', userId)
-    .in('status', ['awaiting_answers', 'review', 'failed'])
+    .is('application_id', null)
+    .in('status', RESUMABLE_STATUSES)
+    .order('updated_at', { ascending: false })
+    .limit(1).maybeSingle();
+  if (error) throw error;
+  return data ? rowToRun(data as Record<string, unknown>) : null;
+}
+
+/** The exact run to resume for one application — never another
+ *  application's (scoped by application_id as well as owner). */
+export async function getResumableForApplication(
+  userId: string,
+  applicationId: string,
+): Promise<PrismRunSummary | null> {
+  const { data, error } = await getSupabase().from('prism_runs')
+    .select(RUN_COLUMNS)
+    .eq('user_id', userId)
+    .eq('application_id', applicationId)
+    .in('status', RESUMABLE_STATUSES)
     .order('updated_at', { ascending: false })
     .limit(1).maybeSingle();
   if (error) throw error;

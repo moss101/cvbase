@@ -1,5 +1,7 @@
 # CVBase
 
+The forward product requirements and implementation plan now live in [PRD.md](PRD.md) and [tasks.md](tasks.md). This document preserves the existing brand and design baseline; its description of CVBase as a CV builder is the pre-transformation state. Career OS changes must evolve these foundations rather than introduce a competing design system.
+
 ## Register
 
 **Product.** The surfaces under active design — dashboard, resume builder, ATS
