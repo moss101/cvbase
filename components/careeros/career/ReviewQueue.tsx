@@ -160,7 +160,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ userId, facts, mutatio
                                     <li key={fact.id}>
                                         {editing === fact.id ? (
                                             <div className="rounded-2xl border border-border-default bg-surface-panel p-4">
-                                                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-content-muted">{kindLabel(t, fact.kind)}</p>
+                                                <p className="mb-3 text-[12px] font-medium text-content-muted">{kindLabel(t, fact.kind)}</p>
                                                 <FactEditor fact={fact} onSave={(patch) => save(fact, patch)} onCancel={() => setEditing(null)} saving={busy === fact.id} />
                                             </div>
                                         ) : (

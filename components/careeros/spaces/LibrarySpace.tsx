@@ -159,7 +159,7 @@ const GuestLibrary: React.FC = () => {
                 <div className="flex min-w-0 items-start gap-3">
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-action-primary/10 text-action-primary"><FileText size={20} strokeWidth={1.75} aria-hidden="true" /></span>
                     <div className="min-w-0">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">{t('careeros.guest.onThisDevice', 'On this device')}</p>
+                        <p className="text-[12px] font-medium text-content-muted">{t('careeros.guest.onThisDevice', 'On this device')}</p>
                         <p className="mt-1 truncate font-semibold text-content-primary">{draft ? (label?.name || t('dash.untitled', 'Untitled')) : t('dash.noDraftYet', 'No draft yet')}</p>
                         <p className="text-sm text-content-secondary">{draft ? (label?.title || t('mobile.continueEditing', 'Continue where you left off')) : t('dash.firstDraftWillAppear', 'Your first draft will appear here')}</p>
                     </div>
