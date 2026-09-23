@@ -45,7 +45,7 @@ function AppContent() {
     const { route, direction, navigate, replace, reset, back } = useNavigation();
     const [previewMode, setPreviewMode] = useState<{template: TemplateId} | null>(null);
     const { startCheckout } = useSubscription();
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
 
     // Error reports carry the account id (never email) so one person's crash
@@ -57,7 +57,10 @@ function AppContent() {
 
     // Career OS rollout gate. Fails closed: until the flag is known to be on,
     // a /app/... link opens the legacy dashboard rather than a missing screen.
-    const careerOsEnabled = useCareerOsEnabled(userId);
+    // While the session is still being restored the answer is held (null), so
+    // a signed-in person never sees the guest version flash first.
+    const flagAnswer = useCareerOsEnabled(userId);
+    const careerOsEnabled = authLoading ? null : flagAnswer;
 
     // Enabled cohort: legacy dashboard entry points continue into their
     // canonical Career OS destinations (IA ledger REDIRECT/MOVE/MERGE rows),
@@ -157,6 +160,8 @@ function AppContent() {
             case 'auth':
                 return <AuthGate onBack={goBackTo(() => reset({ view: 'landing' }))} />;
             case 'dashboard':
+                // Undecided or redirecting to Career OS: a loader, not a flash of the old dashboard.
+                if (careerOsEnabled !== false) return <RouteLoader />;
                 return (
                     <Dashboard
                         onCreateNew={handleCreateNew}

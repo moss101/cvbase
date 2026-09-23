@@ -38,6 +38,9 @@ const NotificationsSpace = lazy(() => import('./spaces/NotificationsSpace'));
 const SettingsSpace = lazy(() => import('./spaces/SettingsSpace'));
 const BillingDashboard = lazy(() => import('../billing/BillingDashboard'));
 const AdminPanel = lazy(() => import('../admin/AdminPanel'));
+const SettingsPanel = lazy(() => import('../SettingsPanel'));
+const GuestToday = lazy(() => import('./guest/GuestToday'));
+const GuestSignIn = lazy(() => import('./guest/GuestSignIn'));
 // The CV editor owns the whole viewport (its own chrome, sheets and back
 // handling); it is rendered without the shell chrome.
 const ResumeBuilder = lazy(() => import('../ResumeBuilder'));
@@ -106,20 +109,32 @@ const SpaceContent: React.FC<{ route: CareerRoute; onViewPricing: () => void }> 
     }
 };
 
-/** Signed-out gate: the shell is account-only, like the native dashboard. */
-const SignedOut: React.FC<{ onOpenAuth: () => void }> = ({ onOpenAuth }) => {
+/**
+ * Signed-out visitors (guest mode): the same shell, with the pieces that work
+ * without an account — Today's guest view, the CV builder on this device,
+ * templates, the ATS checker, Smart Studio, resources and display settings.
+ * Account-only spaces say what they are for and offer sign-in.
+ */
+const GuestContent: React.FC<{ route: CareerRoute; onOpenAuth: () => void }> = ({ route, onOpenAuth }) => {
     const { t } = useTranslation();
-    return (
-        <div className="mx-auto w-full max-w-3xl">
-            <SpaceHeader eyebrow={t('careeros.shell.eyebrow', 'Career OS')} title={t('careeros.shell.signInTitle', 'Sign in to open your Career OS')} />
-            <StatePanel
-                kind="denied"
-                title={t('careeros.shell.signInTitle', 'Sign in to open your Career OS')}
-                description={t('careeros.shell.signInDescription', 'Your goals, opportunities, applications and coach live in your account. Anonymous CV drafts stay on this device until you claim them.')}
-                action={{ label: t('dash.signInSync', 'Sign In / Sync'), onClick: onOpenAuth }}
-            />
-        </div>
-    );
+    const { navigate } = useNavigation();
+    switch (route.space) {
+        case 'today': return <GuestToday onOpenAuth={onOpenAuth} />;
+        case 'library': return <LibrarySpace route={route} />;
+        case 'settings':
+            return (
+                <div className="mx-auto w-full max-w-5xl">
+                    <SettingsPanel onViewLegal={(tab) => navigate({ view: 'legal', legalTab: tab })} onManageBilling={onOpenAuth} />
+                </div>
+            );
+        case 'not-found': return <NotFound />;
+        default: {
+            const key = activeSpaceKey(route);
+            const entry = ALL_SPACES.find((s) => s.key === key) ?? ALL_SPACES.find((s) => s.space === route.space);
+            const label = entry ? t(entry.labelKey, entry.label) : t('careeros.shell.eyebrow', 'Career OS');
+            return <GuestSignIn space={route.space} spaceLabel={label} onOpenAuth={onOpenAuth} />;
+        }
+    }
 };
 
 interface CareerShellProps {
@@ -168,7 +183,7 @@ const ShellFrame: React.FC<{ route: CareerRoute; onOpenAuth: () => void }> = ({ 
     const body = (
         <ErrorBoundary key={`${route.space}:${route.id ?? ''}:${route.sub ?? ''}`} scope={`careeros:${route.space}`}>
             <Suspense fallback={<Loader />}>
-                {!user ? <SignedOut onOpenAuth={onOpenAuth} /> : (
+                {!user ? <GuestContent route={route} onOpenAuth={onOpenAuth} /> : (
                     <>
                         {migration === 'failed' && (
                             <div className="mx-auto mb-4 w-full max-w-5xl">

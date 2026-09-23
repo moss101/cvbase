@@ -24,9 +24,12 @@ export function rolloutBucket(userId: string): number {
     return (h >>> 0) % 100;
 }
 
-/** Whether `flag` is on for this user. Never throws; anything unexpected is `false`. */
+/**
+ * Whether `flag` is on for this user. Never throws; anything unexpected is `false`.
+ * A signed-out visitor has no rollout bucket, so they get the flag only once it
+ * is fully rolled out (100%) — a partial rollout never reaches anonymous traffic.
+ */
 export async function isFlagEnabled(flag: string, userId: string | null): Promise<boolean> {
-    if (!userId) return false;
     try {
         const { data } = await getSupabase()
             .from('feature_flags')
@@ -35,6 +38,7 @@ export async function isFlagEnabled(flag: string, userId: string | null): Promis
             .maybeSingle();
         if (!data?.enabled) return false;
         const pct = typeof data.rollout_pct === 'number' ? data.rollout_pct : 0;
+        if (!userId) return pct >= 100;
         return rolloutBucket(userId) < pct;
     } catch {
         return false;
@@ -47,9 +51,10 @@ export async function isFlagEnabled(flag: string, userId: string | null): Promis
 const resolved = new Map<string, boolean>();
 const pending = new Map<string, Promise<boolean>>();
 
-const cacheKey = (flag: string, userId: string) => `${flag}:${userId}`;
+const GUEST = 'guest';
+const cacheKey = (flag: string, userId: string | null) => `${flag}:${userId ?? GUEST}`;
 
-function resolveFlag(flag: string, userId: string): Promise<boolean> {
+function resolveFlag(flag: string, userId: string | null): Promise<boolean> {
     const key = cacheKey(flag, userId);
     const known = resolved.get(key);
     if (known !== undefined) return Promise.resolve(known);
@@ -79,16 +84,12 @@ export function __resetFlagCache(): void {
 export function useCareerOsEnabled(userId: string | null): boolean | null {
     const [state, setState] = useState<{ userId: string | null; value: boolean | null }>(() => ({
         userId,
-        value: userId ? (resolved.get(cacheKey(CAREER_OS_FLAG, userId)) ?? null) : false,
+        value: resolved.get(cacheKey(CAREER_OS_FLAG, userId)) ?? null,
     }));
 
     useEffect(() => {
         const settle = (value: boolean | null) =>
             setState((prev) => (prev.userId === userId && prev.value === value ? prev : { userId, value }));
-        if (!userId) {
-            settle(false);
-            return;
-        }
         const known = resolved.get(cacheKey(CAREER_OS_FLAG, userId));
         if (known !== undefined) {
             settle(known);

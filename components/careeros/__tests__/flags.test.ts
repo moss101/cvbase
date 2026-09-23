@@ -42,9 +42,15 @@ describe('isFlagEnabled', () => {
         __resetFlagCache();
     });
 
-    it('is off without a user and never queries', async () => {
+    it('reaches signed-out visitors only once the flag is fully rolled out', async () => {
+        flagRow(null);
         await expect(isFlagEnabled('career_os', null)).resolves.toBe(false);
-        expect(from).not.toHaveBeenCalled();
+        flagRow({ enabled: true, rollout_pct: 99 });
+        await expect(isFlagEnabled('career_os', null)).resolves.toBe(false);
+        flagRow({ enabled: false, rollout_pct: 100 });
+        await expect(isFlagEnabled('career_os', null)).resolves.toBe(false);
+        flagRow({ enabled: true, rollout_pct: 100 });
+        await expect(isFlagEnabled('career_os', null)).resolves.toBe(true);
     });
 
     it('is off when the flag row is missing or disabled', async () => {
