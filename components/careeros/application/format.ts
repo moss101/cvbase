@@ -9,7 +9,7 @@ export function formatDate(iso: string | null | undefined, locale?: string, with
     if (Number.isNaN(date.getTime())) return iso;
     try {
         return new Intl.DateTimeFormat(locale, withTime
-            ? { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }
+            ? { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }
             : { day: 'numeric', month: 'short', year: 'numeric' }).format(date);
     } catch {
         return date.toDateString();
@@ -23,7 +23,7 @@ export function formatInZone(iso: string | null | undefined, timeZone: string | 
     if (Number.isNaN(date.getTime())) return iso;
     try {
         return new Intl.DateTimeFormat(locale, {
-            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short',
+            day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
             ...(timeZone ? { timeZone } : {}),
         }).format(date);
     } catch {

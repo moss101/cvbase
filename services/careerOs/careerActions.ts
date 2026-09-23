@@ -143,7 +143,7 @@ const ref = (kind: EvidenceRef['kind'], id: string, label: string): EvidenceRef 
 function formatWhen(iso: string, timeZone: string | null): string {
   try {
     // Same style the interface uses for dates ("Thu, Sep 24, 10:00 AM"), in the recorded zone.
-    const opts: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', ...(timeZone ? { timeZone } : {}) };
+    const opts: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', ...(timeZone ? { timeZone } : {}) };
     return `${new Intl.DateTimeFormat('en', opts).format(new Date(iso))}${timeZone ? ` (${timeZone})` : ''}`;
   } catch {
     return `${iso}${timeZone ? ` (${timeZone})` : ''}`;
