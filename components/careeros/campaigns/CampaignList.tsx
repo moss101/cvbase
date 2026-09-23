@@ -130,7 +130,7 @@ export const CampaignList: React.FC = () => {
             ) : (
                 <>
                     {query.data?.partial && <StatePanel kind="partial" compact className="mb-3" onRetry={() => { void query.refresh(); }} />}
-                    <ul className="space-y-3">
+                    <ul className="cos-list">
                         {rows.map((campaign) => {
                             const summary = milestoneSummary(campaign);
                             return (

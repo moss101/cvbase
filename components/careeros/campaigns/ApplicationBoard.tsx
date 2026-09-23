@@ -74,9 +74,12 @@ export const ApplicationBoard: React.FC<ApplicationBoardProps> = ({ applications
         );
     };
 
+    // On the board a card is a canvas tile inside the lane; in the list it is a divided row.
     const card = (app: ApplicationRecord, compact: boolean) => (
         <div key={app.id}>
             <ApplicationCard
+                flush
+                className={compact ? 'rounded-xl bg-surface-canvas p-3' : 'py-4'}
                 compact={compact}
                 jobTitle={app.jobTitle}
                 company={app.company}
@@ -110,18 +113,19 @@ export const ApplicationBoard: React.FC<ApplicationBoardProps> = ({ applications
         <div>
             <p role="status" aria-live="polite" className="sr-only">{announcement}</p>
             {view === 'board' ? (
-                <div className="-mx-1 flex gap-3 overflow-x-auto pb-2" role="list" aria-label={t('careeros.board.label', 'Application board')}>
+                <div className="flex overflow-x-auto pb-2" role="list" aria-label={t('careeros.board.label', 'Application board')}>
                     {STAGE_ORDER.map((stage) => {
                         const items = byStage.get(stage) ?? [];
                         return (
-                            <section key={stage} role="listitem" aria-labelledby={`col-${stage}`} className="flex w-[min(280px,85vw)] shrink-0 flex-col rounded-2xl border border-border-default bg-surface-canvas p-3">
+                            // Lanes are unframed columns split by hairlines — the board is one surface, not boxes in boxes.
+                            <section key={stage} role="listitem" aria-labelledby={`col-${stage}`} className="flex w-[min(264px,85vw)] shrink-0 flex-col border-l border-border-default px-3 first:border-l-0 first:pl-0">
                                 <h3 id={`col-${stage}`} className="flex items-center justify-between text-[13px] font-semibold text-content-primary">
                                     <span>{labels[stage]}</span>
-                                    <span className="rounded-full bg-surface-panel px-2 py-0.5 tabular-nums text-content-primary" aria-label={t('careeros.board.count', '{count} applications').replace('{count}', String(items.length))}>{items.length}</span>
+                                    <span className="rounded-full bg-surface-canvas px-2 py-0.5 text-[12px] tabular-nums text-content-secondary" aria-label={t('careeros.board.count', '{count} applications').replace('{count}', String(items.length))}>{items.length}</span>
                                 </h3>
                                 <div className="mt-3 space-y-3">
                                     {items.length === 0 ? (
-                                        <p className="rounded-xl border border-dashed border-border-default p-3 text-center text-xs text-content-muted">{t('smartStudio.tracker.noPositions', 'No positions here.')}</p>
+                                        <p className="py-2 text-xs text-content-muted">{t('smartStudio.tracker.noPositions', 'No positions here.')}</p>
                                     ) : items.map((app) => card(app, true))}
                                 </div>
                             </section>
@@ -129,7 +133,7 @@ export const ApplicationBoard: React.FC<ApplicationBoardProps> = ({ applications
                     })}
                 </div>
             ) : (
-                <ol className="space-y-3" aria-label={t('careeros.board.listLabel', 'Applications by stage')}>
+                <ol className="divide-y divide-border-default" aria-label={t('careeros.board.listLabel', 'Applications by stage')}>
                     {STAGE_ORDER.flatMap((stage) => (byStage.get(stage) ?? []).map((app) => (
                         <li key={app.id}>
                             <span className="sr-only">{stageOf(app.stage, app.closedReason).label}</span>

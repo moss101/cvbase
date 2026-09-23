@@ -111,10 +111,10 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
                 </p>
             )}
             {!compact && (
-                <div className="mt-2">
-                    <p className="text-[12px] font-medium text-content-muted">{t('careeros.fit.qualification', 'Qualification fit')}</p>
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <p className="text-[13px] text-content-muted">{t('careeros.fit.qualification', 'Qualification fit')}</p>
                     {fit && fitTotal > 0 ? (
-                        <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[13px] font-semibold" aria-label={t('careeros.fit.qualification', 'Qualification fit')}>
+                        <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[13px] font-semibold" aria-label={t('careeros.fit.qualification', 'Qualification fit')}>
                             <li className="inline-flex items-center gap-1 text-status-success">
                                 <CircleCheck size={13} strokeWidth={2} aria-hidden="true" />
                                 {fit.supported} {t('careeros.fit.supported', 'Supported').toLowerCase()}
@@ -136,7 +136,7 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
                             {fit.stale && <li className="text-status-warning">{t('careeros.fit.staleShort', 'out of date')}</li>}
                         </ul>
                     ) : (
-                        <p className="mt-1 inline-flex items-center gap-1 text-[13px] text-content-secondary">
+                        <p className="inline-flex items-center gap-1 text-[13px] text-content-secondary">
                             <CircleDashed size={13} strokeWidth={2} className="text-content-muted" aria-hidden="true" />
                             {t('careeros.fit.insufficientData', 'Insufficient data')}
                         </p>

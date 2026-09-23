@@ -182,9 +182,9 @@ export const CvSection: React.FC<{ workspace: Workspace }> = ({ workspace }) => 
                     action={{ label: t('careeros.cv.markReviewed', 'Mark reviewed'), onClick: () => { void markReviewed(); } }}
                 >
                     {reviewState.error ? <FailureNotice error={reviewState.error} onReload={() => { void workspace.refresh(); }} onDismiss={reviewState.reset} className="mb-3" /> : null}
-                    <ul className="space-y-2">
+                    <ul className="cos-list">
                         {staleRows.map((row) => (
-                            <li key={row.reference.id} className="rounded-xl border border-border-default bg-surface-panel p-3 text-[13px]">
+                            <li key={row.reference.id} className="px-5 py-3.5 text-[13px]">
                                 <p className="font-semibold text-content-primary">{row.fact ? factLabel(row.fact) : t('careeros.cv.factUnavailable', 'Fact no longer available')}</p>
                                 <p className="text-content-secondary">
                                     {t('careeros.cv.staleRevision', 'Used at revision {old}; the fact is now at revision {new}.').replace('{old}', String(row.reference.factRevision)).replace('{new}', String(row.reference.currentRevision))}
@@ -201,7 +201,7 @@ export const CvSection: React.FC<{ workspace: Workspace }> = ({ workspace }) => 
                             </li>
                         ))}
                         {staleArtifacts.filter((a) => !staleRows.some((r) => r.artifact?.id === a.id)).map((a) => (
-                            <li key={a.id} className="rounded-xl border border-border-default bg-surface-panel p-3 text-[13px] text-content-secondary">{t('careeros.cv.staleArtifact', '{title} was flagged out of date.').replace('{title}', a.title || a.kind)}</li>
+                            <li key={a.id} className="px-5 py-3.5 text-[13px] text-content-secondary">{t('careeros.cv.staleArtifact', '{title} was flagged out of date.').replace('{title}', a.title || a.kind)}</li>
                         ))}
                     </ul>
                 </StatePanel>
@@ -214,13 +214,14 @@ export const CvSection: React.FC<{ workspace: Workspace }> = ({ workspace }) => 
                         <StatePanel kind="error" compact title={t('careeros.cv.unavailable', 'The linked CV is unavailable')} description={t('careeros.cv.unavailableDescription', 'It may have been deleted. Link another version explicitly — the primary CV is never substituted.')} onRetry={() => { void workspace.refresh(); }} />
                     ) : data.resume ? (
                         <DocumentCard
+                            flush
                             title={data.resume.title}
                             kind="cv"
                             status={submittedSnapshot?.resumeId === data.resume.id ? 'snapshot' : 'draft'}
                             stale={resumeStale}
                             updatedLabel={data.resume.updatedAt ? t('careeros.document.updated', 'Updated {date}').replace('{date}', formatDate(data.resume.updatedAt)) + (typeof data.resume.revision === 'number' ? ` · ${t('careeros.artifact.revision', 'rev {rev}').replace('{rev}', String(data.resume.revision))}` : '') : undefined}
                             applicationLabel={`${app.jobTitle} · ${app.company}`}
-                            action={{ label: t('careeros.cv.openEditor', 'Open in editor'), onClick: () => navigate(careerPath.toCvEdit(data.resume?.id as string, { application: app.id })) }}
+                            action={{ label: t('careeros.cv.openEditor', 'Open in editor'), primary: true, onClick: () => navigate(careerPath.toCvEdit(data.resume?.id as string, { application: app.id })) }}
                             secondaryAction={{ label: t('careeros.cv.exportDocx', 'Export DOCX'), onClick: () => { void exportDocx(); }, loading: exportState.pending }}
                         />
                     ) : (

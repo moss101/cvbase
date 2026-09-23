@@ -1,5 +1,5 @@
 import React, { useId } from 'react';
-import { CircleCheck, CircleDashed, CircleHelp, CircleMinus, CircleX } from 'lucide-react';
+import { CircleCheck, CircleDashed, CircleHelp, CircleMinus, CircleX, TriangleAlert } from 'lucide-react';
 import { useTranslation } from '../../../services/translationService';
 import type { DirectionFit, FitEvidenceState, QualificationFit } from '../../../services/careerOs/types';
 import { EvidenceBadge } from './EvidenceBadge';
@@ -113,7 +113,8 @@ export const FitBreakdown: React.FC<FitBreakdownProps> = ({ qualification, direc
     return (
         <div className={className}>
             {stale && (
-                <p role="status" className="mb-3 rounded-xl border border-status-warning/30 bg-status-warning/10 px-3 py-2 text-[13px] text-content-primary">
+                <p role="status" className="mb-3 flex items-start gap-2 rounded-xl bg-surface-canvas px-3.5 py-2.5 text-[13px] text-content-primary">
+                    <TriangleAlert size={15} strokeWidth={1.9} className="mt-0.5 shrink-0 text-status-warning" aria-hidden="true" />
                     {t('careeros.fit.stale', 'This analysis is out of date — your facts, goal or the listing changed since it ran.')}
                 </p>
             )}

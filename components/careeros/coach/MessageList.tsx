@@ -42,15 +42,16 @@ export const CitationChips: React.FC<{ citations: CoachCitation[]; applicationId
     const { t } = useTranslation();
     const { navigate } = useNavigation();
     if (citations.length === 0) return null;
+    const chip = 'inline-flex h-7 max-w-full items-center gap-1 rounded-full border border-border-default bg-surface-canvas px-2.5 text-[12px] transition-colors duration-150';
     return (
-        <ul className="mt-2 flex flex-wrap gap-1.5" aria-label={t('careeros.coach.citations', 'Records cited')}>
+        <ul className="mt-1 flex flex-wrap gap-x-1.5" aria-label={t('careeros.coach.citations', 'Records cited')}>
             {citations.map((c, index) => {
                 const route = citationRoute(c, applicationId);
                 const text = c.label || `${c.kind} ${c.id.slice(0, 8)}`;
                 const inner = (
                     <>
-                        <Link2 size={11} strokeWidth={2} aria-hidden="true" />
-                        <span className="text-[12px] font-medium text-content-muted">{c.kind}</span>
+                        <Link2 size={11} strokeWidth={2} className="shrink-0 text-content-muted" aria-hidden="true" />
+                        <span className="text-[12px] text-content-muted">{c.kind}</span>
                         <span className="truncate">{text}</span>
                     </>
                 );
@@ -60,13 +61,13 @@ export const CitationChips: React.FC<{ citations: CoachCitation[]; applicationId
                             <button
                                 type="button"
                                 onClick={() => navigate(route)}
-                                className="tap-target inline-flex max-w-full items-center gap-1 rounded-full border border-border-default bg-surface-canvas px-2 py-1 text-[12px] text-content-primary transition-colors hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                                className="group tap-target inline-flex max-w-full items-center focus-visible:outline-none"
                                 aria-label={t('careeros.coach.openCitation', 'Open cited {kind}: {label}').replace('{kind}', c.kind).replace('{label}', text)}
                             >
-                                {inner}
+                                <span className={`${chip} font-medium text-content-primary group-hover:border-border-strong group-focus-visible:ring-2 group-focus-visible:ring-focus-ring`}>{inner}</span>
                             </button>
                         ) : (
-                            <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-border-default bg-surface-canvas px-2 py-1 text-[12px] text-content-secondary">{inner}</span>
+                            <span className={`${chip} my-2 text-content-secondary`}>{inner}</span>
                         )}
                     </li>
                 );
@@ -75,20 +76,34 @@ export const CitationChips: React.FC<{ citations: CoachCitation[]; applicationId
     );
 };
 
-const Bubble: React.FC<{ role: CoachMessage['role']; roleLabel: string; time: string; children: React.ReactNode; checkbox?: React.ReactNode; abstained?: boolean }> = ({ role, roleLabel, time, children, checkbox, abstained }) => {
+const Bubble: React.FC<{ role: CoachMessage['role']; roleLabel: string; time: string; children: React.ReactNode; checkbox?: React.ReactNode; abstained?: boolean }> = ({ role, roleLabel, time, children, checkbox }) => {
     const mine = role === 'user';
+    if (role === 'system') {
+        // A system entry records an event in the thread (a context change), so
+        // it reads as a quiet centred line rather than a speaker's bubble.
+        return (
+            <li className="flex items-start justify-center gap-2">
+                {checkbox && <div className="flex items-start">{checkbox}</div>}
+                <article aria-label={roleLabel} className="flex min-w-0 max-w-[92%] items-start gap-1.5 py-1 text-[12.5px] leading-relaxed text-content-muted sm:max-w-[80%]">
+                    <span className="mt-[3px] shrink-0">{ROLE_ICON.system}</span>
+                    <div className="min-w-0 whitespace-pre-wrap break-words text-content-secondary">{children}</div>
+                    {time && <time className="shrink-0 cos-num">{time}</time>}
+                </article>
+            </li>
+        );
+    }
     return (
         <li className={`flex gap-2 ${mine ? 'justify-end' : 'justify-start'}`}>
             {checkbox && <div className="flex items-start pt-2">{checkbox}</div>}
             <article
                 aria-label={roleLabel}
-                className={`max-w-[92%] rounded-2xl border px-3 py-2 sm:max-w-[80%] ${
-                    mine ? 'border-action-primary/20 bg-action-primary/10' : role === 'system' ? 'border-border-default bg-surface-canvas' : abstained ? 'border-status-warning/30 bg-status-warning/10' : 'border-border-default bg-surface-panel'
+                className={`max-w-[92%] rounded-2xl border px-3.5 py-2.5 sm:max-w-[80%] ${
+                    mine ? 'border-action-primary/20 bg-action-primary/10' : 'border-border-default bg-surface-panel'
                 }`}
             >
-                <header className="flex items-center gap-2 text-[11px] text-content-muted">
+                <header className="flex items-center gap-2 text-[12px] text-content-muted">
                     <span className="inline-flex items-center gap-1 font-medium">{ROLE_ICON[role]}{roleLabel}</span>
-                    {time && <time className="ml-auto">{time}</time>}
+                    {time && <time className="ml-auto cos-num">{time}</time>}
                 </header>
                 <div className="mt-1 whitespace-pre-wrap break-words text-[14px] leading-relaxed text-content-primary">{children}</div>
             </article>
@@ -130,8 +145,8 @@ export const MessageList: React.FC<MessageListProps> = ({
                     return (
                         <Bubble key={m.id} role={m.role} roleLabel={roleLabel[m.role]} time={timeLabel(m.createdAt)} checkbox={checkbox} abstained={m.abstained}>
                             {m.abstained && (
-                                <p className="mb-1 flex items-start gap-1.5 text-[13px] font-semibold text-status-warning" role="status">
-                                    <CircleHelp size={14} strokeWidth={2} className="mt-0.5 shrink-0" aria-hidden="true" />
+                                <p className="mb-1.5 flex items-start gap-1.5 text-[13px] font-medium text-content-secondary" role="status">
+                                    <CircleHelp size={15} strokeWidth={2} className="mt-0.5 shrink-0 text-status-warning" aria-hidden="true" />
                                     <span>
                                         {t('careeros.coach.abstained', "The coach didn't have enough evidence to answer this")}
                                         {abstainReasons[m.id] ? ` — ${abstainReasons[m.id]}` : ''}
@@ -141,7 +156,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                             {m.content}
                             <CitationChips citations={m.citations} applicationId={applicationId} />
                             {m.proposals.length > 0 && (
-                                <div className="mt-3 space-y-2">
+                                <div className="mt-3 space-y-3 whitespace-normal">
                                     {m.proposals.map((p, index) => (
                                         <AgentSuggestion
                                             key={`${m.id}:${index}`}
@@ -163,7 +178,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                 )}
                 {thinking && (
                     <li className="flex justify-start" role="status" aria-live="polite">
-                        <div className="max-w-[80%] rounded-2xl border border-border-default bg-surface-panel px-3 py-2">
+                        <div className="max-w-[80%] rounded-2xl border border-border-default bg-surface-panel px-3.5 py-2.5">
                             <p className="text-[13px] text-content-secondary">{t('careeros.coach.thinking', 'Coach is thinking…')}</p>
                             <Skeleton variant="text" lines={2} className="mt-2 w-56 max-w-full" />
                         </div>

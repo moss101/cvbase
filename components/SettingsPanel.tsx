@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useTheme, TEXT_SCALE_LABELS, type ThemeMode, type TextScale } from './ThemeProvider';
 import { useTranslation, LANGUAGE_OPTIONS, type LanguageCode, type Translate } from '../services/translationService';
@@ -23,7 +23,32 @@ interface SettingsPanelProps {
     onManageBilling?: () => void;
     /** Opens the existing JSON import/export modal. */
     onOpenBackup?: () => void;
+    /**
+     * Rendered inside the Career OS Settings space, which already carries the
+     * page heading: the panel drops its own header and takes the Career OS
+     * presentation (DESIGN.md) — one hairline panel divided by rules, tokens
+     * instead of the landing palette. The legacy dashboard omits it.
+     */
+    embedded?: boolean;
 }
+
+/** Career OS classes used only when the panel is embedded. */
+const EMBEDDED_FOCUS =
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-panel';
+/** A radio tile: the active choice is an emerald tint, never a filled button. */
+const embeddedChoice = (active: boolean) =>
+    `transition-colors ${EMBEDDED_FOCUS} ${
+        active
+            ? 'border-action-primary bg-action-primary/10 text-action-primary'
+            : 'border-border-strong bg-surface-panel text-content-secondary hover:bg-surface-canvas hover:text-content-primary'
+    }`;
+/** Buttons follow primitives/Button; callers add `justify-center` or `justify-between`. */
+const EMBEDDED_BUTTON_BASE =
+    `tap-target inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold leading-none transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${EMBEDDED_FOCUS}`;
+const EMBEDDED_SECONDARY = `${EMBEDDED_BUTTON_BASE} border border-border-strong bg-surface-panel text-content-primary hover:bg-surface-canvas`;
+const EMBEDDED_QUIET = `${EMBEDDED_BUTTON_BASE} text-content-secondary hover:bg-surface-canvas hover:text-content-primary`;
+const EMBEDDED_DANGER = `${EMBEDDED_BUTTON_BASE} border border-status-danger/40 bg-surface-panel text-status-danger hover:bg-status-danger/10`;
+const EMBEDDED_LABEL = 'mb-2 text-[13px] font-medium text-content-secondary';
 
 const buildThemeOptions = (t: Translate): { value: ThemeMode; label: string; icon: string; hint: string }[] => [
     { value: 'light', label: t('settings.theme.light', 'Light'), icon: 'light_mode', hint: t('settings.theme.lightHint', 'Always the light theme') },
@@ -38,7 +63,23 @@ const Section: React.FC<{
     description: string;
     icon: string;
     children: React.ReactNode;
-}> = ({ title, description, icon, children }) => (
+    embedded?: boolean;
+}> = ({ title, description, icon, children, embedded = false }) => {
+    const headingId = useId();
+    if (embedded) {
+        // A region of the one settings panel: heading and note on the left from
+        // 1024px, the controls on the right; regions are divided by hairlines.
+        return (
+            <section aria-labelledby={headingId} className="px-6 py-6 sm:px-7 sm:py-7 lg:grid lg:grid-cols-[minmax(0,13rem)_minmax(0,1fr)] lg:gap-10">
+                <header className="mb-5 min-w-0 lg:mb-0">
+                    <h3 id={headingId} className="text-[15px] font-semibold text-content-primary">{title}</h3>
+                    <p className="mt-1 text-[13.5px] leading-relaxed text-content-secondary [overflow-wrap:anywhere]">{description}</p>
+                </header>
+                <div className="min-w-0">{children}</div>
+            </section>
+        );
+    }
+    return (
     <section className="dashboard-card p-6 md:p-7">
         <header className="mb-5 flex items-start gap-3">
             <Icon
@@ -53,7 +94,8 @@ const Section: React.FC<{
         </header>
         {children}
     </section>
-);
+    );
+};
 
 /** Accessible segmented control — a radiogroup, not a row of buttons. */
 const SegmentedControl = <T extends string>({
@@ -61,11 +103,13 @@ const SegmentedControl = <T extends string>({
     value,
     options,
     onChange,
+    embedded = false,
 }: {
     label: string;
     value: T;
     options: { value: T; label: string; icon?: string; hint?: string }[];
     onChange: (value: T) => void;
+    embedded?: boolean;
 }) => (
     <div role="radiogroup" aria-label={label} className="grid grid-cols-3 gap-2">
         {options.map((option) => {
@@ -78,7 +122,7 @@ const SegmentedControl = <T extends string>({
                     aria-checked={active}
                     onClick={() => onChange(option.value)}
                     title={option.hint}
-                    className={`tap-target flex flex-col items-center justify-center gap-1.5 rounded-xl border px-2 py-3 text-xs font-semibold transition-all ${
+                    className={embedded ? `tap-target flex flex-col items-center justify-center gap-1.5 rounded-xl border px-2 py-3 text-[13px] font-semibold ${embeddedChoice(active)}` : `tap-target flex flex-col items-center justify-center gap-1.5 rounded-xl border px-2 py-3 text-xs font-semibold transition-all ${
                         active
                             ? 'border-ember bg-ember-tint text-ember-deep'
                             : 'border-ink/[0.12] text-ink-soft hover:border-ink/25 hover:bg-ink/[0.04]'
@@ -100,7 +144,37 @@ const Toggle: React.FC<{
     description: string;
     checked: boolean;
     onChange: (value: boolean) => void;
-}> = ({ id, label, description, checked, onChange }) => (
+    embedded?: boolean;
+}> = ({ id, label, description, checked, onChange, embedded = false }) => embedded ? (
+    <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+            <label htmlFor={id} className="block text-sm font-medium text-content-primary">
+                {label}
+            </label>
+            <p id={`${id}-description`} className="mt-0.5 text-[13px] leading-relaxed text-content-secondary">
+                {description}
+            </p>
+        </div>
+        <button
+            id={id}
+            type="button"
+            role="switch"
+            aria-checked={checked}
+            aria-describedby={`${id}-description`}
+            onClick={() => onChange(!checked)}
+            className={`relative mt-0.5 h-7 w-12 flex-none rounded-full border transition-colors ${EMBEDDED_FOCUS} ${
+                checked ? 'border-action-primary bg-action-primary' : 'border-border-strong bg-border-strong/30'
+            }`}
+        >
+            {/* `left-0`: without it the knob takes the button's centred static position. */}
+            <span
+                className={`absolute left-0 top-0.5 h-[22px] w-[22px] rounded-full bg-true-white shadow-sm transition-transform ${
+                    checked ? 'translate-x-[22px]' : 'translate-x-0.5'
+                }`}
+            />
+        </button>
+    </div>
+) : (
     <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
             <label htmlFor={id} className="block text-sm font-semibold text-ink">
@@ -134,6 +208,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     onViewLegal,
     onManageBilling,
     onOpenBackup,
+    embedded = false,
 }) => {
     const {
         mode,
@@ -146,6 +221,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         isNative,
     } = useTheme();
     const { language, setLanguage, t } = useTranslation();
+    const preferencesHeadingId = useId();
     const THEME_OPTIONS = buildThemeOptions(t);
     const { user, logout } = useAuth();
     const { toast } = useToast();
@@ -232,8 +308,16 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         }
     };
 
+    const Root = embedded ? 'section' : 'div';
+
     return (
-        <div className="dashboard-module">
+        <Root className={embedded ? 'min-w-0' : 'dashboard-module'} aria-labelledby={embedded ? preferencesHeadingId : undefined}>
+            {embedded ? (
+                // The Settings space already carries the page's h1 and description.
+                <h2 id={preferencesHeadingId} className="text-[15px] font-semibold text-content-primary">
+                    {t('settings.eyebrow', 'Preferences')}
+                </h2>
+            ) : (
             <header>
                 <p className="dashboard-eyebrow">{t('settings.eyebrow', 'Preferences')}</p>
                 <h1 className="dashboard-display">{t('settings.heading', 'Settings.')}</h1>
@@ -241,19 +325,22 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     {t('settings.headerDesc', 'Appearance, language, account and data — everything that changes how CVBase looks and behaves on this device.')}
                 </p>
             </header>
+            )}
 
-            <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+            <div className={embedded ? 'mt-4 divide-y divide-border-default rounded-2xl border border-border-default bg-surface-panel' : 'grid grid-cols-1 gap-5 xl:grid-cols-2'}>
                 <Section
+                    embedded={embedded}
                     icon="palette"
                     title={t('settings.appearance', 'Appearance')}
                     description={t('settings.currentlyShowingTheme', 'Currently showing the {theme} theme.').replace('{theme}', resolvedTheme)}
                 >
                     <div className="space-y-6">
                         <div>
-                            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink-faint">
+                            <p className={embedded ? EMBEDDED_LABEL : 'mb-2 text-xs font-bold uppercase tracking-wider text-ink-faint'}>
                                 {t('settings.theme', 'Theme')}
                             </p>
                             <SegmentedControl
+                                embedded={embedded}
                                 label={t('settings.theme', 'Theme')}
                                 value={mode}
                                 options={THEME_OPTIONS}
@@ -262,7 +349,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         </div>
 
                         <div>
-                            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink-faint">
+                            <p className={embedded ? EMBEDDED_LABEL : 'mb-2 text-xs font-bold uppercase tracking-wider text-ink-faint'}>
                                 {t('settings.textSize', 'Text size')}
                             </p>
                             <div role="radiogroup" aria-label={t('settings.textSize', 'Text size')} className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -275,7 +362,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                             role="radio"
                                             aria-checked={active}
                                             onClick={() => setTextScale(scale)}
-                                            className={`tap-target rounded-xl border px-2 py-3 text-xs font-semibold transition-all ${
+                                            className={embedded ? `tap-target rounded-xl border px-2 py-3 text-[13px] font-semibold ${embeddedChoice(active)}` : `tap-target rounded-xl border px-2 py-3 text-xs font-semibold transition-all ${
                                                 active
                                                     ? 'border-ember bg-ember-tint text-ember-deep'
                                                     : 'border-ink/[0.12] text-ink-soft hover:border-ink/25 hover:bg-ink/[0.04]'
@@ -286,12 +373,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                     );
                                 })}
                             </div>
-                            <p className="mt-2 text-xs text-ink-faint">
+                            <p className={embedded ? 'mt-2 text-[12.5px] text-content-muted' : 'mt-2 text-xs text-ink-faint'}>
                                 {t('settings.textSizeDesc', 'Scales the whole interface. Your CV keeps its exact print dimensions.')}
                             </p>
                         </div>
 
                         <Toggle
+                            embedded={embedded}
                             id="setting-reduce-motion"
                             label={t('settings.reduceMotion', 'Reduce motion')}
                             description={t('settings.reduceMotionDesc', 'Turns off page transitions and decorative animation.')}
@@ -302,6 +390,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 </Section>
 
                 <Section
+                    embedded={embedded}
                     icon="language"
                     title={t('label.selectLanguage', 'Language')}
                     description={t('settings.languageDesc', "Used for the builder's section labels and guidance.")}
@@ -316,13 +405,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                     role="radio"
                                     aria-checked={active}
                                     onClick={() => setLanguage(option.code as LanguageCode)}
-                                    className={`tap-target flex items-center gap-2.5 rounded-xl border px-3 py-3 text-sm font-semibold transition-all ${
+                                    className={embedded ? `tap-target flex items-center rounded-xl border px-3 py-3 text-sm font-semibold ${embeddedChoice(active)}` : `tap-target flex items-center gap-2.5 rounded-xl border px-3 py-3 text-sm font-semibold transition-all ${
                                         active
                                             ? 'border-ember bg-ember-tint text-ember-deep'
                                             : 'border-ink/[0.12] text-ink-soft hover:border-ink/25 hover:bg-ink/[0.04]'
                                     }`}
                                 >
-                                    <span aria-hidden="true">{option.flag}</span>
+                                    {!embedded && <span aria-hidden="true">{option.flag}</span>}
                                     {option.name}
                                 </button>
                             );
@@ -331,6 +420,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 </Section>
 
                 <Section
+                    embedded={embedded}
                     icon="account_circle"
                     title={t('settings.account', 'Account')}
                     description={user?.email ?? t('settings.notSignedIn', 'You are not signed in on this device.')}
@@ -340,7 +430,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                             <button
                                 type="button"
                                 onClick={onManageBilling}
-                                className="dashboard-secondary-button w-full justify-between"
+                                className={embedded ? `${EMBEDDED_SECONDARY} w-full justify-between` : 'dashboard-secondary-button w-full justify-between'}
                             >
                                 {t('settings.planAndBilling', 'Plan & billing')}
                                 <ChevronRight className="w-[18px] h-[18px]" aria-hidden="true" />
@@ -351,14 +441,14 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                 type="button"
                                 onClick={handleSignOut}
                                 disabled={signingOut}
-                                className="dashboard-secondary-button w-full justify-between disabled:opacity-60"
+                                className={embedded ? `${EMBEDDED_SECONDARY} w-full justify-between` : 'dashboard-secondary-button w-full justify-between disabled:opacity-60'}
                             >
                                 {signingOut ? t('settings.signingOut', 'Signing out…') : t('dash.signOut', 'Sign out')}
                                 <LogOut className="w-[18px] h-[18px]" aria-hidden="true" />
                             </button>
                         )}
                         {signOutError && (
-                            <p role="alert" className="text-sm font-medium text-danger">
+                            <p role="alert" className={embedded ? 'text-[13px] font-medium text-status-danger' : 'text-sm font-medium text-danger'}>
                                 {signOutError}
                             </p>
                         )}
@@ -366,6 +456,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 </Section>
 
                 <Section
+                    embedded={embedded}
                     icon="database"
                     title={t('settings.yourData', 'Your data')}
                     description={t('settings.yourDataDesc', 'Everything in your account is yours to take with you or remove.')}
@@ -375,7 +466,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                             <button
                                 type="button"
                                 onClick={onOpenBackup}
-                                className="dashboard-secondary-button w-full justify-between"
+                                className={embedded ? `${EMBEDDED_SECONDARY} w-full justify-between` : 'dashboard-secondary-button w-full justify-between'}
                             >
                                 {t('settings.exportImportBackup', 'Export or import a backup')}
                                 <Save className="w-[18px] h-[18px]" aria-hidden="true" />
@@ -386,7 +477,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                 type="button"
                                 onClick={handleExport}
                                 disabled={exporting}
-                                className="dashboard-secondary-button w-full justify-between disabled:opacity-60"
+                                className={embedded ? `${EMBEDDED_SECONDARY} w-full justify-between` : 'dashboard-secondary-button w-full justify-between disabled:opacity-60'}
                             >
                                 {exporting ? t('settings.preparingExport', 'Preparing your export…') : t('settings.exportMyData', 'Export my data')}
                                 <Download className="w-[18px] h-[18px]" aria-hidden="true" />
@@ -397,33 +488,33 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                 <button
                                     type="button"
                                     onClick={() => onViewLegal('privacy')}
-                                    className="dashboard-secondary-button justify-center"
+                                    className={embedded ? `${EMBEDDED_QUIET} justify-center` : 'dashboard-secondary-button justify-center'}
                                 >
                                     {t('settings.privacyPolicy', 'Privacy policy')}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => onViewLegal('terms')}
-                                    className="dashboard-secondary-button justify-center"
+                                    className={embedded ? `${EMBEDDED_QUIET} justify-center` : 'dashboard-secondary-button justify-center'}
                                 >
                                     {t('settings.terms', 'Terms')}
                                 </button>
                             </div>
                         )}
                         {user && (
-                            <div className="mt-2 border-t border-ink/[0.12] pt-4">
+                            <div className={embedded ? 'mt-2 border-t border-border-default pt-5' : 'mt-2 border-t border-ink/[0.12] pt-4'}>
                                 {!deleteOpen ? (
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="min-w-0">
-                                            <p className="text-sm font-semibold text-ink">{t('settings.deleteAccount', 'Delete account')}</p>
-                                            <p className="mt-0.5 text-sm text-ink-soft">
+                                            <p className={embedded ? 'text-sm font-medium text-content-primary' : 'text-sm font-semibold text-ink'}>{t('settings.deleteAccount', 'Delete account')}</p>
+                                            <p className={embedded ? 'mt-0.5 text-[13px] leading-relaxed text-content-secondary' : 'mt-0.5 text-sm text-ink-soft'}>
                                                 {t('settings.deleteAccountDesc', 'Removes your résumés, versions, tracked jobs, ATS reports and photos, and cancels any subscription. This cannot be undone.')}
                                             </p>
                                         </div>
                                         <button
                                             type="button"
                                             onClick={() => setDeleteOpen(true)}
-                                            className="tap-target flex-none text-sm font-semibold text-danger underline-offset-4 hover:underline"
+                                            className={embedded ? `${EMBEDDED_DANGER} flex-none justify-center` : 'tap-target flex-none text-sm font-semibold text-danger underline-offset-4 hover:underline'}
                                         >
                                             {t('settings.deleteEllipsis', 'Delete…')}
                                         </button>
@@ -433,16 +524,16 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                         <div>
                                             <label
                                                 htmlFor="setting-delete-confirm"
-                                                className="block text-sm font-semibold text-ink"
+                                                className={embedded ? 'block text-sm font-medium text-content-primary' : 'block text-sm font-semibold text-ink'}
                                             >
                                                 {t('settings.typeEmailToConfirm', 'Type your email to confirm')}
                                             </label>
                                             <p
                                                 id="setting-delete-confirm-description"
-                                                className="mt-0.5 text-sm text-ink-soft"
+                                                className={embedded ? 'mt-0.5 text-[13px] leading-relaxed text-content-secondary' : 'mt-0.5 text-sm text-ink-soft'}
                                             >
                                                 {t('settings.deletingPrefix', 'Deleting')}{' '}
-                                                <span className="font-medium text-ink">{accountEmail}</span>{' '}
+                                                <span className={embedded ? 'font-medium text-content-primary' : 'font-medium text-ink'}>{accountEmail}</span>{' '}
                                                 {t('settings.deletingSuffix', 'removes everything in this account. This cannot be undone.')}
                                             </p>
                                         </div>
@@ -458,10 +549,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                             aria-describedby="setting-delete-confirm-description"
                                             aria-invalid={deleteError ? true : undefined}
                                             disabled={deleting}
-                                            className="w-full rounded-xl border border-ink/[0.12] bg-transparent px-3 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-danger focus:outline-none focus:ring-2 focus:ring-danger/30 disabled:opacity-60"
+                                            className={embedded
+                                                ? `w-full rounded-xl border bg-surface-panel px-3.5 py-2.5 text-[15px] text-content-primary placeholder:text-content-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring disabled:opacity-60 ${deleteError ? 'border-status-danger' : 'border-border-strong'}`
+                                                : 'w-full rounded-xl border border-ink/[0.12] bg-transparent px-3 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-danger focus:outline-none focus:ring-2 focus:ring-danger/30 disabled:opacity-60'}
                                         />
                                         {deleteError && (
-                                            <p role="alert" className="text-sm font-medium text-danger">
+                                            <p role="alert" className={embedded ? 'text-[13px] font-medium text-status-danger' : 'text-sm font-medium text-danger'}>
                                                 {deleteError}
                                             </p>
                                         )}
@@ -469,7 +562,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                             <button
                                                 type="submit"
                                                 disabled={!confirmMatches || deleting}
-                                                className="tap-target rounded-xl border border-danger px-4 py-2 text-sm font-semibold text-danger transition-colors hover:bg-danger hover:text-true-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-danger"
+                                                className={embedded ? `${EMBEDDED_DANGER} justify-center` : 'tap-target rounded-xl border border-danger px-4 py-2 text-sm font-semibold text-danger transition-colors hover:bg-danger hover:text-true-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-danger'}
                                             >
                                                 {deleting ? t('settings.deletingEllipsis', 'Deleting…') : t('settings.deleteMyAccount', 'Delete my account')}
                                             </button>
@@ -477,7 +570,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                                 type="button"
                                                 onClick={closeDelete}
                                                 disabled={deleting}
-                                                className="tap-target rounded-xl px-4 py-2 text-sm font-semibold text-ink-soft transition-colors hover:text-ink disabled:opacity-60"
+                                                className={embedded ? `${EMBEDDED_QUIET} justify-center` : 'tap-target rounded-xl px-4 py-2 text-sm font-semibold text-ink-soft transition-colors hover:text-ink disabled:opacity-60'}
                                             >
                                                 {t('settings.keepMyAccount', 'Keep my account')}
                                             </button>
@@ -486,13 +579,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                 )}
                             </div>
                         )}
-                        <p className="pt-1 text-xs text-ink-faint">
+                        <p className={embedded ? 'pt-1 text-[12.5px] text-content-muted' : 'pt-1 text-xs text-ink-faint'}>
                             {isNative ? t('settings.cvbaseForPlatform', 'CVBase for {platform}').replace('{platform}', Capacitor.getPlatform()) : t('settings.cvbaseForWeb', 'CVBase for web')}
                         </p>
                     </div>
                 </Section>
             </div>
-        </div>
+        </Root>
     );
 };
 

@@ -3,7 +3,7 @@ import { ChevronDown, ChevronUp, Ellipsis } from 'lucide-react';
 import { useTranslation } from '../../../services/translationService';
 import type { CareerFact } from '../../../services/careerOs/types';
 import { sanitizeHtml } from '../../../lib/sanitizeHtml';
-import { Button, EvidenceBadge, Pill, StatusChip } from '../primitives';
+import { Button, EvidenceBadge, StatusChip } from '../primitives';
 import { kindLabel, periodLabel, sourceLabel } from './factFormat';
 
 /**
@@ -22,12 +22,14 @@ export interface FactCardProps {
     secondaryActions?: Array<{ label: string; onClick: () => void; destructive?: boolean }>;
     children?: React.ReactNode;
     compact?: boolean;
+    /** Name the kind (Experience, Skill…) in the meta line; off where the view already says it. */
+    showKind?: boolean;
     className?: string;
 }
 
 const looksLikeHtml = (value: string): boolean => /<[a-z][\s\S]*>/i.test(value);
 
-export const FactCard: React.FC<FactCardProps> = ({ fact, parentLabel, usedIn, primaryAction, secondaryActions = [], children, compact = false, className = '' }) => {
+export const FactCard: React.FC<FactCardProps> = ({ fact, parentLabel, usedIn, primaryAction, secondaryActions = [], children, compact = false, showKind = true, className = '' }) => {
     const { t } = useTranslation();
     const [moreOpen, setMoreOpen] = useState(false);
     const [expanded, setExpanded] = useState(false);
@@ -39,10 +41,15 @@ export const FactCard: React.FC<FactCardProps> = ({ fact, parentLabel, usedIn, p
     const long = narrative.length > 280;
 
     return (
-        <article aria-labelledby={titleId} className={`rounded-2xl border border-border-default bg-surface-panel ${compact ? 'p-4' : 'p-5'} ${className}`}>
+        <article aria-labelledby={titleId} className={`cos-entity rounded-2xl border border-border-default bg-surface-panel ${compact ? 'p-4' : 'p-5'} ${className}`}>
             <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                    <Pill mono>{kindLabel(t, fact.kind)}</Pill>
+                {/* Title first, with its state chips on the same line — no label row above it. */}
+                <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5">
+                    <h3 id={titleId} className={`min-w-0 font-semibold text-content-primary ${compact ? 'text-[15px]' : 'text-[15.5px]'}`}>
+                        {showKind ? <span className="sr-only">{kindLabel(t, fact.kind)}: </span> : null}
+                        {fact.title || t('careeros.career.untitled', 'Untitled')}
+                        {level && <span className="ml-2 text-sm font-normal text-content-secondary">· {level}</span>}
+                    </h3>
                     <EvidenceBadge state={fact.confirmationState} detail={fact.verification ? fact.verification.source : undefined} />
                     {fact.reviewState === 'candidate' && <StatusChip label={t('careeros.career.needsReview', 'Needs review')} tone="neutral" />}
                     {fact.reviewState === 'conflict' && <StatusChip label={t('careeros.career.inConflict', 'Conflicts with another fact')} tone="warning" />}
@@ -61,13 +68,9 @@ export const FactCard: React.FC<FactCardProps> = ({ fact, parentLabel, usedIn, p
                     </button>
                 )}
             </div>
-            <h3 id={titleId} className={`mt-2 font-semibold text-content-primary ${compact ? 'text-[15px]' : 'text-base'}`}>
-                {fact.title || t('careeros.career.untitled', 'Untitled')}
-                {level && <span className="ml-2 text-sm font-normal text-content-secondary">· {level}</span>}
-            </h3>
-            {(fact.organization || period || fact.location || parentLabel) && (
+            {(fact.organization || period || fact.location || parentLabel || showKind) && (
                 <p className="mt-0.5 text-sm text-content-secondary">
-                    {[fact.organization, fact.location, period, parentLabel].filter(Boolean).join(' · ')}
+                    {[showKind ? kindLabel(t, fact.kind) : null, fact.organization, fact.location, period, parentLabel].filter(Boolean).join(' · ')}
                 </p>
             )}
             {narrative && !compact && (
@@ -105,7 +108,8 @@ export const FactCard: React.FC<FactCardProps> = ({ fact, parentLabel, usedIn, p
                 )}
             </div>
             {secondaryActions.length > 0 && (
-                <div id={moreId} hidden={!moreOpen} className="mt-3 flex flex-wrap gap-2 border-t border-border-default pt-3">
+                // `hidden` alone loses to a display utility, so the display class follows the state.
+                <div id={moreId} hidden={!moreOpen} className={`${moreOpen ? 'flex' : 'hidden'} mt-3 flex-wrap gap-2 border-t border-border-default pt-3`}>
                     {secondaryActions.map((action) => (
                         <Button key={action.label} variant={action.destructive ? 'danger' : 'quiet'} size="sm" onClick={() => { setMoreOpen(false); action.onClick(); }}>{action.label}</Button>
                     ))}

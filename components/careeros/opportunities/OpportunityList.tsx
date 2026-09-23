@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { ChevronDown, ChevronRight, Info, Plus } from 'lucide-react';
 import { useTranslation } from '../../../services/translationService';
 import * as opportunityRepo from '../../../services/careerOs/opportunityRepo';
 import * as analysisRepo from '../../../services/careerOs/analysisRepo';
@@ -169,7 +169,8 @@ export const OpportunityList: React.FC<{ route: CareerRoute }> = ({ route }) => 
             {undoState.error ? <FailureNotice error={undoState.error} onDismiss={undoState.reset} className="mb-4" /> : null}
 
             {view === 'for-you' && query.data && (
-                <p role="status" className="mb-4 rounded-xl border border-status-info/30 bg-status-info/10 px-3 py-2 text-[13px] text-content-primary">
+                <p role="status" className="mb-3 flex items-center gap-1.5 text-[13px] text-content-muted">
+                    <Info size={14} strokeWidth={1.9} className="shrink-0" aria-hidden="true" />
                     {t('careeros.opportunity.coverage', 'Ranking your {count} imported opportunities. CVBase does not search job boards yet.').replace('{count}', String(query.data.opportunities.length))}
                 </p>
             )}
@@ -194,7 +195,7 @@ export const OpportunityList: React.FC<{ route: CareerRoute }> = ({ route }) => 
                     {query.data?.analysesFailed && (
                         <StatePanel kind="partial" compact className="mb-3" title={t('careeros.opportunity.fitUnavailable', 'Fit summaries could not be loaded')} description={t('careeros.opportunity.fitUnavailableDescription', 'The opportunities are shown without their fit counts.')} onRetry={() => { void query.refresh(); }} />
                     )}
-                    <ul className="space-y-3">{rows.map(renderCard)}</ul>
+                    <ul className="cos-list">{rows.map(renderCard)}</ul>
                     {forYou && forYou.hidden.length > 0 && (
                         <section className="mt-6" aria-labelledby="hidden-by-constraints">
                             <button
@@ -208,7 +209,7 @@ export const OpportunityList: React.FC<{ route: CareerRoute }> = ({ route }) => 
                                 {t('careeros.opportunity.hiddenByConstraints', 'Hidden by your constraints ({count})').replace('{count}', String(forYou.hidden.length))}
                             </button>
                             {hiddenOpen && (
-                                <ul className="mt-2 space-y-3">
+                                <ul className="cos-list mt-2">
                                     {forYou.hidden.map((row) => (
                                         <li key={row.opportunity.id}>
                                             <OpportunityCard

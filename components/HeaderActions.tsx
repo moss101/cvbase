@@ -1,7 +1,7 @@
 
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { SparklesIcon } from './common/icons';
-import { Menu, Globe, ChevronDown, DatabaseBackup, MoreHorizontal, FileText } from 'lucide-react';
+import { Menu, Globe, ChevronDown, DatabaseBackup, MoreHorizontal, FileText, Check } from 'lucide-react';
 import { useTranslation, LANGUAGE_OPTIONS } from '../services/translationService';
 
 interface HeaderActionsProps {
@@ -36,7 +36,13 @@ const HeaderActions: React.FC<HeaderActionsProps> = ({
                     </>
                 );
             case 'saved':
-                return t('btn.saved', '✓ Saved!');
+                // The catalogue strings carry a ✓ glyph; the button draws a real icon instead.
+                return (
+                    <>
+                        <Check className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                        {t('btn.saved', '✓ Saved!').replace(/^✓\s*/, '')}
+                    </>
+                );
             default:
                 return t('btn.save', 'Save');
         }
@@ -72,7 +78,7 @@ const HeaderActions: React.FC<HeaderActionsProps> = ({
                     >
                         {LANGUAGE_OPTIONS.map((opt) => (
                             <option key={opt.code} value={opt.code}>
-                                {opt.flag} &nbsp; {opt.name}
+                                {opt.name}
                             </option>
                         ))}
                     </select>

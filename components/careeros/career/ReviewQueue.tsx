@@ -155,11 +155,11 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ userId, facts, mutatio
                                 </Button>
                             </div>
                             <p className="text-[13px] text-content-secondary">{t('careeros.career.review.candidatesDescription', 'Confirming marks a claim as yours. It does not make it verified — that needs a recorded method and source.')}</p>
-                            <ul className="space-y-3">
+                            <ul className="cos-list">
                                 {candidates.slice(0, shown).map((fact) => (
                                     <li key={fact.id}>
                                         {editing === fact.id ? (
-                                            <div className="rounded-2xl border border-border-default bg-surface-panel p-4">
+                                            <div className="px-6 py-5">
                                                 <p className="mb-3 text-[12px] font-medium text-content-muted">{kindLabel(t, fact.kind)}</p>
                                                 <FactEditor fact={fact} onSave={(patch) => save(fact, patch)} onCancel={() => setEditing(null)} saving={busy === fact.id} />
                                             </div>

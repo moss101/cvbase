@@ -145,7 +145,7 @@ const CoachSpace: React.FC<SpaceProps> = ({ route }) => {
             {isMobile ? (
                 <>
                     {conversationId || scoping ? thread : (
-                        <div className="flex min-h-0 flex-1 flex-col">
+                        <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border-default bg-surface-panel p-2">
                             {list}
                         </div>
                     )}
@@ -155,7 +155,7 @@ const CoachSpace: React.FC<SpaceProps> = ({ route }) => {
                 </>
             ) : (
                 <div className="grid grid-cols-1 min-h-0 flex-1 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)]">
-                    <aside className="min-h-0 rounded-2xl border border-border-default bg-surface-panel p-3">{list}</aside>
+                    <aside className="min-h-0 rounded-2xl border border-border-default bg-surface-panel p-2">{list}</aside>
                     <section aria-label={t('careeros.coach.threadLabel', 'Conversation')} className="flex min-h-0 flex-col">{thread}</section>
                 </div>
             )}

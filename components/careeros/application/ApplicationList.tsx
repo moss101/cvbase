@@ -83,7 +83,7 @@ export const ApplicationList: React.FC = () => {
             ) : (
                 <>
                     {query.data?.partial && <StatePanel kind="partial" compact className="mb-3" title={t('careeros.application.campaignsUnavailable', 'Campaign names could not be loaded')} onRetry={() => { void query.refresh(); }} />}
-                    <ul className="space-y-3">
+                    <ul className="cos-list">
                         {rows.map((app) => (
                             <li key={app.id}>
                                 <ApplicationCard

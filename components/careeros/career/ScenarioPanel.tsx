@@ -288,7 +288,7 @@ export const ScenarioPanel: React.FC<ScenarioPanelProps> = ({ goal, goals }) => 
             {result && (
                 <div className="mt-5 space-y-4" aria-live="polite">
                     {previous && (
-                        <div className="rounded-xl border border-status-info/30 bg-status-info/10 p-3 text-[13px] text-content-primary">
+                        <div className="rounded-xl bg-surface-canvas px-3.5 py-3 text-[13px] text-content-primary">
                             <p className="font-semibold">{t('careeros.scenario.whatChanged', 'What changed since the last run')}</p>
                             <ul className="mt-1 list-disc pl-5">{changes.map((c) => <li key={c}>{c}</li>)}</ul>
                         </div>

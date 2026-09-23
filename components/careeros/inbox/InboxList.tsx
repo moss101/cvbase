@@ -105,26 +105,38 @@ export const InboxList: React.FC = () => {
         const late = isLate(n);
         const busy = busyId === n.id;
         return (
-            <li key={n.id} className={`rounded-2xl border bg-surface-panel p-4 ${n.readAt ? 'border-border-default' : 'border-action-primary/40'}`}>
-                <div className="flex flex-wrap items-center gap-2">
-                    {!n.readAt && !n.dismissedAt && <StatusChip label={t('careeros.inbox.unread', 'Unread')} tone="accent" />}
-                    {late && <StatusChip label={dueDateOf(n) ? t('careeros.inbox.lateDue', 'Late · due {date}').replace('{date}', dueDateOf(n) as string) : t('careeros.inbox.late', 'Late')} tone="warning" announce />}
-                    {isProactive(n) && <Pill mono>{t('careeros.inbox.reminder', 'Reminder')}</Pill>}
-                    {n.dismissedAt && <Pill>{t('careeros.inbox.dismissed', 'Dismissed')}</Pill>}
-                    <time className="ml-auto text-xs text-content-muted" dateTime={n.createdAt}>{timeAgo(n.createdAt)}</time>
-                </div>
-                <h3 className="mt-2 text-[15px] font-semibold text-content-primary">{n.title}</h3>
-                {bodyWithoutLateness(n) && <p className="mt-0.5 text-sm text-content-secondary">{bodyWithoutLateness(n)}</p>}
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                    {n.kind === 'action_required' && !n.dismissedAt && (
-                        <Button variant="primary" size="sm" loading={busy} trailingIcon={<ArrowRight size={14} strokeWidth={2} />} onClick={() => { void open(n); }}>{t('careeros.inbox.open', 'Open')}</Button>
+            <li key={n.id} className="flex gap-3.5 px-5 py-4 sm:px-6">
+                {/* Unread is a dot beside the row, named for screen readers; not a chip above the title. */}
+                <span className="mt-[9px] flex h-2 w-2 shrink-0" aria-hidden={n.readAt || n.dismissedAt ? 'true' : undefined}>
+                    {!n.readAt && !n.dismissedAt && <span className="h-2 w-2 rounded-full bg-action-primary" />}
+                </span>
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                        <h3 className={`min-w-0 text-[15px] text-content-primary ${n.readAt ? 'font-medium' : 'font-semibold'}`}>
+                            {!n.readAt && !n.dismissedAt && <span className="sr-only">{t('careeros.inbox.unread', 'Unread')}: </span>}
+                            {n.title}
+                        </h3>
+                        <time className="shrink-0 pt-0.5 text-xs tabular-nums text-content-muted" dateTime={n.createdAt}>{timeAgo(n.createdAt)}</time>
+                    </div>
+                    {bodyWithoutLateness(n) && <p className="mt-0.5 text-sm text-content-secondary">{bodyWithoutLateness(n)}</p>}
+                    {(late || isProactive(n) || n.dismissedAt) && (
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                            {late && <StatusChip label={dueDateOf(n) ? t('careeros.inbox.lateDue', 'Late · due {date}').replace('{date}', dueDateOf(n) as string) : t('careeros.inbox.late', 'Late')} tone="warning" announce />}
+                            {isProactive(n) && <span className="text-xs text-content-muted">{t('careeros.inbox.reminder', 'Reminder')}</span>}
+                            {n.dismissedAt && <Pill>{t('careeros.inbox.dismissed', 'Dismissed')}</Pill>}
+                        </div>
                     )}
-                    {!n.readAt && !n.dismissedAt && (
-                        <Button variant="quiet" size="sm" icon={<Check size={14} strokeWidth={2} />} disabled={busy} onClick={() => { void markRead(n); }}>{t('careeros.inbox.markRead', 'Mark read')}</Button>
-                    )}
-                    {!n.dismissedAt && (
-                        <Button variant="quiet" size="sm" icon={<X size={14} strokeWidth={2} />} disabled={busy} onClick={() => { void dismiss(n); }}>{t('careeros.inbox.dismiss', 'Dismiss')}</Button>
-                    )}
+                    <div className="mt-2.5 flex flex-wrap items-center gap-1">
+                        {n.kind === 'action_required' && !n.dismissedAt && (
+                            <Button variant="secondary" size="sm" loading={busy} trailingIcon={<ArrowRight size={14} strokeWidth={2} />} onClick={() => { void open(n); }}>{t('careeros.inbox.open', 'Open')}</Button>
+                        )}
+                        {!n.readAt && !n.dismissedAt && (
+                            <Button variant="quiet" size="sm" icon={<Check size={14} strokeWidth={2} />} disabled={busy} onClick={() => { void markRead(n); }}>{t('careeros.inbox.markRead', 'Mark read')}</Button>
+                        )}
+                        {!n.dismissedAt && (
+                            <Button variant="quiet" size="sm" icon={<X size={14} strokeWidth={2} />} disabled={busy} onClick={() => { void dismiss(n); }}>{t('careeros.inbox.dismiss', 'Dismiss')}</Button>
+                        )}
+                    </div>
                 </div>
             </li>
         );
@@ -156,18 +168,22 @@ export const InboxList: React.FC = () => {
             ) : (
                 <div className="space-y-6">
                     <section aria-labelledby="inbox-action">
-                        <h2 id="inbox-action" className="mb-2 flex items-center gap-2 text-[12px] font-medium text-content-muted">
-                            <Bell size={12} strokeWidth={2} aria-hidden="true" />{t('careeros.inbox.actionRequired', 'Action required')} · {groups.actionRequired.length}
+                        <h2 id="inbox-action" className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-content-primary">
+                            <Bell size={15} strokeWidth={1.9} className="text-content-muted" aria-hidden="true" />{t('careeros.inbox.actionRequired', 'Action required')}
+                            <span className="font-normal tabular-nums text-content-muted">{groups.actionRequired.length}</span>
                         </h2>
                         {groups.actionRequired.length === 0
                             ? <p className="text-[13px] text-content-secondary">{t('careeros.inbox.noActions', 'No actions are waiting on you.')}</p>
-                            : <ul className="space-y-3">{groups.actionRequired.map(row)}</ul>}
+                            : <ul className="cos-list">{groups.actionRequired.map(row)}</ul>}
                     </section>
                     <section aria-labelledby="inbox-info">
-                        <h2 id="inbox-info" className="mb-2 text-[12px] font-medium text-content-muted">{t('careeros.inbox.information', 'Information')} · {groups.information.length}</h2>
+                        <h2 id="inbox-info" className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-content-primary">
+                            {t('careeros.inbox.information', 'Information')}
+                            <span className="font-normal tabular-nums text-content-muted">{groups.information.length}</span>
+                        </h2>
                         {groups.information.length === 0
                             ? <p className="text-[13px] text-content-secondary">{t('careeros.inbox.noInformation', 'No updates.')}</p>
-                            : <ul className="space-y-3">{groups.information.map(row)}</ul>}
+                            : <ul className="cos-list">{groups.information.map(row)}</ul>}
                     </section>
                 </div>
             )}

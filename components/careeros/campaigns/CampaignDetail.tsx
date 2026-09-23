@@ -270,10 +270,10 @@ export const CampaignDetail: React.FC<{ id: string; route: CareerRoute }> = ({ i
                 description={data.goal ? t('careeros.campaign.towardGoal', 'Toward {goal}').replace('{goal}', data.goal.title || data.goal.role) : t('careeros.campaign.noGoal', 'No goal linked')}
                 compact
                 action={
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1">
                         <Button variant="secondary" size="sm" icon={<Pencil size={14} />} onClick={() => { void openEdit(); }}>{t('careeros.common.edit', 'Edit')}</Button>
-                        {campaign.status === 'active' && <Button variant="secondary" size="sm" icon={<Pause size={14} />} onClick={() => { void setStatus('pause'); }} loading={statusState.pending}>{t('careeros.campaign.pause', 'Pause')}</Button>}
-                        {campaign.status !== 'closed' && <Button variant="secondary" size="sm" icon={<Square size={14} />} onClick={() => setCloseOpen(true)}>{t('careeros.campaign.close', 'Close')}</Button>}
+                        {campaign.status === 'active' && <Button variant="quiet" size="sm" icon={<Pause size={14} />} onClick={() => { void setStatus('pause'); }} loading={statusState.pending}>{t('careeros.campaign.pause', 'Pause')}</Button>}
+                        {campaign.status !== 'closed' && <Button variant="quiet" size="sm" icon={<Square size={14} />} onClick={() => setCloseOpen(true)}>{t('careeros.campaign.close', 'Close')}</Button>}
                         {campaign.status !== 'active' && <Button variant="primary" size="sm" icon={<Play size={14} />} onClick={() => { void setStatus('reopen'); }} loading={statusState.pending}>{t('careeros.campaign.reopen', 'Reopen')}</Button>}
                     </div>
                 }

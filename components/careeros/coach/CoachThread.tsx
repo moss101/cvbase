@@ -276,11 +276,11 @@ export const CoachThread: React.FC<CoachThreadProps> = ({ conversationId, onGone
 
     return (
         <div className="flex min-h-0 flex-1 flex-col gap-3">
-            <header className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex min-w-0 items-center gap-2">
-                    {onOpenList && <Button variant="quiet" size="sm" onClick={onOpenList}>{t('careeros.coach.conversations', 'Conversations')}</Button>}
-                    <h2 className="min-w-0 truncate text-base font-semibold text-content-primary">{conversation.title || t('careeros.coach.untitled', 'Untitled conversation')}</h2>
-                    {archived && <Pill tone="neutral">{t('careeros.coach.archived', 'Archived')}</Pill>}
+            <header className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                    {onOpenList && <Button variant="quiet" size="sm" className="-ml-3 shrink-0" onClick={onOpenList}>{t('careeros.coach.conversations', 'Conversations')}</Button>}
+                    <h2 className="min-w-0 truncate text-[17px] font-semibold tracking-[-0.01em] text-content-primary">{conversation.title || t('careeros.coach.untitled', 'Untitled conversation')}</h2>
+                    {archived && <Pill tone="neutral" className="shrink-0">{t('careeros.coach.archived', 'Archived')}</Pill>}
                 </div>
                 <MemoryMenu
                     conversation={conversation}
@@ -298,15 +298,15 @@ export const CoachThread: React.FC<CoachThreadProps> = ({ conversationId, onGone
             <CoachContextPanel conversation={conversation} labels={labels} labelsError={labelsError} onChange={changeContext} disabled={busy || archived} defaultCollapsed={Boolean(onOpenList)} />
 
             {conversation.summary && (
-                <aside aria-label={t('careeros.coach.summaryLabel', 'Derived summary')} className="rounded-2xl border border-border-default bg-surface-canvas p-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <Brain size={14} strokeWidth={2} className="text-content-muted" aria-hidden="true" />
-                        <span className="text-[12px] font-medium text-content-muted">
+                <aside aria-label={t('careeros.coach.summaryLabel', 'Derived summary')} className="flex items-start gap-2.5 rounded-2xl border border-border-default bg-surface-panel px-4 py-3">
+                    <Brain size={15} strokeWidth={1.9} className="mt-0.5 shrink-0 text-content-muted" aria-hidden="true" />
+                    <div className="min-w-0">
+                        <p className="text-[12.5px] font-medium text-content-muted">
                             {t('careeros.coach.summaryFrom', 'Derived summary (from {count} messages)').replace('{count}', String(conversation.summarySourceIds.length))}
-                        </span>
+                        </p>
+                        <p className="mt-0.5 text-[13.5px] leading-relaxed text-content-primary">{conversation.summary}</p>
+                        <p className="mt-1 text-[12px] text-content-muted">{t('careeros.coach.summaryCaveat', 'A summary of earlier turns, not a source of truth: your career facts always take precedence over it.')}</p>
                     </div>
-                    <p className="mt-1 text-[13px] leading-relaxed text-content-primary">{conversation.summary}</p>
-                    <p className="mt-1 text-[11px] text-content-muted">{t('careeros.coach.summaryCaveat', 'A summary of earlier turns, not a source of truth: your career facts always take precedence over it.')}</p>
                 </aside>
             )}
 
@@ -315,8 +315,8 @@ export const CoachThread: React.FC<CoachThreadProps> = ({ conversationId, onGone
             )}
 
             {selectMode && (
-                <div role="toolbar" aria-label={t('careeros.coach.selectToolbar', 'Message selection')} className="flex flex-wrap items-center gap-2 rounded-xl border border-border-default bg-surface-panel p-2">
-                    <span className="text-[13px] text-content-secondary">{t('careeros.coach.selectedCount', '{count} selected').replace('{count}', String(selected.size))}</span>
+                <div role="toolbar" aria-label={t('careeros.coach.selectToolbar', 'Message selection')} className="flex flex-wrap items-center gap-2 rounded-2xl border border-border-default bg-surface-panel px-3 py-2">
+                    <span className="mr-auto text-[13px] text-content-secondary cos-num">{t('careeros.coach.selectedCount', '{count} selected').replace('{count}', String(selected.size))}</span>
                     <Button variant="danger" size="sm" icon={<Trash2 size={14} strokeWidth={2} />} disabled={selected.size === 0 || busy} onClick={() => setConfirmDeleteSelected(true)}>
                         {t('careeros.coach.deleteSelected', 'Delete selected')}
                     </Button>

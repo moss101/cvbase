@@ -26,6 +26,8 @@ export interface ApplicationCardProps {
     secondaryAction?: EntityCardAction;
     loading?: boolean;
     compact?: boolean;
+    /** No frame of its own (board tiles and rows inside a panel). */
+    flush?: boolean;
     className?: string;
 }
 
@@ -75,6 +77,7 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
     secondaryAction,
     loading = false,
     compact = false,
+    flush = false,
     className = '',
 }) => {
     const { t } = useTranslation();
@@ -105,6 +108,7 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
             secondaryAction={secondaryAction}
             loading={loading}
             compact={compact}
+            flush={flush}
             className={className}
         >
             {showReadiness && (

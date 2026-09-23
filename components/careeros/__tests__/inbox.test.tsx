@@ -88,8 +88,9 @@ describe('inboxFormat', () => {
 describe('NotificationsSpace', () => {
     it('renders the two groups with a Late chip and toggles dismissed rows', async () => {
         await mount();
-        expect(document.body.textContent).toContain('Action required · 2');
-        expect(document.body.textContent).toContain('Information · 1');
+        // Group headings carry their count beside the name.
+        expect(document.getElementById('inbox-action')?.textContent).toBe('Action required2');
+        expect(document.getElementById('inbox-info')?.textContent).toBe('Information1');
         expect(document.body.textContent).toContain('Late · due 2026-09-18');
         expect(document.body.textContent).not.toContain('Old');
         await click(buttonByText('Show dismissed'));

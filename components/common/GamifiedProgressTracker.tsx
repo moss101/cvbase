@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Award, ChevronDown, Lightbulb, CircleCheck, Circle } from 'lucide-react';
+import { ArrowRight, ChevronDown, CircleCheck, Circle } from 'lucide-react';
 import { useTranslation } from '../../services/translationService';
 import type { ResumeData, SectionId } from '../../types';
 
@@ -31,25 +31,12 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
     const [showMilestoneAlert, setShowMilestoneAlert] = useState<string | null>(null);
     const [prevProgress, setPrevProgress] = useState(progress);
 
-    // Dynamic Level Name / Badge Based on Progress
-    const getBadgeInfo = (pct: number) => {
-        if (pct === 100) return { title: t('gamified.badge.master', '👑 Ultimate Resume Master'), color: 'from-amber-500 to-yellow-400 bg-amber-50 text-amber-800 border-amber-200' };
-        if (pct >= 85) return { title: t('gamified.badge.champion', '🚀 ATS Champion'), color: 'from-secondary to-primary bg-emerald-50 text-emerald-800 border-emerald-200' };
-        if (pct >= 60) return { title: t('gamified.badge.artisan', '🎨 Professional Artisan'), color: 'from-primary to-indigo-500 bg-blue-50 text-blue-800 border-blue-200' };
-        if (pct >= 35) return { title: t('gamified.badge.climber', '⚡ Career Climber'), color: 'from-indigo-400 to-violet-500 bg-violet-50 text-violet-800 border-violet-200' };
-        return { title: t('gamified.badge.novice', '🌱 CV Novice'), color: 'from-gray-400 to-slate-500 bg-slate-50 text-slate-700 border-slate-200' };
-    };
-
-    const badge = getBadgeInfo(progress);
-
-    // Check progress level changes to trigger celebratory milestones!
+    // Crossing a threshold is acknowledged in plain words, not a level name.
     useEffect(() => {
-        const milestones = [
-            { thresh: 35, name: t('gamified.milestone.climber', '⚡ Career Climber unlocked!') },
-            { thresh: 60, name: t('gamified.milestone.artisan', '🎨 Professional Artisan unlocked!') },
-            { thresh: 85, name: t('gamified.milestone.champion', '🚀 ATS Champion unlocked!') },
-            { thresh: 100, name: t('gamified.milestone.master', '👑 Ultimate Resume Master unlocked! You are 100% Ready!') }
-        ];
+        const milestones = [35, 60, 85, 100].map((thresh) => ({
+            thresh,
+            name: t('builder.progress.milestone', 'Your CV is now {pct}% complete.').replace('{pct}', String(thresh)),
+        }));
 
         const unlockedMilestone = milestones.find(m => prevProgress < m.thresh && progress >= m.thresh);
         if (unlockedMilestone) {
@@ -175,42 +162,28 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
     // Next best action to take
     const nextAction = checklist.find(c => !c.isFilled);
 
-    // Emoji are part of the translated badge names; the builder shows the words only.
-    const plain = (label: string) => label.replace(/^[\p{Extended_Pictographic}\uFE0F\s]+/u, '');
-
     return (
         <div className="w-full relative select-none">
-            {/* Milestone unlock notice */}
+            {/* Milestone notice */}
             {showMilestoneAlert && (
-                <div role="status" className="fixed top-8 left-1/2 z-50 flex max-w-sm -translate-x-1/2 cursor-pointer items-center gap-3 rounded-2xl border border-action-primary/40 bg-slate-900 px-5 py-3.5 text-left text-white shadow-2xl">
-                    <Award className="h-5 w-5 shrink-0 text-emerald-300" aria-hidden="true" />
-                    <div>
-                        <p className="text-[12px] font-medium text-emerald-200">{t('gamified.milestoneAchieved', 'Milestone Achieved!')}</p>
-                        <p className="text-sm font-semibold leading-tight">{plain(showMilestoneAlert)}</p>
-                    </div>
+                <div role="status" className="fixed top-8 left-1/2 z-50 flex max-w-sm -translate-x-1/2 items-center gap-3 rounded-2xl border border-action-primary/40 bg-slate-900 px-5 py-3.5 text-left text-sm font-semibold text-white shadow-2xl">
+                    <CircleCheck className="h-5 w-5 shrink-0 text-emerald-300" aria-hidden="true" />
+                    <span>{showMilestoneAlert}</span>
                 </div>
             )}
 
             {/* Main Tracker Container */}
             <div className="rounded-2xl border border-border-default bg-surface-panel p-5">
-                {/* Upper line: Rank and compact progress percent */}
-                <div className="flex flex-wrap items-center justify-between gap-3 shrink-0">
-                    <div className="flex items-center gap-2.5">
-                        <Award className="h-5 w-5 text-action-primary" aria-hidden="true" />
-                        <div className="text-left">
-                            <p className="text-[12px] font-medium leading-none text-content-muted">{t('gamified.cvLevel', 'CV Level')}</p>
-                            <span className="mt-1 block text-[14px] font-semibold text-content-primary">{plain(badge.title)}</span>
-                        </div>
+                {/* Heading, count and percentage */}
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 text-left">
+                        <h3 className="text-[15px] font-semibold text-content-primary">{t('builder.progress.title', 'CV completeness')}</h3>
+                        <p className="mt-0.5 text-[13px] text-content-secondary">
+                            {t('builder.progress.count', '{done} of {total} requirements').replace('{done}', String(filledCount)).replace('{total}', String(totalCount))}
+                        </p>
                     </div>
-                    
                     <div className="flex items-center gap-2.5">
-                        <span className="text-[12.5px] font-medium text-content-secondary">
-                            {filledCount}/{totalCount} {t('gamified.requirementsSuffix', 'Requirements')}
-                        </span>
-                        <span className="rounded-full bg-action-primary/10 px-2.5 py-0.5 text-[13px] font-semibold tabular-nums text-action-primary">
-                            {progress}%
-                        </span>
-                        
+                        <span className="text-[28px] font-semibold leading-none tabular-nums text-content-primary">{progress}%</span>
                         <button
                             type="button"
                             onClick={() => setIsExpanded(!isExpanded)}
@@ -244,12 +217,12 @@ export const GamifiedProgressTracker: React.FC<GamifiedProgressTrackerProps> = (
                 {nextAction && (
                     <button
                         type="button"
-                        className="mt-3.5 flex w-full cursor-pointer items-start gap-2.5 rounded-xl border border-border-default p-3 text-left transition-colors hover:bg-surface-canvas"
+                        className="group mt-3.5 flex w-full cursor-pointer items-start gap-2.5 rounded-xl border border-border-default p-3 text-left transition-colors hover:bg-surface-canvas"
                         onClick={() => onSectionClick(nextAction.section)}
                     >
-                        <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-action-primary" aria-hidden="true" />
+                        <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-action-primary" aria-hidden="true" />
                         <p className="text-[13px] leading-normal text-content-secondary">
-                            <span className="block text-[12px] font-semibold text-action-primary">{t('gamified.nextLevelTask', 'Next Level Task')}</span>
+                            <span className="font-semibold text-content-primary">{t('builder.progress.next', 'Next')}: </span>
                             {nextAction.helpText} {t('gamified.inThe', 'in the')} <strong className="font-semibold capitalize text-content-primary">{nextAction.section}</strong> {t('gamified.sectionSuffix', 'section.')}
                         </p>
                     </button>

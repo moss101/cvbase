@@ -48,13 +48,13 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({ tool, result }) 
                     <caption className="sr-only">{t('careeros.coach.result.comparisonCaption', 'Requirement coverage by opportunity')}</caption>
                     <thead>
                         <tr className="border-b border-border-default">
-                            <th scope="col" className="py-1.5 pr-3 font-semibold text-content-secondary">{t('careeros.coach.result.requirement', 'Requirement')}</th>
-                            {ids.map((id) => <th key={id} scope="col" className="py-1.5 pr-3 font-semibold text-content-secondary">{titleFor(id)}</th>)}
+                            <th scope="col" className="py-1.5 pr-3 text-[12.5px] font-medium text-content-muted">{t('careeros.coach.result.requirement', 'Requirement')}</th>
+                            {ids.map((id) => <th key={id} scope="col" className="py-1.5 pr-3 text-[12.5px] font-medium text-content-muted">{titleFor(id)}</th>)}
                         </tr>
                     </thead>
                     <tbody>
                         {r.coverage.rows.map((row, index) => (
-                            <tr key={`${row.text}:${index}`} className="border-b border-border-default/60 align-top">
+                            <tr key={`${row.text}:${index}`} className="border-b border-border-default align-top last:border-b-0">
                                 <th scope="row" className="py-1.5 pr-3 font-normal text-content-primary">{row.text}</th>
                                 {ids.map((id) => {
                                     const state = row.states[id] ?? 'unknown';
@@ -79,7 +79,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({ tool, result }) 
                         {f.organization && <span className="text-content-secondary">{f.organization}</span>}
                         <Pill mono>{f.confirmationState.replace('_', ' ')}</Pill>
                         {f.reviewState !== 'reviewed' && <Pill tone="warning">{f.reviewState}</Pill>}
-                        <span className="text-xs text-content-muted">{t('careeros.coach.result.references', '{count} references').replace('{count}', String(f.referenceCount))}</span>
+                        <span className="text-[12.5px] text-content-muted cos-num">{t('careeros.coach.result.references', '{count} references').replace('{count}', String(f.referenceCount))}</span>
                         {f.staleReferences.length > 0 && <Pill tone="warning">{t('careeros.coach.result.staleReferences', '{count} stale').replace('{count}', String(f.staleReferences.length))}</Pill>}
                     </li>
                 ))}
@@ -110,7 +110,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({ tool, result }) 
         <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
             {entries.map(([key, value]) => (
                 <React.Fragment key={key}>
-                    <dt className="text-[12px] font-medium text-content-muted">{key}</dt>
+                    <dt className="text-[12.5px] font-medium text-content-muted">{key}</dt>
                     <dd className="min-w-0 break-words text-content-primary">
                         {value === null || value === undefined ? '—'
                             : typeof value === 'object'

@@ -165,15 +165,21 @@ export const StatePanel: React.FC<StatePanelProps> = ({
     if (kind === 'partial') {
         return (
             <div className={className}>
-                <div role="status" aria-live="polite" className="rounded-xl border border-status-warning/30 bg-status-warning/10 p-4">
-                    <div className="flex items-start gap-3">
+                {/* Same shape as Notice: tone in the icon, the one action at the right. */}
+                <div role="status" aria-live="polite" className="flex flex-col gap-3 rounded-2xl border border-border-default bg-surface-panel px-5 py-4 sm:flex-row sm:items-center">
+                    <div className="flex min-w-0 flex-1 items-start gap-3">
                         <span className="mt-0.5 inline-flex">{iconNode}</span>
                         <div className="min-w-0 flex-1">
                             <p className="text-sm font-semibold text-content-primary">{resolvedTitle}</p>
                             {resolvedDescription && <p className="mt-0.5 text-[13px] leading-relaxed text-content-secondary">{resolvedDescription}</p>}
-                            {actions && <div className="mt-2">{actions}</div>}
                         </div>
                     </div>
+                    {(primary || secondary) && (
+                        <div className="flex shrink-0 flex-wrap items-center gap-2 sm:pl-2">
+                            {primary && <Button variant="secondary" size="sm" onClick={primary.onClick}>{primary.label}</Button>}
+                            {secondary && <Button variant="quiet" size="sm" onClick={secondary.onClick}>{secondary.label}</Button>}
+                        </div>
+                    )}
                 </div>
                 {children && <div className="mt-4">{children}</div>}
             </div>

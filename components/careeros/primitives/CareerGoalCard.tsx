@@ -58,7 +58,8 @@ export const CareerGoalCard: React.FC<CareerGoalCardProps> = ({
         title: t('careeros.goal.priority.title', 'Title'),
     };
 
-    const meta = [role, level, location].filter(Boolean).join(' · ');
+    // The title is usually the role; do not print it twice.
+    const meta = [role && role !== title ? role : null, level, location].filter(Boolean).join(' · ');
     const topPriorities = [...priorities].sort((a, b) => b.weight - a.weight).slice(0, compact ? 2 : 3);
 
     return (

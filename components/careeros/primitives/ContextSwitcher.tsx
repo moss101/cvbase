@@ -52,7 +52,8 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ refs, conflict
 
     return (
         <nav aria-label={t('careeros.context.label', 'Working context')} className={className}>
-            <ul className={`flex flex-wrap gap-2 ${compact ? '' : 'sm:gap-3'}`}>
+            {/* One hairline strip split by dividers (like Today's progress strip), not a row of boxes. */}
+            <ul className="flex flex-col overflow-hidden rounded-xl border border-border-default bg-surface-panel sm:inline-flex sm:max-w-full sm:flex-row">
                 {refs.map((ref) => {
                     const Icon = ICON[ref.kind];
                     const conflict = conflicts.find((item) => item.field === ref.kind);
@@ -73,24 +74,24 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ refs, conflict
                         </>
                     );
                     return (
-                        <li key={ref.kind} className="min-w-0 max-w-full">
+                        <li key={ref.kind} className="min-w-0 max-w-full border-border-default [&+&]:border-t sm:[&+&]:border-l sm:[&+&]:border-t-0">
                             {ref.onChange && !ref.locked ? (
                                 <button
                                     type="button"
                                     onClick={ref.onChange}
                                     aria-label={hasValue ? `${actionLabel}: ${ref.label}` : actionLabel}
-                                    className="tap-target flex max-w-full items-center gap-2 rounded-xl border border-border-default bg-surface-panel px-3 py-2 transition-colors hover:border-border-strong hover:bg-surface-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                                    className="tap-target flex h-full w-full max-w-full items-center gap-2.5 px-4 py-2.5 transition-colors hover:bg-surface-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring"
                                 >
                                     {inner}
                                 </button>
                             ) : (
-                                <div className="tap-target flex max-w-full items-center gap-2 rounded-xl border border-border-default bg-surface-canvas px-3 py-2">
+                                <div className="tap-target flex h-full max-w-full items-center gap-2.5 px-4 py-2.5">
                                     {inner}
                                     {ref.locked && <span className="sr-only">{t('careeros.context.locked', '(fixed by this application)')}</span>}
                                 </div>
                             )}
                             {conflict && (
-                                <p role="status" className="mt-1 flex items-start gap-1 text-xs text-status-warning">
+                                <p role="status" className="flex items-start gap-1 px-4 pb-2.5 text-xs text-status-warning">
                                     <TriangleAlert size={12} strokeWidth={2} className="mt-0.5 shrink-0" aria-hidden="true" />
                                     <span>{t('careeros.context.conflict', 'The link pointed at a different {kind}; keeping the one saved with this record.').replace('{kind}', kindLabel[ref.kind].toLowerCase())}</span>
                                 </p>

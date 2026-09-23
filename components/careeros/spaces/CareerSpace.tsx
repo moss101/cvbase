@@ -66,7 +66,6 @@ const CareerSpace: React.FC<SpaceProps> = ({ route }) => {
                 eyebrow={t('careeros.shell.eyebrow', 'Career OS')}
                 title={t('careeros.space.career', 'Career')}
                 description={descriptions[sub]}
-                compact={sub !== 'overview'}
             >
                 <CareerNav current={sub} reviewCount={counts.candidates + counts.conflicts} />
             </SpaceHeader>

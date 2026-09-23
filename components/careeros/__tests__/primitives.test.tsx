@@ -254,7 +254,10 @@ describe('entity cards and timeline', () => {
             ),
         );
         expect(preparing.textContent).toContain('1 of 2 necessary');
-        expect(preparing.querySelectorAll('button.bg-action-primary')).toHaveLength(1);
+        // A record's way in is one secondary button: lists never compete with the screen's single emerald action.
+        const buttons = Array.from(preparing.querySelectorAll('button'));
+        expect(buttons.filter((b) => b.textContent === 'Open')).toHaveLength(1);
+        expect(preparing.querySelectorAll('button.bg-action-primary')).toHaveLength(0);
     });
 
     it('CampaignCard exposes the funnel counts rather than a percentage', () => {

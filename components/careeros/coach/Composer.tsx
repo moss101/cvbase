@@ -58,7 +58,7 @@ export const Composer: React.FC<ComposerProps> = ({ value, onChange, onSend, sen
                     {t('careeros.coach.composer.send', 'Send')}
                 </Button>
             </div>
-            <p id={`${id}-hint`} className="mt-1 text-[11px] text-content-muted">
+            <p id={`${id}-hint`} className="mt-1.5 text-[12px] text-content-muted">
                 {disabledReason ?? t('careeros.coach.composer.hint', 'Enter to send · Shift+Enter for a new line')}
             </p>
         </form>

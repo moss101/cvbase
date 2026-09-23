@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowRight, Ban, CheckCircle2, LoaderCircle, ShieldAlert, Wand2 } from 'lucide-react';
+import { ArrowRight, Ban, ShieldAlert, Wand2 } from 'lucide-react';
 import { useTranslation } from '../../../services/translationService';
 import { useNavigation } from '../../NavigationProvider';
 import {
@@ -8,7 +8,7 @@ import {
 import type { ConfirmationRequired, GatewayResponse } from '../../../services/careerOs/gatewayMappers';
 import type { ActionRun, CoachProposal } from '../../../services/careerOs/types';
 import Dialog from '../../common/Dialog';
-import { Button, Pill, StatePanel, StatusChip } from '../primitives';
+import { Button, Notice, Pill, StatusChip } from '../primitives';
 import { isDone, isExplainOnly, isToolName, resultRoute, toolLabel } from './coachFormat';
 import ToolResultView from './ToolResultView';
 
@@ -152,97 +152,121 @@ export const AgentSuggestion: React.FC<AgentSuggestionProps> = ({ proposal, mess
         }
     };
 
+    const receipt = (current: ActionRun | null): string | undefined => (current
+        ? t('careeros.coach.run.receiptId', 'Receipt {id} · {status}').replace('{id}', current.id.slice(0, 8)).replace('{status}', current.status)
+        : undefined);
+
     return (
-        <article aria-label={t('careeros.coach.suggestion.label', 'Suggested action: {tool}').replace('{tool}', label)} className="rounded-2xl border border-action-primary/30 bg-surface-panel p-3 sm:p-4">
-            <div className="flex flex-wrap items-center gap-2">
-                <p className="inline-flex items-center gap-1 text-[12px] font-medium text-content-muted">
-                    <Wand2 size={12} strokeWidth={2} aria-hidden="true" />
-                    {t('careeros.coach.suggestion.eyebrow', 'Suggested action')}
-                </p>
-                <Pill mono>{label}</Pill>
-                {proposal.confirmationRequired && phase.kind === 'idle' && <Pill tone="warning">{t('careeros.coach.suggestion.needsConfirmation', 'Needs your confirmation')}</Pill>}
-                {explainOnly && <Pill tone="info">{t('careeros.coach.suggestion.readOnly', 'Read-only')}</Pill>}
-            </div>
-            <p className="mt-2 text-sm text-content-primary">{proposal.summary || label}</p>
-
-            {!registered && (
-                <StatePanel kind="denied" compact className="mt-3" title={t('careeros.coach.suggestion.unregistered', 'This tool is not registered')} description={t('careeros.coach.suggestion.unregisteredDescription', 'Only registered tools can run. Nothing was executed.')} />
-            )}
-
-            {phase.kind === 'completed' && (
-                <div className="mt-3 rounded-xl border border-status-success/30 bg-status-success/10 p-3" role="status" aria-live="polite">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <CheckCircle2 size={16} strokeWidth={2} className="text-status-success" aria-hidden="true" />
-                        <span className="text-sm font-semibold text-content-primary">
-                            {isDone(phase.run) ? t('careeros.coach.run.done', 'Done') : t('careeros.coach.run.completedNoResult', 'Completed')}
-                        </span>
-                        <StatusChip label={phase.run.status} tone="success" />
-                        {phase.run.usage.charged && <Pill tone="neutral">{t('careeros.coach.run.charged', '1 AI action used')}</Pill>}
+        <article aria-label={t('careeros.coach.suggestion.label', 'Suggested action: {tool}').replace('{tool}', label)} className="border-t border-border-default pt-3">
+            <div className="flex items-start gap-2.5">
+                <Wand2 size={16} strokeWidth={1.9} className="mt-0.5 shrink-0 text-action-primary" aria-hidden="true" />
+                <div className="min-w-0 flex-1">
+                    <p className="text-[14px] font-medium leading-snug text-content-primary">{proposal.summary || label}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-content-muted">
+                        <span>{t('careeros.coach.suggestion.eyebrow', 'Suggested action')} · {label}</span>
+                        {proposal.confirmationRequired && phase.kind === 'idle' && <Pill tone="warning">{t('careeros.coach.suggestion.needsConfirmation', 'Needs your confirmation')}</Pill>}
+                        {explainOnly && <Pill tone="neutral">{t('careeros.coach.suggestion.readOnly', 'Read-only')}</Pill>}
                     </div>
-                    {explainOnly && phase.result !== undefined && (
-                        <div className="mt-3"><ToolResultView tool={tool as ToolName} result={phase.result} /></div>
+
+                    {!registered && (
+                        <div role="alert" className="mt-3">
+                            <Notice inline tone="warning" live={false} title={t('careeros.coach.suggestion.unregistered', 'This tool is not registered')}>
+                                {t('careeros.coach.suggestion.unregisteredDescription', 'Only registered tools can run. Nothing was executed.')}
+                            </Notice>
+                        </div>
                     )}
-                    {!explainOnly && (() => {
-                        const route = resultRoute(tool as ToolName, phase.result, phase.run);
-                        return route ? (
-                            <Button variant="secondary" size="sm" className="mt-3" trailingIcon={<ArrowRight size={14} strokeWidth={2} />} onClick={() => navigate(route)}>
-                                {t('careeros.coach.run.openResult', 'Open result')}
+
+                    {phase.kind === 'completed' && (
+                        <Notice
+                            inline
+                            live
+                            tone="success"
+                            className="mt-3"
+                            title={<span>{isDone(phase.run) ? t('careeros.coach.run.done', 'Done') : t('careeros.coach.run.completedNoResult', 'Completed')}</span>}
+                            action={!explainOnly ? (() => {
+                                const route = resultRoute(tool as ToolName, phase.result, phase.run);
+                                return route ? (
+                                    <Button variant="secondary" size="sm" trailingIcon={<ArrowRight size={14} strokeWidth={2} />} onClick={() => navigate(route)}>
+                                        {t('careeros.coach.run.openResult', 'Open result')}
+                                    </Button>
+                                ) : undefined;
+                            })() : undefined}
+                        >
+                            <span className="mt-1 flex flex-wrap items-center gap-2">
+                                <StatusChip label={phase.run.status} tone="success" />
+                                {phase.run.usage.charged && <Pill tone="neutral">{t('careeros.coach.run.charged', '1 AI action used')}</Pill>}
+                            </span>
+                            {explainOnly && phase.result !== undefined && (
+                                <div className="mt-3 border-t border-border-default pt-3"><ToolResultView tool={tool as ToolName} result={phase.result} /></div>
+                            )}
+                        </Notice>
+                    )}
+
+                    {phase.kind === 'in_progress' && (
+                        <Notice
+                            inline
+                            live
+                            tone="info"
+                            className="mt-3"
+                            title={t('careeros.coach.run.inProgress', 'Started — finish it in its workflow')}
+                            action={(
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                    {(() => {
+                                        const route = resultRoute(tool as ToolName, undefined, phase.run);
+                                        return route ? <Button variant="secondary" size="sm" trailingIcon={<ArrowRight size={14} strokeWidth={2} />} onClick={() => navigate(route)}>{t('careeros.coach.run.continue', 'Continue there')}</Button> : null;
+                                    })()}
+                                    <Button variant="quiet" size="sm" icon={<Ban size={14} strokeWidth={2} />} onClick={() => { void cancel(phase.run); }}>{t('btn.cancel', 'Cancel')}</Button>
+                                </div>
+                            )}
+                        >
+                            <span className="block">{t('careeros.coach.run.inProgressDescription', 'The receipt is recorded. It completes when the destination workflow saves its result; this card will not say “Done” before then.')}</span>
+                            <span className="mt-1.5 flex"><StatusChip label={phase.run.status} tone="info" /></span>
+                        </Notice>
+                    )}
+
+                    {phase.kind === 'cancelled' && (
+                        <p className="mt-3 flex items-start gap-1.5 text-[13px] text-content-secondary" role="status">
+                            <Ban size={14} strokeWidth={2} className="mt-0.5 shrink-0 text-content-muted" aria-hidden="true" />
+                            <span>{t('careeros.coach.run.cancelled', 'Cancelled. Steps that already completed stay visible in their workflow.')}</span>
+                        </p>
+                    )}
+
+                    {phase.kind === 'failed' && (
+                        // Same outcomes as before: See plans for a plan limit; Retry
+                        // only for a retryable failure that is neither the plan limit
+                        // nor the model being unavailable.
+                        <div className="mt-3" role="alert">
+                            <Notice
+                                inline
+                                tone="warning"
+                                live={false}
+                                title={failureCopy(phase.code)}
+                                action={phase.code === 'limit_reached'
+                                    ? <Button variant="secondary" size="sm" onClick={() => navigate({ view: 'pricing' })}>{t('careeros.coach.upgrade', 'See plans')}</Button>
+                                    : phase.retryable && phase.code !== 'llm_unavailable'
+                                        ? <Button variant="secondary" size="sm" onClick={() => { void run(); }}>{t('careeros.state.retry', 'Retry')}</Button>
+                                        : undefined}
+                            >
+                                {receipt(phase.run)}
+                            </Notice>
+                        </div>
+                    )}
+
+                    {(phase.kind === 'idle' || phase.kind === 'running') && registered && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                loading={busy}
+                                disabled={disabled}
+                                onClick={() => { void run(); }}
+                            >
+                                {explainOnly ? t('careeros.coach.run.explain', 'Show') : t('careeros.coach.run.run', 'Run')}
                             </Button>
-                        ) : null;
-                    })()}
+                        </div>
+                    )}
                 </div>
-            )}
-
-            {phase.kind === 'in_progress' && (
-                <div className="mt-3 rounded-xl border border-status-info/30 bg-status-info/10 p-3" role="status" aria-live="polite">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <LoaderCircle size={16} strokeWidth={2} className="animate-spin text-status-info motion-reduce:animate-none" aria-hidden="true" />
-                        <span className="text-sm font-semibold text-content-primary">{t('careeros.coach.run.inProgress', 'Started — finish it in its workflow')}</span>
-                        <StatusChip label={phase.run.status} tone="info" />
-                    </div>
-                    <p className="mt-1 text-[13px] text-content-secondary">{t('careeros.coach.run.inProgressDescription', 'The receipt is recorded. It completes when the destination workflow saves its result; this card will not say “Done” before then.')}</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                        {(() => {
-                            const route = resultRoute(tool as ToolName, undefined, phase.run);
-                            return route ? <Button variant="primary" size="sm" trailingIcon={<ArrowRight size={14} strokeWidth={2} />} onClick={() => navigate(route)}>{t('careeros.coach.run.continue', 'Continue there')}</Button> : null;
-                        })()}
-                        <Button variant="quiet" size="sm" icon={<Ban size={14} strokeWidth={2} />} onClick={() => { void cancel(phase.run); }}>{t('btn.cancel', 'Cancel')}</Button>
-                    </div>
-                </div>
-            )}
-
-            {phase.kind === 'cancelled' && (
-                <p className="mt-3 text-[13px] text-content-secondary" role="status">
-                    {t('careeros.coach.run.cancelled', 'Cancelled. Steps that already completed stay visible in their workflow.')}
-                </p>
-            )}
-
-            {phase.kind === 'failed' && (
-                <div className="mt-3" role="alert">
-                    <StatePanel
-                        kind={phase.code === 'limit_reached' ? 'denied' : phase.code === 'llm_unavailable' ? 'ai-unavailable' : 'error'}
-                        compact
-                        title={failureCopy(phase.code)}
-                        description={phase.run ? t('careeros.coach.run.receiptId', 'Receipt {id} · {status}').replace('{id}', phase.run.id.slice(0, 8)).replace('{status}', phase.run.status) : undefined}
-                        action={phase.code === 'limit_reached' ? { label: t('careeros.coach.upgrade', 'See plans'), onClick: () => navigate({ view: 'pricing' }) } : undefined}
-                        onRetry={phase.retryable && phase.code !== 'limit_reached' ? () => { void run(); } : undefined}
-                    />
-                </div>
-            )}
-
-            {(phase.kind === 'idle' || phase.kind === 'running') && registered && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                    <Button
-                        variant="primary"
-                        size="sm"
-                        loading={busy}
-                        disabled={disabled}
-                        onClick={() => { void run(); }}
-                    >
-                        {explainOnly ? t('careeros.coach.run.explain', 'Show') : t('careeros.coach.run.run', 'Run')}
-                    </Button>
-                </div>
-            )}
+            </div>
 
             {phase.kind === 'confirming' && (
                 <Dialog
@@ -253,21 +277,21 @@ export const AgentSuggestion: React.FC<AgentSuggestionProps> = ({ proposal, mess
                 >
                     <p className="text-sm text-content-primary">{phase.confirmation.summary || proposal.summary}</p>
                     <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
-                        <dt className="text-[12px] font-medium text-content-muted">{t('careeros.coach.confirm.tool', 'Tool')}</dt>
+                        <dt className="text-[12.5px] font-medium text-content-muted">{t('careeros.coach.confirm.tool', 'Tool')}</dt>
                         <dd className="text-content-primary">{label}</dd>
                         {phase.confirmation.destination && (
                             <>
-                                <dt className="text-[12px] font-medium text-content-muted">{t('careeros.coach.confirm.destination', 'Destination')}</dt>
+                                <dt className="text-[12.5px] font-medium text-content-muted">{t('careeros.coach.confirm.destination', 'Destination')}</dt>
                                 <dd className="break-words text-content-primary">{phase.confirmation.destination}</dd>
                             </>
                         )}
-                        <dt className="text-[12px] font-medium text-content-muted">{t('careeros.coach.confirm.policy', 'Policy')}</dt>
+                        <dt className="text-[12.5px] font-medium text-content-muted">{t('careeros.coach.confirm.policy', 'Policy')}</dt>
                         <dd className="text-content-primary">{phase.confirmation.policy === 'explicit' ? t('careeros.coach.confirm.explicit', 'Explicit confirmation (external or destructive)') : t('careeros.coach.confirm.diff', 'Review of a material change')}</dd>
-                        <dt className="text-[12px] font-medium text-content-muted">{t('careeros.coach.confirm.contentHash', 'Content hash')}</dt>
+                        <dt className="text-[12.5px] font-medium text-content-muted">{t('careeros.coach.confirm.contentHash', 'Content hash')}</dt>
                         <dd className="font-mono text-xs text-content-secondary" title={phase.confirmation.contentHash}>{shortHash(phase.confirmation.contentHash)}</dd>
                         {phase.confirmation.expiresAt && (
                             <>
-                                <dt className="text-[12px] font-medium text-content-muted">{t('careeros.coach.confirm.expires', 'Valid until')}</dt>
+                                <dt className="text-[12.5px] font-medium text-content-muted">{t('careeros.coach.confirm.expires', 'Valid until')}</dt>
                                 <dd className="text-content-secondary">{new Date(phase.confirmation.expiresAt).toLocaleString()}</dd>
                             </>
                         )}

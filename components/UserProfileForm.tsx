@@ -13,9 +13,11 @@ import {
 import FieldError from './common/FieldError';
 import {
   CircleUserRound, IdCard, CircleCheck, CircleAlert, User, Link, Share2, Code, Globe,
-  Briefcase, Compass, Brain, X, Plus, Award, RefreshCw,
+  Briefcase, Compass, Brain, X, Plus, Award, RefreshCw, type LucideIcon,
 } from 'lucide-react';
 import { useTranslation } from '../services/translationService';
+import { Button } from './careeros/primitives/Button';
+import { Notice } from './careeros/primitives/Notice';
 
 /** Shared input styling, with an error state that does not rely on colour alone. */
 const fieldClass = (hasError: boolean) =>
@@ -25,7 +27,44 @@ const fieldClass = (hasError: boolean) =>
       : 'border-slate-200 focus:ring-2 focus:ring-primary/10 focus:border-primary'
   }`;
 
-export const UserProfileForm: React.FC = () => {
+/**
+ * Career OS presentation (DESIGN.md) for the form when it is embedded in the
+ * Career space: one hairline panel whose sections are divided by rules, 15px
+ * sentence-case section headings, 13px labels and token-driven fields, so the
+ * dark theme follows. The legacy dashboard keeps the classes above.
+ */
+const EMBEDDED_FIELD =
+  'w-full rounded-xl border bg-surface-panel px-3.5 py-2.5 text-[15px] text-content-primary placeholder:text-content-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring';
+const embeddedFieldClass = (hasError = false) =>
+  `${EMBEDDED_FIELD} ${hasError ? 'border-status-danger' : 'border-border-strong'}`;
+const EMBEDDED_READONLY_FIELD =
+  'w-full cursor-not-allowed rounded-xl border border-border-default bg-surface-canvas px-3.5 py-2.5 text-[15px] text-content-muted';
+const EMBEDDED_LABEL = 'mb-1.5 block text-[13px] font-medium text-content-secondary';
+const EMBEDDED_HINT = 'mt-1.5 text-[12.5px] text-content-muted';
+const EMBEDDED_SECTION = 'space-y-5 border-t border-border-default py-6 first:border-t-0 first:pt-0 sm:py-7';
+const EMBEDDED_HEADING = 'text-[15px] font-semibold text-content-primary';
+const EMBEDDED_DESCRIPTION = 'mb-4 max-w-[68ch] text-[13.5px] leading-relaxed text-content-secondary';
+const EMBEDDED_FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring';
+/** A chosen skill or certification: a tinted pill that is removed on click. */
+const EMBEDDED_CHOSEN_PILL =
+  `inline-flex items-center gap-1.5 rounded-full border border-action-primary/30 bg-action-primary/10 px-3 py-1.5 text-[13px] font-medium text-action-primary transition-colors hover:border-status-danger/40 hover:bg-status-danger/10 hover:text-status-danger ${EMBEDDED_FOCUS}`;
+/** A preset suggestion toggle; selection is a tint, never a second filled button. */
+const embeddedSuggestionClass = (selected: boolean) =>
+  `rounded-full border px-3 py-1.5 text-[13px] font-medium transition-colors ${EMBEDDED_FOCUS} ${
+    selected
+      ? 'border-action-primary bg-action-primary/10 text-action-primary'
+      : 'border-border-strong bg-surface-panel text-content-secondary hover:bg-surface-canvas hover:text-content-primary'
+  }`;
+
+/** Section titles carry a "1. " style prefix in every language; the embedded form drops it. */
+const withoutNumbering = (title: string) => title.replace(/^\s*\d+\.\s*/, '');
+
+export interface UserProfileFormProps {
+  /** Rendered inside the Career OS shell: Career OS styling, no dashboard hero. */
+  embedded?: boolean;
+}
+
+export const UserProfileForm: React.FC<UserProfileFormProps> = ({ embedded = false }) => {
   const { user, userProfile, updateUserProfile, loading, error } = useAuth();
   const { t } = useTranslation();
 
@@ -265,9 +304,70 @@ export const UserProfileForm: React.FC = () => {
     }
   };
 
+  /*
+   * Presentation switches between the legacy dashboard and the Career OS
+   * embedding. Fields, handlers, validation and the save path are shared.
+   */
+  const SectionTag = embedded ? 'section' : 'div';
+  const sectionProps = (headingId: string) =>
+    embedded
+      ? { className: EMBEDDED_SECTION, 'aria-labelledby': headingId }
+      : { className: 'bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4' };
+  const sectionHeading = (Icon: LucideIcon, headingId: string, title: string) =>
+    embedded ? (
+      <h2 id={headingId} className={EMBEDDED_HEADING}>{withoutNumbering(title)}</h2>
+    ) : (
+      <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+        <Icon className="w-4 h-4 text-slate-400" aria-hidden="true" />
+        <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">{title}</h3>
+      </div>
+    );
+  const labelClass = embedded ? EMBEDDED_LABEL : 'block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5';
+  const plainFieldClass = embedded
+    ? embeddedFieldClass()
+    : 'w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800';
+  const validatedFieldClass = embedded ? embeddedFieldClass : fieldClass;
+  const hintClass = embedded ? EMBEDDED_HINT : 'text-[10px] text-slate-400 mt-1 font-medium';
+  /** Label/control pairing for fields that had none; added only where the form is embedded. */
+  const embeddedId = (id: string) => (embedded ? id : undefined);
+
+  const successBanner = saveSuccess && (
+    embedded ? (
+      <Notice inline live tone="success" id="profile-save-success-banner" title={t('profileForm.savedTitle', 'Master profile saved')}>
+        {t('profileForm.savedDesc', 'Your profile details are ready to reuse across resume drafts.')}
+      </Notice>
+    ) : (
+      <div className="p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-2xl text-emerald-800 text-xs font-semibold flex items-center gap-3 animate-fade-in" id="profile-save-success-banner">
+        <CircleCheck className="w-[1em] h-[1em] text-emerald-600 text-lg" aria-hidden="true" />
+        <div>
+          <p className="font-bold text-emerald-950">{t('profileForm.savedTitle', 'Master profile saved')}</p>
+          <p className="font-normal text-slate-500 mt-0.5">{t('profileForm.savedDesc', 'Your profile details are ready to reuse across resume drafts.')}</p>
+        </div>
+      </div>
+    )
+  );
+
+  const errorBanner = error && (
+    embedded ? (
+      <div role="alert" className="flex items-start gap-3 rounded-xl bg-status-danger/10 px-3.5 py-2.5 text-[13.5px] leading-relaxed text-content-primary" id="profile-save-error-banner">
+        <CircleAlert size={16} strokeWidth={1.9} className="mt-0.5 shrink-0 text-status-danger" aria-hidden="true" />
+        <span>{error}</span>
+      </div>
+    ) : (
+      <div className="p-4 bg-rose-50 border-l-4 border-rose-500 rounded-r-2xl text-rose-800 text-xs font-semibold flex items-center gap-3" id="profile-save-error-banner">
+        <CircleAlert className="w-[1em] h-[1em] text-rose-600 text-lg" aria-hidden="true" />
+        <span>{error}</span>
+      </div>
+    )
+  );
+
   return (
-    <div className="dashboard-feature-shell overflow-hidden animate-fade-in" id="profile-form-container">
-      {/* Form Header */}
+    <div
+      className={embedded ? 'rounded-2xl border border-border-default bg-surface-panel' : 'dashboard-feature-shell overflow-hidden animate-fade-in'}
+      id="profile-form-container"
+    >
+      {/* Form Header — the Career space already names the page, so the embedded form has none. */}
+      {!embedded && (
       <div className="dashboard-feature-hero p-8 md:p-10 text-white relative">
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2">
@@ -283,35 +383,20 @@ export const UserProfileForm: React.FC = () => {
           <IdCard className="w-[150px] h-[150px] text-white" aria-hidden="true" />
         </div>
       </div>
+      )}
 
-      <form onSubmit={handleSave} className="p-6 md:p-8 space-y-8" id="profile-edit-form">
-        {/* Success / Error banners */}
-        {saveSuccess && (
-          <div className="p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-2xl text-emerald-800 text-xs font-semibold flex items-center gap-3 animate-fade-in" id="profile-save-success-banner">
-            <CircleCheck className="w-[1em] h-[1em] text-emerald-600 text-lg" aria-hidden="true" />
-            <div>
-              <p className="font-bold text-emerald-950">{t('profileForm.savedTitle', 'Master profile saved')}</p>
-              <p className="font-normal text-slate-500 mt-0.5">{t('profileForm.savedDesc', 'Your profile details are ready to reuse across resume drafts.')}</p>
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="p-4 bg-rose-50 border-l-4 border-rose-500 rounded-r-2xl text-rose-800 text-xs font-semibold flex items-center gap-3" id="profile-save-error-banner">
-            <CircleAlert className="w-[1em] h-[1em] text-rose-600 text-lg" aria-hidden="true" />
-            <span>{error}</span>
-          </div>
-        )}
+      {/* Embedded: the form is the panel body (dashboard.css's phone padding applies only to the legacy form). */}
+      <form onSubmit={handleSave} className={embedded ? 'cos-embedded p-6 sm:p-7' : 'p-6 md:p-8 space-y-8'} id="profile-edit-form">
+        {/* Success / Error banners — embedded, they sit beside Save instead (see the footer). */}
+        {!embedded && successBanner}
+        {!embedded && errorBanner}
 
         {/* Section 1: Contact Details */}
-        <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <User className="w-4 h-4 text-slate-400" aria-hidden="true" />
-            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">{t('profileForm.section1Title', '1. Personal & Contact Details')}</h3>
-          </div>
+        <SectionTag {...sectionProps('profile-section-contact')}>
+          {sectionHeading(User, 'profile-section-contact', t('profileForm.section1Title', '1. Personal & Contact Details'))}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label htmlFor="profile-first-name" className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('contact.firstName', 'First Name')}</label>
+              <label htmlFor="profile-first-name" className={labelClass}>{t('contact.firstName', 'First Name')}</label>
               <input
                 id="profile-first-name"
                 type="text"
@@ -321,12 +406,12 @@ export const UserProfileForm: React.FC = () => {
                 onBlur={() => validation.onBlur('firstName')}
                 placeholder="Jane"
                 {...describedBy('profile-first-name', !!validation.errorFor('firstName'))}
-                className={fieldClass(!!validation.errorFor('firstName'))}
+                className={validatedFieldClass(!!validation.errorFor('firstName'))}
               />
               <FieldError id="profile-first-name" message={validation.errorFor('firstName')} />
             </div>
             <div>
-              <label htmlFor="profile-last-name" className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('contact.lastName', 'Last Name')}</label>
+              <label htmlFor="profile-last-name" className={labelClass}>{t('contact.lastName', 'Last Name')}</label>
               <input
                 id="profile-last-name"
                 type="text"
@@ -336,12 +421,12 @@ export const UserProfileForm: React.FC = () => {
                 onBlur={() => validation.onBlur('lastName')}
                 placeholder="Doe"
                 {...describedBy('profile-last-name', !!validation.errorFor('lastName'))}
-                className={fieldClass(!!validation.errorFor('lastName'))}
+                className={validatedFieldClass(!!validation.errorFor('lastName'))}
               />
               <FieldError id="profile-last-name" message={validation.errorFor('lastName')} />
             </div>
             <div>
-              <label htmlFor="profile-phone" className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('contact.phone', 'Phone Number')}</label>
+              <label htmlFor="profile-phone" className={labelClass}>{t('contact.phone', 'Phone Number')}</label>
               <input
                 id="profile-phone"
                 type="tel"
@@ -352,34 +437,36 @@ export const UserProfileForm: React.FC = () => {
                 onBlur={() => validation.onBlur('phone')}
                 placeholder="+1 (555) 019-2834"
                 {...describedBy('profile-phone', !!validation.errorFor('phone'))}
-                className={fieldClass(!!validation.errorFor('phone'))}
+                className={validatedFieldClass(!!validation.errorFor('phone'))}
               />
               <FieldError id="profile-phone" message={validation.errorFor('phone')} />
             </div>
           </div>
           <div>
-            <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('profileForm.registeredEmail', 'Registered Email (Read-Only)')}</label>
+            <label htmlFor={embeddedId('profile-email')} className={labelClass}>{t('profileForm.registeredEmail', 'Registered Email (Read-Only)')}</label>
             <input
+              id={embeddedId('profile-email')}
               type="text"
               value={user.email || ''}
               disabled
               title={t('profileForm.registeredEmailTitle', 'Registered email cannot be modified directly')}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-slate-100 text-slate-400 font-medium cursor-not-allowed"
+              className={embedded ? EMBEDDED_READONLY_FIELD : 'w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-slate-100 text-slate-400 font-medium cursor-not-allowed'}
             />
           </div>
-        </div>
+        </SectionTag>
 
         {/* Section 2: Online Presence & Links */}
-        <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <Link className="w-4 h-4 text-slate-400" aria-hidden="true" />
-            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">{t('profileForm.section2Title', '2. Online Presence & Social Links')}</h3>
-          </div>
+        <SectionTag {...sectionProps('profile-section-links')}>
+          {sectionHeading(Link, 'profile-section-links', t('profileForm.section2Title', '2. Online Presence & Social Links'))}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
+              {embedded ? (
+                <label htmlFor="profile-linkedin" className={labelClass}>{t('profileForm.linkedinProfile', 'LinkedIn Profile')}</label>
+              ) : (
               <label htmlFor="profile-linkedin" className="block text-[#0a66c2] text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1">
                 <Share2 className="w-3 h-3" aria-hidden="true" /> {t('profileForm.linkedinProfile', 'LinkedIn Profile')}
               </label>
+              )}
               <input
                 id="profile-linkedin"
                 type="url"
@@ -392,14 +479,18 @@ export const UserProfileForm: React.FC = () => {
                 onBlur={() => validation.onBlur('linkedin')}
                 placeholder="https://linkedin.com/in/username"
                 {...describedBy('profile-linkedin', !!validation.errorFor('linkedin'))}
-                className={fieldClass(!!validation.errorFor('linkedin'))}
+                className={validatedFieldClass(!!validation.errorFor('linkedin'))}
               />
               <FieldError id="profile-linkedin" message={validation.errorFor('linkedin')} />
             </div>
             <div>
+              {embedded ? (
+                <label htmlFor="profile-github" className={labelClass}>{t('profileForm.githubProfile', 'GitHub Profile')}</label>
+              ) : (
               <label htmlFor="profile-github" className="block text-slate-800 text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1">
                 <Code className="w-3 h-3" aria-hidden="true" /> {t('profileForm.githubProfile', 'GitHub Profile')}
               </label>
+              )}
               <input
                 id="profile-github"
                 type="url"
@@ -412,14 +503,18 @@ export const UserProfileForm: React.FC = () => {
                 onBlur={() => validation.onBlur('github')}
                 placeholder="https://github.com/username"
                 {...describedBy('profile-github', !!validation.errorFor('github'))}
-                className={fieldClass(!!validation.errorFor('github'))}
+                className={validatedFieldClass(!!validation.errorFor('github'))}
               />
               <FieldError id="profile-github" message={validation.errorFor('github')} />
             </div>
             <div>
+              {embedded ? (
+                <label htmlFor="profile-portfolio" className={labelClass}>{t('profileForm.personalPortfolio', 'Personal Portfolio')}</label>
+              ) : (
               <label htmlFor="profile-portfolio" className="block text-indigo-600 text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1">
                 <Globe className="w-3 h-3" aria-hidden="true" /> {t('profileForm.personalPortfolio', 'Personal Portfolio')}
               </label>
+              )}
               <input
                 id="profile-portfolio"
                 type="url"
@@ -432,40 +527,39 @@ export const UserProfileForm: React.FC = () => {
                 onBlur={() => validation.onBlur('portfolio')}
                 placeholder="https://myportfolio.com"
                 {...describedBy('profile-portfolio', !!validation.errorFor('portfolio'))}
-                className={fieldClass(!!validation.errorFor('portfolio'))}
+                className={validatedFieldClass(!!validation.errorFor('portfolio'))}
               />
               <FieldError id="profile-portfolio" message={validation.errorFor('portfolio')} />
             </div>
           </div>
-        </div>
+        </SectionTag>
 
         {/* Section 3: Professional specifications */}
-        <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <Briefcase className="w-4 h-4 text-slate-400" aria-hidden="true" />
-            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">{t('profileForm.section3Title', '3. Career & Domain Specifications')}</h3>
-          </div>
+        <SectionTag {...sectionProps('profile-section-career')}>
+          {sectionHeading(Briefcase, 'profile-section-career', t('profileForm.section3Title', '3. Career & Domain Specifications'))}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('contact.jobTitle', 'Target Job Title')}</label>
+              <label htmlFor={embeddedId('profile-job-title')} className={labelClass}>{t('contact.jobTitle', 'Target Job Title')}</label>
               <input
+                id={embeddedId('profile-job-title')}
                 type="text"
                 value={jobTitle}
                 onChange={(e) => setJobTitle(e.target.value)}
                 placeholder="Lead Software Developer"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800"
+                className={plainFieldClass}
               />
             </div>
             <div>
-              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('profileForm.primarySector', 'Primary Sector')}</label>
+              <label htmlFor={embeddedId('profile-industry')} className={labelClass}>{t('profileForm.primarySector', 'Primary Sector')}</label>
               <select
+                id={embeddedId('profile-industry')}
                 value={industry}
                 onChange={(e) => {
                   setIndustry(e.target.value);
                   // Clear existing specialties and certs that aren't manually custom-added by preserving only overlaps? 
                   // It's cooler to let them decide tags manually, but change current presets dynamically!
                 }}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800"
+                className={plainFieldClass}
               >
                 <option value="Technology & Software Development">Technology & Software Development</option>
                 <option value="Healthcare & Caregiving">Healthcare & Caregiving</option>
@@ -475,57 +569,58 @@ export const UserProfileForm: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('profileForm.yearsOfExperience', 'Years / Level of Experience')}</label>
+              <label htmlFor={embeddedId('profile-experience')} className={labelClass}>{t('profileForm.yearsOfExperience', 'Years / Level of Experience')}</label>
               <input
+                id={embeddedId('profile-experience')}
                 type="text"
                 value={experienceYears}
                 onChange={(e) => setExperienceYears(e.target.value)}
                 placeholder="5+ years / Senior"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800"
+                className={plainFieldClass}
               />
             </div>
           </div>
           <div>
-            <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('profileForm.executiveSummary', 'Executive Summary / Professional bio')}</label>
+            <label htmlFor={embeddedId('profile-bio')} className={labelClass}>{t('profileForm.executiveSummary', 'Executive Summary / Professional bio')}</label>
             <textarea
+              id={embeddedId('profile-bio')}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               maxLength={2000}
               placeholder="Ambitious and outcome-driven expert with a proven track record in technology and architectural design. Committed to building robust pipelines, high fidelity user interfaces, and delivering scalable enterprise systems..."
-              className="w-full h-32 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800 leading-relaxed resize-none"
+              className={embedded ? `${embeddedFieldClass()} h-32 resize-none leading-relaxed` : 'w-full h-32 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800 leading-relaxed resize-none'}
             />
-            <div className="flex justify-between text-[10px] text-slate-400 mt-1">
+            <div className={embedded ? 'mt-1.5 flex justify-between gap-4 text-[12.5px] text-content-muted' : 'flex justify-between text-[10px] text-slate-400 mt-1'}>
               <span>{t('profileForm.catchyHook', 'Write a catchy hook for recruiting managers.')}</span>
-              <span>{t('profileForm.charCount', '{count}/2000 characters').replace('{count}', String(bio.length))}</span>
+              <span className={embedded ? 'shrink-0 tabular-nums' : undefined}>{t('profileForm.charCount', '{count}/2000 characters').replace('{count}', String(bio.length))}</span>
             </div>
           </div>
-        </div>
+        </SectionTag>
 
         {/* Section 4: Preferences */}
-        <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <Compass className="w-4 h-4 text-slate-400" aria-hidden="true" />
-            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">{t('profileForm.section4Title', '4. Style & Work Preferences')}</h3>
-          </div>
+        <SectionTag {...sectionProps('profile-section-preferences')}>
+          {sectionHeading(Compass, 'profile-section-preferences', t('profileForm.section4Title', '4. Style & Work Preferences'))}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('profileForm.workAuthLocation', 'Work Authorization & Base Location')}</label>
+              <label htmlFor={embeddedId('profile-location')} className={labelClass}>{t('profileForm.workAuthLocation', 'Work Authorization & Base Location')}</label>
               <input
+                id={embeddedId('profile-location')}
                 type="text"
                 value={licensedState}
                 onChange={(e) => setLicensedState(e.target.value)}
                 placeholder="London, United Kingdom (Hybrid OK)"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800"
+                className={plainFieldClass}
               />
-              <p className="text-[10px] text-slate-400 mt-1 font-medium">{t('profileForm.workAuthHint', 'Specify cities, states, or regions of physical availability.')}</p>
+              <p className={hintClass}>{t('profileForm.workAuthHint', 'Specify cities, states, or regions of physical availability.')}</p>
             </div>
             <div>
-              <label className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1.5">{t('profileForm.availabilityStyle', 'Availability / Collaboration Style')}</label>
+              <label htmlFor={embeddedId('profile-availability')} className={labelClass}>{t('profileForm.availabilityStyle', 'Availability / Collaboration Style')}</label>
               <select
+                id={embeddedId('profile-availability')}
                 value={availability}
                 onChange={(e) => setAvailability(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800"
+                className={plainFieldClass}
               >
                 <option value="Full-Time (Remote)">Full-Time (Remote)</option>
                 <option value="Full-Time (On-Site / Hybrid)">Full-Time (On-Site / Hybrid)</option>
@@ -533,27 +628,35 @@ export const UserProfileForm: React.FC = () => {
                 <option value="Freelance & Consulting">Freelance & Consulting</option>
                 <option value="Co-founder & Advising">Co-founder & Advising</option>
               </select>
-              <p className="text-[10px] text-slate-400 mt-1 font-medium">{t('profileForm.availabilityHint', 'Set preferred hiring schema details.')}</p>
+              <p className={hintClass}>{t('profileForm.availabilityHint', 'Set preferred hiring schema details.')}</p>
             </div>
           </div>
-        </div>
+        </SectionTag>
 
         {/* Section 5: Core Specialties & Skills with custom inputs */}
-        <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <Brain className="w-4 h-4 text-slate-400" aria-hidden="true" />
-            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">{t('profileForm.section5Title', '5. Core Specialties & Technical Skills ({count}/50)').replace('{count}', String(careSpecialties.length))}</h3>
-          </div>
+        <SectionTag {...sectionProps('profile-section-skills')}>
+          {sectionHeading(Brain, 'profile-section-skills', t('profileForm.section5Title', '5. Core Specialties & Technical Skills ({count}/50)').replace('{count}', String(careSpecialties.length)))}
 
           <div>
-            <p className="text-xs text-slate-500 mb-3 leading-relaxed">
+            <p className={embedded ? EMBEDDED_DESCRIPTION : 'text-xs text-slate-500 mb-3 leading-relaxed'}>
               {t('profileForm.section5Desc', 'Toggle industry specific preset suggestions below, or type in your own custom skills using the input fields. These will generate your resume skills list seamlessly.')}
             </p>
 
             {/* Selected Specialties Display */}
             {careSpecialties.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4 p-3 bg-white rounded-xl border border-slate-200/60 shadow-inner">
-                {careSpecialties.map(spec => (
+              <div className={embedded ? 'mb-5 flex flex-wrap gap-2' : 'flex flex-wrap gap-2 mb-4 p-3 bg-white rounded-xl border border-slate-200/60 shadow-inner'}>
+                {careSpecialties.map(spec => embedded ? (
+                  <button
+                    key={spec}
+                    type="button"
+                    className={EMBEDDED_CHOSEN_PILL}
+                    onClick={() => handleRemoveSpecialty(spec)}
+                    title={t('profileForm.clickToRemoveSkill', 'Click to remove skill')}
+                  >
+                    {spec}
+                    <X size={12} strokeWidth={2.25} aria-hidden="true" />
+                  </button>
+                ) : (
                   <span 
                     key={spec} 
                     className="inline-flex items-center gap-1.5 bg-primary/10 text-primary hover:bg-rose-100 hover:text-rose-700 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer group"
@@ -568,9 +671,17 @@ export const UserProfileForm: React.FC = () => {
             )}
 
             {/* Specialty tag picker */}
-            <div className="space-y-3">
+            <div className={embedded ? 'space-y-2' : 'space-y-3'}>
+              {embedded ? (
+                <p id="profile-skill-suggestions" className={EMBEDDED_LABEL}>{t('profileForm.selectSuggestions', 'Select relevant suggestions:')}</p>
+              ) : (
               <label className="block text-slate-400 text-[10px] font-bold uppercase tracking-widest">{t('profileForm.selectSuggestions', 'Select relevant suggestions:')}</label>
-              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-2">
+              )}
+              <div
+                className={embedded ? 'flex max-h-32 flex-wrap gap-2 overflow-y-auto p-0.5 pr-2' : 'flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-2'}
+                role={embedded ? 'group' : undefined}
+                aria-labelledby={embedded ? 'profile-skill-suggestions' : undefined}
+              >
                 {currentPresets.specialties.map(specialty => {
                   const isSelected = careSpecialties.includes(specialty);
                   return (
@@ -578,7 +689,8 @@ export const UserProfileForm: React.FC = () => {
                       key={specialty}
                       type="button"
                       onClick={() => handleSpecialtyToggle(specialty)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                      aria-pressed={embedded ? isSelected : undefined}
+                      className={embedded ? embeddedSuggestionClass(isSelected) : `px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                         isSelected 
                           ? 'bg-primary text-white border-primary shadow-sm shadow-primary/10' 
                           : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
@@ -592,7 +704,7 @@ export const UserProfileForm: React.FC = () => {
             </div>
 
             {/* Custom specialty tag search/input */}
-            <div className="mt-4 flex gap-2">
+            <div className={embedded ? 'mt-5 flex gap-2' : 'mt-4 flex gap-2'}>
               <input
                 type="text"
                 placeholder="Still missing some skills? Enter custom skill (e.g., Kubernetes)"
@@ -604,8 +716,13 @@ export const UserProfileForm: React.FC = () => {
                     handleAddCustomSpecialty(e);
                   }
                 }}
-                className="flex-1 px-4 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800"
+                className={embedded ? `${embeddedFieldClass()} min-w-0 flex-1` : 'flex-1 px-4 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800'}
               />
+              {embedded ? (
+                <Button variant="secondary" className="shrink-0" icon={<Plus size={16} strokeWidth={2} />} onClick={handleAddCustomSpecialty}>
+                  {t('profileForm.addSkill', 'Add Skill')}
+                </Button>
+              ) : (
               <button
                 type="button"
                 onClick={handleAddCustomSpecialty}
@@ -614,26 +731,35 @@ export const UserProfileForm: React.FC = () => {
                 <Plus className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
                 {t('profileForm.addSkill', 'Add Skill')}
               </button>
+              )}
             </div>
           </div>
-        </div>
+        </SectionTag>
 
         {/* Section 6: Certifications & Credentials with custom inputs */}
-        <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <Award className="w-4 h-4 text-slate-400" aria-hidden="true" />
-            <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">{t('profileForm.section6Title', '6. Certifications & Credentials ({count}/50)').replace('{count}', String(certifications.length))}</h3>
-          </div>
+        <SectionTag {...sectionProps('profile-section-certifications')}>
+          {sectionHeading(Award, 'profile-section-certifications', t('profileForm.section6Title', '6. Certifications & Credentials ({count}/50)').replace('{count}', String(certifications.length)))}
 
           <div>
-            <p className="text-xs text-slate-500 mb-3 leading-relaxed">
+            <p className={embedded ? EMBEDDED_DESCRIPTION : 'text-xs text-slate-500 mb-3 leading-relaxed'}>
               {t('profileForm.section6Desc', 'Persist active credentials, board registrations, professional licenses, or course certificates.')}
             </p>
 
             {/* Selected Certifications Display */}
             {certifications.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4 p-3 bg-white rounded-xl border border-slate-200/60 shadow-inner">
-                {certifications.map(cert => (
+              <div className={embedded ? 'mb-5 flex flex-wrap gap-2' : 'flex flex-wrap gap-2 mb-4 p-3 bg-white rounded-xl border border-slate-200/60 shadow-inner'}>
+                {certifications.map(cert => embedded ? (
+                  <button
+                    key={cert}
+                    type="button"
+                    className={EMBEDDED_CHOSEN_PILL}
+                    onClick={() => handleRemoveCert(cert)}
+                    title={t('profileForm.clickToRemoveCert', 'Click to remove certification')}
+                  >
+                    {cert}
+                    <X size={12} strokeWidth={2.25} aria-hidden="true" />
+                  </button>
+                ) : (
                   <span 
                     key={cert} 
                     className="inline-flex items-center gap-1.5 bg-secondary/10 text-secondary hover:bg-rose-100 hover:text-rose-700 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer group"
@@ -648,9 +774,17 @@ export const UserProfileForm: React.FC = () => {
             )}
 
             {/* Certifications suggestions */}
-            <div className="space-y-3">
+            <div className={embedded ? 'space-y-2' : 'space-y-3'}>
+              {embedded ? (
+                <p id="profile-cert-suggestions" className={EMBEDDED_LABEL}>{t('profileForm.selectSuggestions', 'Select relevant suggestions:')}</p>
+              ) : (
               <label className="block text-slate-400 text-[10px] font-bold uppercase tracking-widest">{t('profileForm.selectSuggestions', 'Select relevant suggestions:')}</label>
-              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-2">
+              )}
+              <div
+                className={embedded ? 'flex max-h-32 flex-wrap gap-2 overflow-y-auto p-0.5 pr-2' : 'flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-2'}
+                role={embedded ? 'group' : undefined}
+                aria-labelledby={embedded ? 'profile-cert-suggestions' : undefined}
+              >
                 {currentPresets.certifications.map(cert => {
                   const isSelected = certifications.includes(cert);
                   return (
@@ -658,7 +792,8 @@ export const UserProfileForm: React.FC = () => {
                       key={cert}
                       type="button"
                       onClick={() => handleCertificationToggle(cert)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                      aria-pressed={embedded ? isSelected : undefined}
+                      className={embedded ? embeddedSuggestionClass(isSelected) : `px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                         isSelected 
                           ? 'bg-secondary text-white border-secondary shadow-sm shadow-secondary/10' 
                           : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
@@ -672,7 +807,7 @@ export const UserProfileForm: React.FC = () => {
             </div>
 
             {/* Custom certification picker */}
-            <div className="mt-4 flex gap-2">
+            <div className={embedded ? 'mt-5 flex gap-2' : 'mt-4 flex gap-2'}>
               <input
                 type="text"
                 placeholder="Enter custom certification (e.g., Certified Kubernetes Administrator)"
@@ -684,8 +819,13 @@ export const UserProfileForm: React.FC = () => {
                     handleAddCustomCert(e);
                   }
                 }}
-                className="flex-1 px-4 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800"
+                className={embedded ? `${embeddedFieldClass()} min-w-0 flex-1` : 'flex-1 px-4 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white font-medium text-slate-800'}
               />
+              {embedded ? (
+                <Button variant="secondary" className="shrink-0" icon={<Plus size={16} strokeWidth={2} />} onClick={handleAddCustomCert}>
+                  {t('profileForm.addCert', 'Add Cert')}
+                </Button>
+              ) : (
               <button
                 type="button"
                 onClick={handleAddCustomCert}
@@ -694,11 +834,30 @@ export const UserProfileForm: React.FC = () => {
                 <Plus className="w-[1em] h-[1em] text-sm" aria-hidden="true" />
                 {t('profileForm.addCert', 'Add Cert')}
               </button>
+              )}
             </div>
           </div>
-        </div>
+        </SectionTag>
 
         {/* Submit Actions Button */}
+        {embedded ? (
+          <div className="space-y-4 border-t border-border-default pt-6">
+            {successBanner}
+            {errorBanner}
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                variant="primary"
+                loading={loading}
+                icon={<RefreshCw size={16} strokeWidth={2} />}
+                className="w-full sm:w-auto"
+                id="save-profile-btn"
+              >
+                {t('profileForm.saveSyncButton', 'Save Sync Master Profile')}
+              </Button>
+            </div>
+          </div>
+        ) : (
         <div className="flex gap-4 pt-4 border-t border-slate-100 justify-end">
           <button
             type="submit"
@@ -716,6 +875,7 @@ export const UserProfileForm: React.FC = () => {
             )}
           </button>
         </div>
+        )}
       </form>
     </div>
   );

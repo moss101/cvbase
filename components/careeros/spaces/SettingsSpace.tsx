@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useCallback, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useId, useState } from 'react';
 import { useTranslation } from '../../../services/translationService';
 import { careerPath, useNavigation, type CareerRoute } from '../../NavigationProvider';
 import * as resumeRepo from '../../../services/repos/resumeRepo';
@@ -12,17 +12,18 @@ import ProactiveSettings from '../settings/ProactiveSettings';
 import IntegrationsPage from '../settings/IntegrationsPage';
 
 /**
- * Settings (IA ledger KEEP): the existing SettingsPanel is embedded
- * unchanged beneath a new Career OS section — proactive assistance (COS-037)
- * — and `/app/settings/integrations` is the honest connectors page
- * (COS-038). The JSON backup modal is wired to the primary CV, the same
- * document the legacy dashboard backs up.
+ * Settings (IA ledger KEEP): the existing SettingsPanel is embedded (in its
+ * Career OS presentation, same controls) beneath a new Career OS section —
+ * proactive assistance (COS-037) — and `/app/settings/integrations` is the
+ * honest connectors page (COS-038). The JSON backup modal is wired to the
+ * primary CV, the same document the legacy dashboard backs up.
  */
 const SettingsPanel = lazy(() => import('../../SettingsPanel'));
 
 export interface SpaceProps {
     route: CareerRoute;
 }
+
 
 const PanelLoader: React.FC = () => {
     const { t } = useTranslation();
@@ -40,6 +41,7 @@ const SettingsSpace: React.FC<SpaceProps> = ({ route }) => {
     const { navigate } = useNavigation();
     const { userId, invalidate } = useCareerOs();
     const { toast } = useToast();
+    const careerOsHeadingId = useId();
     const [backup, setBackup] = useState<{ open: boolean; resume: StoredResume | null; loading: boolean; error: boolean }>({ open: false, resume: null, loading: false, error: false });
 
     const openBackup = useCallback(async () => {
@@ -83,17 +85,18 @@ const SettingsSpace: React.FC<SpaceProps> = ({ route }) => {
     return (
         <div className="mx-auto w-full max-w-4xl">
             <SpaceHeader eyebrow={t('careeros.shell.eyebrow', 'Career OS')} title={t('mobile.settings', 'Settings')} description={t('careeros.settings.description', 'Proactive reminders and integrations for Career OS, then everything that changes how CVBase looks and behaves.')} />
-            <section aria-label={t('careeros.settings.careerOs', 'Career OS')} className="mb-8 space-y-4">
-                <h2 className="text-[12px] font-medium text-content-muted">{t('careeros.settings.careerOs', 'Career OS')}</h2>
+            <section aria-labelledby={careerOsHeadingId} className="mb-10 space-y-4">
+                <h2 id={careerOsHeadingId} className="text-[15px] font-semibold text-content-primary">{t('careeros.settings.careerOs', 'Career OS')}</h2>
                 <ProactiveSettings />
-                <div className="rounded-2xl border border-border-default bg-surface-panel p-5">
-                    <h3 className="text-base font-semibold text-content-primary">{t('careeros.integrations.pageTitle', 'Integrations')}</h3>
-                    <p className="mt-1 text-sm text-content-secondary">{t('careeros.settings.integrationsSummary', 'No external connectors are enabled. See what was assessed and why manual import stays the only source.')}</p>
+                <div className="rounded-2xl border border-border-default bg-surface-panel p-6 sm:p-7">
+                    <h3 className="text-[15px] font-semibold text-content-primary">{t('careeros.integrations.pageTitle', 'Integrations')}</h3>
+                    <p className="mt-1 text-[13.5px] leading-relaxed text-content-secondary">{t('careeros.settings.integrationsSummary', 'No external connectors are enabled. See what was assessed and why manual import stays the only source.')}</p>
                     <Button variant="secondary" size="sm" className="mt-3" onClick={() => navigate(careerPath.toIntegrations())}>{t('careeros.settings.openIntegrations', 'View integrations')}</Button>
                 </div>
             </section>
             <Suspense fallback={<PanelLoader />}>
                 <SettingsPanel
+                    embedded
                     onViewLegal={(tab) => navigate({ view: 'legal', legalTab: tab })}
                     onManageBilling={() => navigate(careerPath.toSpace('billing'))}
                     onOpenBackup={() => { void openBackup(); }}

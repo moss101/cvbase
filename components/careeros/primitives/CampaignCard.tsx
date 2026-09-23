@@ -80,11 +80,11 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
             className={className}
         >
             {funnel ? (
-                <dl className={`grid gap-2 ${compact ? 'grid-cols-4' : 'grid-cols-2 sm:grid-cols-4'}`}>
+                <dl className="flex flex-wrap gap-x-6 gap-y-1.5">
                     {stages.map(({ key, label }) => (
-                        <div key={key} className="rounded-lg bg-surface-canvas px-2.5 py-2">
-                            <dt className="text-[11px] text-content-muted">{label}</dt>
-                            <dd className="text-base font-semibold tabular-nums text-content-primary">{funnel[key]}</dd>
+                        <div key={key} className="flex items-baseline gap-1.5">
+                            <dt className="order-2 text-[13px] text-content-secondary">{label}</dt>
+                            <dd className="order-1 text-[15px] font-semibold tabular-nums text-content-primary">{funnel[key]}</dd>
                         </div>
                     ))}
                 </dl>

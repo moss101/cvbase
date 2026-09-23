@@ -6,7 +6,7 @@ import * as factRepo from '../../../services/careerOs/factRepo';
 import { ConflictError, type StaleReference } from '../../../services/careerOs/types';
 import { captureException } from '../../../lib/monitoring';
 import { careerPath, useNavigation } from '../../NavigationProvider';
-import { Button, CareerGoalCard, Skeleton, StatePanel } from '../primitives';
+import { Button, CareerGoalCard, Notice, Skeleton, StatePanel } from '../primitives';
 import { useCareerOs } from '../shell/CareerOsProvider';
 import { useOwnedQuery } from '../data/useOwnedQuery';
 import { CareerTimeline } from './CareerTimeline';
@@ -72,12 +72,14 @@ export const OverviewView: React.FC = () => {
         <div className="space-y-6">
             {!online && <StatePanel kind="offline" compact description={t('careeros.career.offlineDescription', 'Your facts are shown from the last load. Edits need a connection.')} />}
 
-            <section aria-labelledby={`${headlineId}-label`} className="rounded-2xl border border-border-default bg-surface-panel p-5">
-                <p id={`${headlineId}-label`} className="text-[12px] font-medium text-content-muted">{t('careeros.career.headline', 'Headline')}</p>
+            <section aria-labelledby={`${headlineId}-label`} className="flex flex-col gap-2 rounded-2xl border border-border-default bg-surface-panel px-6 py-5 sm:flex-row sm:items-start sm:gap-6">
+                {/* The field name sits beside its value, not above it as a kicker. */}
+                <h2 id={`${headlineId}-label`} className="shrink-0 pt-1 text-[13.5px] font-medium text-content-muted sm:w-24">{t('careeros.career.headline', 'Headline')}</h2>
+                <div className="min-w-0 flex-1">
                 {profile === null ? (
-                    <Skeleton variant="title" width="50%" className="mt-2" />
+                    <Skeleton variant="title" width="50%" />
                 ) : editingHeadline ? (
-                    <form onSubmit={(event) => void saveHeadline(event)} className="mt-2 space-y-2">
+                    <form onSubmit={(event) => void saveHeadline(event)} className="space-y-2">
                         <label htmlFor={headlineId} className="sr-only">{t('careeros.career.headline', 'Headline')}</label>
                         <input id={headlineId} value={headline} onChange={(e) => setHeadline(e.target.value)} className={FIELD_CLASS} maxLength={160} disabled={savingHeadline} placeholder={t('careeros.career.headlinePlaceholder', 'One line on where you are professionally')} />
                         {headlineError && <p role="alert" className="text-xs text-status-danger">{headlineError}</p>}
@@ -87,8 +89,8 @@ export const OverviewView: React.FC = () => {
                         </div>
                     </form>
                 ) : (
-                    <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
-                        <p className={`text-lg font-semibold ${profile.headline ? 'text-content-primary' : 'text-content-muted'}`}>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                        <p className={`text-[17px] font-semibold leading-snug ${profile.headline ? 'text-content-primary' : 'text-content-muted'}`}>
                             {profile.headline || t('careeros.career.headlineEmpty', 'No headline yet')}
                         </p>
                         <Button variant="quiet" size="sm" icon={<Pencil size={14} />} onClick={() => { setHeadline(profile.headline); setEditingHeadline(true); }} disabled={!online}>
@@ -96,15 +98,17 @@ export const OverviewView: React.FC = () => {
                         </Button>
                     </div>
                 )}
+                </div>
             </section>
 
             {staleArtifacts > 0 && (
-                <StatePanel
-                    kind="partial"
+                <Notice
+                    tone="warning"
                     title={t('careeros.career.staleTitle', '{count} drafts use older versions of your facts').replace('{count}', String(staleArtifacts))}
-                    description={t('careeros.career.staleDescription', 'Review what changed and decide whether each draft should follow. Submitted snapshots stay as they were.')}
-                    action={{ label: t('careeros.career.openEvidence', 'Open evidence'), onClick: () => navigate(careerPath.toCareer('evidence')) }}
-                />
+                    action={<Button variant="secondary" size="sm" onClick={() => navigate(careerPath.toCareer('evidence'))}>{t('careeros.career.openEvidence', 'Open evidence')}</Button>}
+                >
+                    {t('careeros.career.staleDescription', 'Review what changed and decide whether each draft should follow. Submitted snapshots stay as they were.')}
+                </Notice>
             )}
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">

@@ -3,7 +3,7 @@ import { Search, Wand2, LayoutTemplate, Sparkles, Plus, FileText, Image as Image
 import { useTranslation } from '../../../services/translationService';
 import { careerPath, useNavigation } from '../../NavigationProvider';
 import { track } from '../../../services/careerOs/careerEvents';
-import { Button, EntityCard, Pill, SkeletonCard, StatePanel, StatusChip, type EntityCardAction, type Tone } from '../primitives';
+import { Button, EntityCard, Pill, RowMenu, SkeletonCard, StatePanel, StatusChip, type EntityCardAction, type Tone } from '../primitives';
 import { useCareerOs } from '../shell/CareerOsProvider';
 import { useOnline } from '../career/useOnline';
 import { confirmationLabel } from '../career/factFormat';
@@ -106,12 +106,12 @@ export const LibraryList: React.FC<LibraryListProps> = ({ type }) => {
 
     return (
         <div>
-            <div className="mb-4 flex flex-wrap gap-2">
-                <Button variant="primary" size="sm" icon={<Plus size={14} strokeWidth={2} />} loading={resumes.busy} onClick={() => { void resumes.create(); }}>{resumes.canCreate ? t('careeros.library.newCv', 'New CV') : t('resumeMgr.upgradeForMore', 'Upgrade for more resumes')}</Button>
-                <Button variant="secondary" size="sm" icon={<LayoutTemplate size={14} strokeWidth={2} />} onClick={() => navigate(careerPath.toLibraryTool('templates'))}>{t('dash.tab.templateGallery', 'Template gallery')}</Button>
-                <Button variant="secondary" size="sm" icon={<Wand2 size={14} strokeWidth={2} />} onClick={() => navigate(careerPath.toLibraryTool('tailor'))}>{t('mobile.prismTailor', 'PRISM Tailor')}</Button>
-                <Button variant="secondary" size="sm" icon={<Sparkles size={14} strokeWidth={2} />} onClick={() => navigate(careerPath.toLibraryTool('ats'))}>{t('mobile.atsChecker', 'ATS Checker')}</Button>
-                <Button variant="secondary" size="sm" icon={<Award size={14} strokeWidth={2} />} onClick={() => navigate(careerPath.toStudio())}>{t('mobile.smartStudio', 'Smart Studio')}</Button>
+            <div className="mb-4 flex flex-wrap items-center gap-1">
+                <Button variant="primary" size="sm" className="mr-2" icon={<Plus size={14} strokeWidth={2} />} loading={resumes.busy} onClick={() => { void resumes.create(); }}>{resumes.canCreate ? t('careeros.library.newCv', 'New CV') : t('resumeMgr.upgradeForMore', 'Upgrade for more resumes')}</Button>
+                <Button variant="quiet" size="sm" icon={<LayoutTemplate size={14} strokeWidth={2} />} onClick={() => navigate(careerPath.toLibraryTool('templates'))}>{t('dash.tab.templateGallery', 'Template gallery')}</Button>
+                <Button variant="quiet" size="sm" icon={<Wand2 size={14} strokeWidth={2} />} onClick={() => navigate(careerPath.toLibraryTool('tailor'))}>{t('mobile.prismTailor', 'PRISM Tailor')}</Button>
+                <Button variant="quiet" size="sm" icon={<Sparkles size={14} strokeWidth={2} />} onClick={() => navigate(careerPath.toLibraryTool('ats'))}>{t('mobile.atsChecker', 'ATS Checker')}</Button>
+                <Button variant="quiet" size="sm" icon={<Award size={14} strokeWidth={2} />} onClick={() => navigate(careerPath.toStudio())}>{t('mobile.smartStudio', 'Smart Studio')}</Button>
             </div>
 
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -131,11 +131,11 @@ export const LibraryList: React.FC<LibraryListProps> = ({ type }) => {
             </div>
 
             <div role="group" aria-label={t('careeros.library.filter', 'Filter by type')} className="mb-4 flex flex-wrap gap-2">
-                <button type="button" aria-pressed={!activeType} onClick={() => setType(undefined)} className={`tap-target rounded-full border px-3 py-1.5 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${!activeType ? 'border-action-primary bg-action-primary text-white' : 'border-border-default bg-surface-panel text-content-secondary hover:bg-surface-canvas'}`}>
+                <button type="button" aria-pressed={!activeType} onClick={() => setType(undefined)} className={`tap-target rounded-full border px-3 py-1.5 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${!activeType ? 'border-action-primary/40 bg-action-primary/10 text-action-primary' : 'border-border-default bg-surface-panel text-content-secondary hover:bg-surface-canvas'}`}>
                     {t('careeros.library.all', 'All')} · {counts.all}
                 </button>
                 {LIBRARY_KINDS.map((k) => (
-                    <button key={k} type="button" aria-pressed={activeType === k} onClick={() => setType(k)} className={`tap-target rounded-full border px-3 py-1.5 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${activeType === k ? 'border-action-primary bg-action-primary text-white' : 'border-border-default bg-surface-panel text-content-secondary hover:bg-surface-canvas'}`}>
+                    <button key={k} type="button" aria-pressed={activeType === k} onClick={() => setType(k)} className={`tap-target rounded-full border px-3 py-1.5 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${activeType === k ? 'border-action-primary/40 bg-action-primary/10 text-action-primary' : 'border-border-default bg-surface-panel text-content-secondary hover:bg-surface-canvas'}`}>
                         {kindLabel(k)} · {counts[k]}
                         {k === 'evidence' && counts.toReview > 0 && <span className="ml-1 text-[11px] font-normal">({t('careeros.library.toReview', '{count} to review').replace('{count}', String(counts.toReview))})</span>}
                     </button>
@@ -173,7 +173,7 @@ export const LibraryList: React.FC<LibraryListProps> = ({ type }) => {
                     ) : (
                         <>
                             <p className="mb-2 text-xs text-content-muted" role="status">{t('careeros.library.showing', 'Showing {shown} of {total}').replace('{shown}', String(page.items.length)).replace('{total}', String(filtered.length))}</p>
-                            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2" aria-label={t('careeros.space.library', 'Library')}>
+                            <ul className="cos-list" aria-label={t('careeros.space.library', 'Library')}>
                                 {page.items.map((asset) => {
                                     const { action, secondary } = actionFor(asset);
                                     const app = asset.applicationId ? appById.get(asset.applicationId) : undefined;
@@ -202,10 +202,9 @@ export const LibraryList: React.FC<LibraryListProps> = ({ type }) => {
                                                 footnote={asset.updatedAt ? t('careeros.library.updated', 'Updated {date}').replace('{date}', dateLabel(asset.updatedAt)) : undefined}
                                                 action={action}
                                                 secondaryAction={secondary}
-                                                compact
+                                                menu={asset.kind === 'cv' ? <CvManageMenu asset={asset} actions={resumes} /> : undefined}
                                             >
                                                 <AssetChips asset={asset} showMeta={Boolean(label) && Boolean(asset.meta)} />
-                                                {asset.kind === 'cv' && <CvManageRow asset={asset} actions={resumes} />}
                                             </EntityCard>
                                         </li>
                                     );
@@ -229,16 +228,19 @@ export const LibraryList: React.FC<LibraryListProps> = ({ type }) => {
     );
 };
 
-/** Duplicate / rename / delete for one CV — the legacy resume manager's row actions. */
-const CvManageRow: React.FC<{ asset: LibraryAsset; actions: ResumeActions }> = ({ asset, actions }) => {
+/** Duplicate / rename / delete for one CV — the legacy resume manager's row actions, behind the row's More menu. */
+const CvManageMenu: React.FC<{ asset: LibraryAsset; actions: ResumeActions }> = ({ asset, actions }) => {
     const { t } = useTranslation();
     const ref = { id: asset.id, title: asset.title, isPrimary: Boolean(asset.extra.isPrimary) };
     return (
-        <div className="flex flex-wrap items-center gap-1" role="group" aria-label={t('careeros.library.manageCv', 'Manage {title}').replace('{title}', asset.title)}>
-            <Button variant="quiet" size="sm" icon={<Copy size={14} strokeWidth={2} />} disabled={actions.busy} onClick={() => { void actions.duplicate(asset.id); }}>{t('resumeMgr.duplicate', 'Duplicate')}</Button>
-            <Button variant="quiet" size="sm" icon={<Pencil size={14} strokeWidth={2} />} onClick={() => actions.requestRename(ref)}>{t('resumeMgr.rename', 'Rename')}</Button>
-            <Button variant="quiet" size="sm" icon={<Trash2 size={14} strokeWidth={2} />} onClick={() => actions.requestDelete(ref)}>{t('btn.delete', 'Delete')}</Button>
-        </div>
+        <RowMenu
+            label={t('careeros.cvw.more', 'More for {title}').replace('{title}', asset.title)}
+            items={[
+                { key: 'duplicate', label: t('resumeMgr.duplicate', 'Duplicate'), Icon: Copy, disabled: actions.busy, onSelect: () => { void actions.duplicate(asset.id); } },
+                { key: 'rename', label: t('resumeMgr.rename', 'Rename'), Icon: Pencil, onSelect: () => actions.requestRename(ref) },
+                { key: 'delete', label: t('btn.delete', 'Delete'), Icon: Trash2, danger: true, onSelect: () => actions.requestDelete(ref) },
+            ]}
+        />
     );
 };
 

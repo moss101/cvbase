@@ -27,6 +27,8 @@ export interface DocumentCardProps {
     secondaryAction?: EntityCardAction;
     loading?: boolean;
     compact?: boolean;
+    /** Sit directly on the enclosing panel (no frame of its own). */
+    flush?: boolean;
     className?: string;
 }
 
@@ -50,6 +52,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
     secondaryAction,
     loading = false,
     compact = false,
+    flush = false,
     className = '',
 }) => {
     const { t } = useTranslation();
@@ -85,6 +88,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
             secondaryAction={secondaryAction}
             loading={loading}
             compact={compact}
+            flush={flush}
             className={className}
         />
     );

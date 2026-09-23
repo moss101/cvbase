@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useState } from 'react';
-import { Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Briefcase, Check, ChevronDown, ChevronUp, Compass, FileText, Target } from 'lucide-react';
 import { useTranslation } from '../../../services/translationService';
 import * as goalRepo from '../../../services/careerOs/goalRepo';
 import * as campaignRepo from '../../../services/careerOs/campaignRepo';
@@ -7,7 +7,7 @@ import * as opportunityRepo from '../../../services/careerOs/opportunityRepo';
 import * as applicationRepo from '../../../services/careerOs/applicationRepo';
 import type { CoachConversation } from '../../../services/careerOs/types';
 import Dialog from '../../common/Dialog';
-import { Button, ContextSwitcher, Skeleton, StatePanel, type ContextRefSummary } from '../primitives';
+import { Button, Skeleton, StatePanel, type ContextRefSummary } from '../primitives';
 import { useCareerOs } from '../shell/CareerOsProvider';
 import { CONTEXT_KEYS, type ContextIds, type ContextKey, type ContextLabels } from './useCoach';
 
@@ -88,33 +88,33 @@ const CoachContextPanel: React.FC<CoachContextPanelProps> = ({ conversation, lab
         : refs.filter((r) => r.label).map((r) => `${kindLabel[r.kind as ContextKey]}: ${r.label}`).join(' · ');
 
     return (
-        <section aria-label={t('careeros.coach.context.title', 'Coach context')} className="rounded-2xl border border-border-default bg-surface-panel p-3 sm:p-4">
-            <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                    <h2 className="text-[12px] font-medium text-content-muted">{t('careeros.coach.context.title', 'Coach context')}</h2>
+        <section aria-label={t('careeros.coach.context.title', 'Coach context')} className="border-y border-border-default py-1.5">
+            <div className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                    <h2 className="shrink-0 text-[12.5px] font-semibold text-content-muted">{t('careeros.coach.context.title', 'Coach context')}</h2>
                     {expanded
-                        ? <p className="mt-0.5 text-xs text-content-secondary">{t('careeros.coach.context.hint', 'Answers cite the records in this context. Change it any time.')}</p>
-                        : <p className="mt-0.5 truncate text-[13px] text-content-primary">{summary}</p>}
+                        ? <p className="min-w-0 text-[12.5px] text-content-muted">{t('careeros.coach.context.hint', 'Answers cite the records in this context. Change it any time.')}</p>
+                        : <p className="min-w-0 flex-1 truncate text-[13px] text-content-secondary">{summary}</p>}
                 </div>
                 <button
                     type="button"
                     aria-expanded={expanded}
                     aria-controls={regionId}
                     onClick={() => setExpanded((v) => !v)}
-                    className="tap-target inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[13px] font-semibold text-content-secondary hover:bg-surface-canvas hover:text-content-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                    className="tap-target inline-flex shrink-0 items-center justify-center gap-1 rounded-lg px-2 text-[13px] font-semibold text-content-secondary transition-colors hover:bg-surface-panel hover:text-content-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                 >
                     {expanded ? t('careeros.coach.context.collapse', 'Hide') : t('careeros.coach.context.expand', 'Change')}
                     {expanded ? <ChevronUp size={14} strokeWidth={2} aria-hidden="true" /> : <ChevronDown size={14} strokeWidth={2} aria-hidden="true" />}
                 </button>
             </div>
-            <div id={regionId} hidden={!expanded} className="mt-2">
+            <div id={regionId} hidden={!expanded} className="pb-1">
                 {labels === null && !labelsError ? (
-                    <div className="flex flex-wrap gap-2" aria-busy="true">
-                        <Skeleton variant="block" className="h-12 w-40" />
-                        <Skeleton variant="block" className="h-12 w-40" />
+                    <div className="flex flex-wrap gap-2 py-1.5" aria-busy="true">
+                        <span className="h-8 w-36 rounded-full bg-content-muted/15 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
+                        <span className="h-8 w-36 rounded-full bg-content-muted/15 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
                     </div>
                 ) : (
-                    <ContextSwitcher refs={refs} compact />
+                    <ContextChips refs={refs} kindLabel={kindLabel} />
                 )}
             </div>
             {picker && (
@@ -128,6 +128,73 @@ const CoachContextPanel: React.FC<CoachContextPanelProps> = ({ conversation, lab
                 />
             )}
         </section>
+    );
+};
+
+const KIND_ICON: Record<ContextKey, React.ComponentType<{ size?: number; strokeWidth?: number; className?: string; 'aria-hidden'?: boolean | 'true' }>> = {
+    goal: Target,
+    campaign: Compass,
+    opportunity: Briefcase,
+    application: FileText,
+};
+
+/**
+ * The context as one wrap of compact chips: icon, then the value (the kind
+ * stays in the accessible name). An empty reference shows its kind in muted
+ * text; a reference fixed by the application, or a read-only conversation,
+ * drops the chip frame so it does not look pressable. Each chip keeps a 44px
+ * hit area around a 32px visual.
+ */
+const ContextChips: React.FC<{ refs: ContextRefSummary[]; kindLabel: Record<ContextKey, string> }> = ({ refs, kindLabel }) => {
+    const { t } = useTranslation();
+    return (
+        <nav aria-label={t('careeros.context.label', 'Working context')}>
+            <ul className="flex flex-wrap items-center gap-x-2">
+                {refs.map((ref) => {
+                    const kind = ref.kind as ContextKey;
+                    const Icon = KIND_ICON[kind];
+                    const hasValue = Boolean(ref.label);
+                    const lower = kindLabel[kind].toLowerCase();
+                    const actionLabel = hasValue
+                        ? t('careeros.context.change', 'Change {kind}').replace('{kind}', lower)
+                        : t('careeros.context.choose', 'Choose {kind}').replace('{kind}', lower);
+                    const text = hasValue ? (
+                        <span className="min-w-0 truncate font-medium text-content-primary">
+                            <span className="sr-only">{kindLabel[kind]}: </span>{ref.label}
+                        </span>
+                    ) : (
+                        <span className="min-w-0 truncate text-content-muted">
+                            {kindLabel[kind]}<span className="sr-only">: {t('careeros.context.none', 'None selected')}</span>
+                        </span>
+                    );
+                    const icon = <Icon size={14} strokeWidth={1.9} className={`shrink-0 ${hasValue ? 'text-content-secondary' : 'text-content-muted'}`} aria-hidden="true" />;
+                    return (
+                        <li key={ref.kind} className="min-w-0 max-w-full">
+                            {ref.onChange && !ref.locked ? (
+                                <button
+                                    type="button"
+                                    onClick={ref.onChange}
+                                    aria-label={hasValue ? `${actionLabel}: ${ref.label}` : actionLabel}
+                                    title={ref.meta ? `${ref.label} · ${ref.meta}` : actionLabel}
+                                    className="group tap-target inline-flex max-w-full items-center focus-visible:outline-none"
+                                >
+                                    <span className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-full border border-border-default bg-surface-panel px-3 text-[13px] transition-colors duration-150 group-hover:border-border-strong group-focus-visible:ring-2 group-focus-visible:ring-focus-ring">
+                                        {icon}
+                                        {text}
+                                    </span>
+                                </button>
+                            ) : (
+                                <span className="inline-flex h-11 max-w-full items-center gap-1.5 px-1 text-[13px]" title={ref.meta}>
+                                    {icon}
+                                    {text}
+                                    {ref.locked && <span className="sr-only">{t('careeros.context.locked', '(fixed by this application)')}</span>}
+                                </span>
+                            )}
+                        </li>
+                    );
+                })}
+            </ul>
+        </nav>
     );
 };
 
@@ -172,17 +239,17 @@ export const ContextPicker: React.FC<ContextPickerProps> = ({ kind, title, selec
     return (
         <Dialog open onClose={onClose} title={title} panelClassName="max-w-md max-h-[85vh]" bodyClassName="flex min-h-0 flex-col">
             {error !== null ? (
-                <StatePanel kind="error" compact onRetry={() => setAttempt((n) => n + 1)} />
+                <StatePanel kind="error" compact className="!border-0 !bg-transparent !px-0 !py-2" onRetry={() => setAttempt((n) => n + 1)} />
             ) : options === null ? (
-                <div className="space-y-2" role="status" aria-live="polite" aria-busy="true">
+                <div className="space-y-5 py-2" role="status" aria-live="polite" aria-busy="true">
                     <span className="sr-only">{t('label.loading', 'Loading')}</span>
-                    <Skeleton variant="block" className="h-12" />
-                    <Skeleton variant="block" className="h-12" />
+                    <Skeleton variant="text" lines={2} width="80%" />
+                    <Skeleton variant="text" lines={2} width="65%" />
                 </div>
             ) : options.length === 0 ? (
-                <StatePanel kind="empty" compact title={t('careeros.coach.context.noneAvailable', 'Nothing to choose from yet')} description={t('careeros.coach.context.noneAvailableDescription', 'Create one in its own space first; the coach can only work with records in your account.')} />
+                <StatePanel kind="empty" compact className="!border-0 !bg-transparent !px-0 !py-2" title={t('careeros.coach.context.noneAvailable', 'Nothing to choose from yet')} description={t('careeros.coach.context.noneAvailableDescription', 'Create one in its own space first; the coach can only work with records in your account.')} />
             ) : (
-                <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto" aria-label={title}>
+                <ul className="-mx-2 min-h-0 flex-1 space-y-0.5 overflow-y-auto" aria-label={title}>
                     {options.map((option) => {
                         const selected = option.id === selectedId;
                         return (
@@ -192,11 +259,11 @@ export const ContextPicker: React.FC<ContextPickerProps> = ({ kind, title, selec
                                     disabled={saving}
                                     aria-pressed={selected}
                                     onClick={() => onPick(option.id)}
-                                    className={`tap-target flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${selected ? 'border-action-primary bg-action-primary/10' : 'border-border-default bg-surface-panel hover:bg-surface-canvas'}`}
+                                    className={`tap-target flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring disabled:opacity-60 ${selected ? 'bg-surface-canvas' : 'hover:bg-surface-canvas'}`}
                                 >
                                     <span className="min-w-0">
-                                        <span className="block truncate text-sm font-semibold text-content-primary">{option.label}</span>
-                                        {option.meta && <span className="block truncate text-xs text-content-secondary">{option.meta}</span>}
+                                        <span className={`block truncate text-[14px] ${selected ? 'font-semibold' : 'font-medium'} text-content-primary`}>{option.label}</span>
+                                        {option.meta && <span className="block truncate text-[12.5px] text-content-muted">{option.meta}</span>}
                                     </span>
                                     {selected && <Check size={16} strokeWidth={2} className="shrink-0 text-action-primary" aria-hidden="true" />}
                                 </button>

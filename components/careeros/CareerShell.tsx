@@ -127,8 +127,9 @@ const GuestContent: React.FC<{ route: CareerRoute; onOpenAuth: () => void }> = (
         case 'library': return <LibrarySpace route={route} />;
         case 'settings':
             return (
-                <div className="mx-auto w-full max-w-5xl">
-                    <SettingsPanel onViewLegal={(tab) => navigate({ view: 'legal', legalTab: tab })} onManageBilling={onOpenAuth} />
+                <div className="mx-auto w-full max-w-4xl">
+                    <SpaceHeader title={t('mobile.settings', 'Settings')} />
+                    <SettingsPanel embedded onViewLegal={(tab) => navigate({ view: 'legal', legalTab: tab })} onManageBilling={onOpenAuth} />
                 </div>
             );
         case 'not-found': return <NotFound />;

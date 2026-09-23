@@ -144,11 +144,11 @@ export const AchievementsView: React.FC = () => {
                 )
             ) : (
                 <>
-                    <ul className="space-y-3">
+                    <ul className="cos-list">
                         {achievements.slice(0, shown).map((fact) => (
                             <li key={fact.id}>
                                 {editing === fact.id ? (
-                                    <div className="rounded-2xl border border-border-default bg-surface-panel p-4">
+                                    <div className="px-6 py-5">
                                         <FactEditor fact={fact} experienceOptions={experienceOptions} evidenceOptions={evidenceOptions} onSave={(patch) => save(fact, patch)} onCancel={() => setEditing(null)} saving={busy === fact.id} />
                                     </div>
                                 ) : (

@@ -24,7 +24,7 @@ export const SpaceHeader: React.FC<SpaceHeaderProps> = ({ title, description, ac
     <header className={`${compact ? 'pb-4' : 'pb-7'} ${className}`}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
-                <h1 className={`font-semibold tracking-[-0.02em] text-content-primary ${compact ? 'text-[20px]' : 'text-[26px] leading-tight sm:text-[28px]'}`}>
+                <h1 className={`font-semibold tracking-[-0.02em] text-content-primary ${compact ? 'text-[22px] leading-tight sm:text-[24px]' : 'text-[26px] leading-tight sm:text-[28px]'}`}>
                     {title}
                 </h1>
                 {description && <p className="mt-2 max-w-[68ch] text-[15px] leading-relaxed text-content-secondary">{description}</p>}

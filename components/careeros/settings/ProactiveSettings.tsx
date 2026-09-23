@@ -161,10 +161,10 @@ export const ProactiveSettings: React.FC = () => {
     const field = 'tap-target w-full rounded-xl border border-border-strong bg-surface-panel px-3 py-2 text-sm text-content-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring disabled:opacity-60';
 
     return (
-        <section aria-labelledby={`${ids}-title`} className="rounded-2xl border border-border-default bg-surface-panel p-5">
+        <section aria-labelledby={`${ids}-title`} className="rounded-2xl border border-border-default bg-surface-panel p-6 sm:p-7">
             <div className="flex flex-wrap items-center gap-2">
                 <BellRing size={16} strokeWidth={2} className="text-content-muted" aria-hidden="true" />
-                <h2 id={`${ids}-title`} className="text-base font-semibold text-content-primary">{t('careeros.proactive.title', 'Proactive assistance')}</h2>
+                <h3 id={`${ids}-title`} className="text-base font-semibold text-content-primary">{t('careeros.proactive.title', 'Proactive assistance')}</h3>
                 <StatusChip label={prefs.proactiveEnabled ? t('careeros.proactive.on', 'On') : t('careeros.proactive.off', 'Off')} tone={prefs.proactiveEnabled ? 'success' : 'neutral'} announce />
             </div>
             <p className="mt-1 text-sm text-content-secondary">
@@ -174,8 +174,8 @@ export const ProactiveSettings: React.FC = () => {
                 {t('careeros.proactive.honest', 'Reminders are generated when you open CVBase or run this; background delivery is not enabled.')}
             </p>
 
-            <label className="mt-4 flex items-center gap-3">
-                <input type="checkbox" className="tap-target h-5 w-5 accent-action-primary" checked={draft.proactiveEnabled} onChange={(e) => set('proactiveEnabled', e.target.checked)} />
+            <label className="mt-4 flex min-h-[44px] cursor-pointer items-center gap-3">
+                <input type="checkbox" className="h-[18px] w-[18px] shrink-0 rounded border-border-strong accent-action-primary" checked={draft.proactiveEnabled} onChange={(e) => set('proactiveEnabled', e.target.checked)} />
                 <span className="text-sm font-semibold text-content-primary">{t('careeros.proactive.enable', 'Turn on proactive reminders')}</span>
             </label>
             {prefs.consentAt && <p className="mt-1 text-xs text-content-muted">{t('careeros.proactive.consentedAt', 'Consent recorded {date}').replace('{date}', new Date(prefs.consentAt).toLocaleString())}</p>}
@@ -195,8 +195,8 @@ export const ProactiveSettings: React.FC = () => {
                     <input id={`${ids}-cap`} type="number" min={0} max={20} step={1} className={`${field} mt-1`} value={draft.dailyActionCap} onChange={(e) => set('dailyActionCap', Math.max(0, Math.min(20, Number(e.target.value) || 0)))} />
                 </div>
                 <div className="sm:col-span-2">
-                    <label className="flex items-center gap-3">
-                        <input type="checkbox" className="tap-target h-5 w-5 accent-action-primary" checked={draft.quietEnabled} onChange={(e) => set('quietEnabled', e.target.checked)} />
+                    <label className="flex min-h-[44px] cursor-pointer items-center gap-3">
+                        <input type="checkbox" className="h-[18px] w-[18px] shrink-0 rounded border-border-strong accent-action-primary" checked={draft.quietEnabled} onChange={(e) => set('quietEnabled', e.target.checked)} />
                         <span className="text-[13px] font-semibold text-content-primary">{t('careeros.proactive.quietHours', 'Quiet hours')}</span>
                     </label>
                     <div className="mt-2 grid grid-cols-2 gap-3">
@@ -215,8 +215,8 @@ export const ProactiveSettings: React.FC = () => {
                     <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                         {TRIGGER_KEYS.map((key) => (
                             <li key={key}>
-                                <label className="flex items-center gap-3">
-                                    <input type="checkbox" className="tap-target h-5 w-5 accent-action-primary" checked={draft.triggers[key]} onChange={(e) => set('triggers', { ...draft.triggers, [key]: e.target.checked })} />
+                                <label className="flex min-h-[44px] cursor-pointer items-center gap-3">
+                                    <input type="checkbox" className="h-[18px] w-[18px] shrink-0 rounded border-border-strong accent-action-primary" checked={draft.triggers[key]} onChange={(e) => set('triggers', { ...draft.triggers, [key]: e.target.checked })} />
                                     <span className="text-sm text-content-primary">{t(triggerLabel[key][0], triggerLabel[key][1])}</span>
                                 </label>
                             </li>
@@ -236,7 +236,7 @@ export const ProactiveSettings: React.FC = () => {
 
             {runError !== null && <FailureNotice error={runError} className="mt-4" title={t('careeros.proactive.runFailed', 'The run could not complete')} onReload={() => { void load(); }} onRetry={() => { void run(); }} onDismiss={() => setRunError(null)} />}
             {summary && (
-                <div role="status" aria-live="polite" className="mt-4 rounded-xl border border-border-default bg-surface-canvas p-4">
+                <div role="status" aria-live="polite" className="mt-4 rounded-xl bg-surface-canvas p-4">
                     <p className="text-sm font-semibold text-content-primary">
                         {summary.quietHours
                             ? t('careeros.proactive.summaryQuiet', 'Quiet hours — nothing was created.')

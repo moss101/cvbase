@@ -172,3 +172,24 @@
 
 /* A menu that opens below its trigger (row "More" menus). */
 .cos-menu.is-below { top: calc(100% + 6px); bottom: auto; right: 0; min-width: 12rem; }
+
+/* ── Lists: one panel, divided rows ──────────────────────────────────────
+   A list of records is one surface. Cards placed inside `.cos-list` shed
+   their own frame and become rows separated by hairlines (no card-on-card). */
+.cos-list {
+  overflow: hidden;
+  border: 1px solid rgb(var(--cb-sem-border-default));
+  border-radius: 16px;
+  background: rgb(var(--cb-sem-surface-panel));
+}
+.cos-list > li + li { border-top: 1px solid rgb(var(--cb-sem-border-default)); }
+.cos-list > li > .cos-entity {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 20px 24px;
+}
+@media (max-width: 639px) {
+  .cos-list > li > .cos-entity { padding: 16px; }
+}

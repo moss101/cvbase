@@ -3,7 +3,7 @@ import { useTranslation } from '../../../services/translationService';
 import * as factRepo from '../../../services/careerOs/factRepo';
 import type { StaleReference } from '../../../services/careerOs/types';
 import { careerPath, useNavigation } from '../../NavigationProvider';
-import { Button, SkeletonCard, StatePanel } from '../primitives';
+import { Button, Notice, SkeletonCard, StatePanel } from '../primitives';
 import { useCareerOs } from '../shell/CareerOsProvider';
 import { useOwnedQuery } from '../data/useOwnedQuery';
 import { FactCard } from './FactCard';
@@ -67,21 +67,23 @@ export const EvidenceView: React.FC = () => {
             </div>
 
             {staleArtifacts > 0 && (
-                <StatePanel
-                    kind="partial"
-                    title={t('careeros.career.staleTitle', '{count} drafts use older versions of your facts').replace('{count}', String(staleArtifacts))}
-                    description={t('careeros.career.staleEvidenceDescription', 'The facts below changed after these drafts were written. Open the application to review each draft; submitted snapshots stay as they were.')}
-                >
-                    <ul className="space-y-2">
+                <div className="space-y-3">
+                    <Notice
+                        tone="warning"
+                        title={t('careeros.career.staleTitle', '{count} drafts use older versions of your facts').replace('{count}', String(staleArtifacts))}
+                        action={<Button variant="secondary" size="sm" onClick={() => navigate(careerPath.toSpace('applications'))}>{t('careeros.career.openApplications', 'Open applications')}</Button>}
+                    >
+                        {t('careeros.career.staleEvidenceDescription', 'The facts below changed after these drafts were written. Open the application to review each draft; submitted snapshots stay as they were.')}
+                    </Notice>
+                    <ul className="cos-list">
                         {(facts.data ?? []).filter((f) => staleByFact.has(f.id)).slice(0, 10).map((fact) => (
-                            <li key={fact.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border-default bg-surface-panel px-3 py-2 text-sm">
+                            <li key={fact.id} className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm">
                                 <span className="text-content-primary">{fact.title || fact.kind}</span>
-                                <span className="text-xs text-content-muted">{t('careeros.career.staleCount', '{count} drafts').replace('{count}', String(staleByFact.get(fact.id)?.size ?? 0))}</span>
+                                <span className="text-xs tabular-nums text-content-muted">{t('careeros.career.staleCount', '{count} drafts').replace('{count}', String(staleByFact.get(fact.id)?.size ?? 0))}</span>
                             </li>
                         ))}
                     </ul>
-                    <Button variant="secondary" size="sm" className="mt-3" onClick={() => navigate(careerPath.toSpace('applications'))}>{t('careeros.career.openApplications', 'Open applications')}</Button>
-                </StatePanel>
+                </div>
             )}
 
             <section aria-labelledby="evidence-review">
@@ -118,7 +120,7 @@ export const EvidenceView: React.FC = () => {
                         <span id="evidence-withdrawn">{t('careeros.career.evidence.withdrawn', '{count} withdrawn facts').replace('{count}', String(withdrawn.length))}</span>
                     </button>
                     {showWithdrawn && (
-                        <ul className="mt-3 space-y-3">
+                        <ul className="cos-list mt-3">
                             {withdrawn.slice(0, 20).map((fact) => (
                                 <li key={fact.id}><FactCard fact={fact} compact /></li>
                             ))}

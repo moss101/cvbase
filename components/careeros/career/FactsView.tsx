@@ -159,16 +159,17 @@ export const FactsView: React.FC<FactsViewProps> = ({ kind }) => {
                 />
             ) : (
                 <>
-                    <ul className="space-y-3">
+                    <ul className="cos-list">
                         {list.slice(0, shown).map((fact) => (
                             <li key={fact.id}>
                                 {editing === fact.id ? (
-                                    <div className="rounded-2xl border border-border-default bg-surface-panel p-4">
+                                    <div className="px-6 py-5">
                                         <FactEditor fact={fact} onSave={(patch) => save(fact, patch)} onCancel={() => setEditing(null)} saving={busy === fact.id} />
                                     </div>
                                 ) : (
                                     <FactCard
                                         fact={fact}
+                                        showKind={false}
                                         compact={kind === 'skill'}
                                         primaryAction={fact.reviewState === 'candidate'
                                             ? { label: t('careeros.career.review.confirm', 'Confirm'), loading: busy === fact.id, onClick: () => void run(fact, () => mutations.confirm(fact)) }

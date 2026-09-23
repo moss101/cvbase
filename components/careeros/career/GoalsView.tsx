@@ -110,7 +110,7 @@ const GoalsList: React.FC = () => {
                     action={showArchived ? undefined : { label: t('careeros.goal.new', 'New goal'), onClick: () => setCreating(true) }}
                 />
             ) : (
-                <ul className="space-y-3">
+                <ul className="cos-list">
                     {list.map((goal) => (
                         <li key={goal.id}>
                             <CareerGoalCard

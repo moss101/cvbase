@@ -152,7 +152,7 @@ export const FitPanel: React.FC<FitPanelProps> = ({ opportunity, goal, applicati
             ) : (
                 <>
                     {analysis.hiddenByConstraint && (
-                        <div role="status" className="mb-3 rounded-xl border border-status-warning/30 bg-status-warning/10 p-3">
+                        <div role="status" className="mb-3 rounded-xl bg-surface-canvas px-3.5 py-3">
                             <p className="flex items-start gap-2 text-sm text-content-primary">
                                 <EyeOff size={16} strokeWidth={2} className="mt-0.5 shrink-0 text-status-warning" aria-hidden="true" />
                                 <span>

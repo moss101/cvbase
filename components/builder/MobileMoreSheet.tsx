@@ -67,7 +67,7 @@ const MobileMoreSheet: React.FC<MobileMoreSheetProps> = ({
                 >
                     {languageOptions.map((opt) => (
                         <option key={opt.code} value={opt.code}>
-                            {opt.flag} {opt.name}
+                            {opt.name}
                         </option>
                     ))}
                 </select>

@@ -28,8 +28,10 @@ export const CareerNav: React.FC<CareerNavProps> = ({ current, reviewCount = 0 }
         profile: t('careeros.career.nav.profile', 'Profile'),
     };
     return (
-        <nav aria-label={t('careeros.career.nav.label', 'Career sections')} className="-mx-1 overflow-x-auto pb-1">
-            <ul className="flex min-w-max gap-1 px-1">
+        // Section navigation reads as underline tabs, the same as the application workspace;
+        // filled pills are kept for filters.
+        <nav aria-label={t('careeros.career.nav.label', 'Career sections')} className="overflow-x-auto border-b border-border-default">
+            <ul className="-mb-px flex min-w-max gap-1">
                 {CAREER_SUBVIEWS.map((sub) => {
                     const active = sub === current;
                     return (
@@ -38,8 +40,8 @@ export const CareerNav: React.FC<CareerNavProps> = ({ current, reviewCount = 0 }
                                 type="button"
                                 aria-current={active ? 'page' : undefined}
                                 onClick={() => navigate(careerPath.toCareer(sub))}
-                                className={`tap-target inline-flex items-center gap-1.5 rounded-lg px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${
-                                    active ? 'bg-action-primary/10 text-action-primary' : 'text-content-secondary hover:bg-surface-canvas hover:text-content-primary'
+                                className={`tap-target inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-[13.5px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${
+                                    active ? 'border-action-primary text-content-primary' : 'border-transparent text-content-secondary hover:text-content-primary'
                                 }`}
                             >
                                 {labels[sub]}

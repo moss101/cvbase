@@ -1,11 +1,11 @@
-import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { Award, Copy, History, IdCard, LayoutTemplate, MoreHorizontal, Pencil, Plus, Sparkles, Trash2, Wand2 } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Award, Copy, History, IdCard, LayoutTemplate, Pencil, Plus, Sparkles, Trash2, Wand2 } from 'lucide-react';
 import { useTranslation } from '../../../services/translationService';
 import { careerPath, useNavigation } from '../../NavigationProvider';
 import { AVAILABLE_TEMPLATES } from '../../../constants';
 import { useSubscription } from '../../SubscriptionProvider';
 import { useResumeActions } from '../../resumes/useResumeActions';
-import { Button, Pill, SpaceHeader, StatePanel, Skeleton } from '../primitives';
+import { Button, Pill, RowMenu, SpaceHeader, StatePanel, Skeleton } from '../primitives';
 import { useCareerOs } from '../shell/CareerOsProvider';
 import { useOnline } from '../career/useOnline';
 import { VersionsDialog } from './LibraryDialogs';
@@ -154,49 +154,6 @@ export const CvWorkspace: React.FC = () => {
 
             {versions && userId && <VersionsDialog userId={userId} resumeId={versions.resumeId} title={versions.title} onClose={() => setVersions(null)} />}
             {actions.dialogs}
-        </div>
-    );
-};
-
-interface RowMenuItem { key: string; label: string; Icon: typeof Copy; onSelect: () => void; disabled?: boolean; danger?: boolean }
-
-/** Secondary CV actions behind one quiet "More" button, so each row has a single visible action. */
-const RowMenu: React.FC<{ label: string; items: RowMenuItem[] }> = ({ label, items }) => {
-    const [open, setOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-    const menuId = useId();
-    useEffect(() => {
-        if (!open) return;
-        const onDown = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
-        document.addEventListener('mousedown', onDown);
-        document.addEventListener('keydown', onKey);
-        return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
-    }, [open]);
-    return (
-        <div ref={ref} className="relative">
-            <button
-                type="button"
-                onClick={() => setOpen((v) => !v)}
-                aria-haspopup="menu"
-                aria-expanded={open}
-                aria-controls={open ? menuId : undefined}
-                aria-label={label}
-                title={label}
-                className="grid h-9 w-9 place-items-center rounded-lg text-content-secondary transition-colors duration-150 hover:bg-surface-canvas hover:text-content-primary"
-            >
-                <MoreHorizontal size={18} strokeWidth={1.9} aria-hidden="true" />
-            </button>
-            {open && (
-                <div id={menuId} role="menu" aria-label={label} className="cos-menu is-below">
-                    {items.map((item) => (
-                        <button key={item.key} type="button" role="menuitem" disabled={item.disabled} className={`cos-menu-item ${item.danger ? 'is-danger' : ''} disabled:opacity-50`} onClick={() => { setOpen(false); item.onSelect(); }}>
-                            <item.Icon size={16} strokeWidth={1.75} aria-hidden="true" />
-                            <span>{item.label}</span>
-                        </button>
-                    ))}
-                </div>
-            )}
         </div>
     );
 };

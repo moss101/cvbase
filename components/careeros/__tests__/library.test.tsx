@@ -233,13 +233,17 @@ describe('LibrarySpace', () => {
         expect(resumeRepo.create).toHaveBeenCalledWith('u1', { title: 'Untitled resume' });
         expect(navigate).toHaveBeenCalledWith(expect.objectContaining({ space: 'library', sub: 'cvs', id: 'r9', section: 'edit' }));
 
-        // Newest first: the tailored CV (r2) is the first card.
-        await click(buttonByText('Duplicate'));
+        // Newest first: the tailored CV (r2) is the first row. Row actions sit behind its More menu.
+        const openMenu = (title: string) => click(document.querySelector(`[aria-haspopup="menu"][aria-label="More for ${title}"]`) as HTMLButtonElement);
+        const menuItem = (label: string) => [...document.querySelectorAll('[role="menuitem"]')].find((b) => b.textContent === label) as HTMLButtonElement;
+        await openMenu('Tailored for Acme');
+        await click(menuItem('Duplicate'));
         await flush();
         expect(resumeRepo.duplicate).toHaveBeenCalledWith('u1', 'r2');
         expect(vi.mocked(resumeRepo.list).mock.calls.length).toBeGreaterThan(1);
 
-        await click(buttonByText('Rename'));
+        await openMenu('Tailored for Acme');
+        await click(menuItem('Rename'));
         const input = document.querySelector('[role="dialog"] input') as HTMLInputElement;
         expect(input.value).toBe('Tailored for Acme');
         setValue(input, 'Acme — final');
@@ -249,10 +253,12 @@ describe('LibrarySpace', () => {
         expect(resumeRepo.rename).toHaveBeenCalledWith('u1', 'r2', 'Acme — final');
 
         // The primary CV cannot be deleted while another CV exists.
-        const deleteButtons = [...document.querySelectorAll('button')].filter((b) => b.textContent === 'Delete');
-        await click(deleteButtons[1]);
+        const rowMenus = () => [...document.querySelectorAll('[aria-haspopup="menu"][aria-label^="More for "]')] as HTMLButtonElement[];
+        await click(rowMenus()[1]);
+        await click(menuItem('Delete'));
         expect(document.querySelector('[role="dialog"]')).toBeNull();
-        await click(deleteButtons[0]);
+        await click(rowMenus()[0]);
+        await click(menuItem('Delete'));
         const confirmDelete = [...document.querySelectorAll('[role="dialog"] button')].find((b) => b.textContent === 'Delete') as HTMLButtonElement;
         await click(confirmDelete);
         await flush();

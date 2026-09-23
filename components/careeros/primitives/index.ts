@@ -9,6 +9,8 @@ export { Button, BUTTON_BASE, type ButtonProps, type ButtonSize, type ButtonVari
 export { Pill, StatusChip, type PillProps, type StatusChipProps, type Tone } from './Pill';
 export { Skeleton, SkeletonCard, type SkeletonProps, type SkeletonCardProps, type SkeletonVariant } from './Skeleton';
 export { StatePanel, type StatePanelProps, type StatePanelKind, type StatePanelAction } from './StatePanel';
+export { Notice, type NoticeProps, type NoticeTone } from './Notice';
+export { RowMenu, type RowMenuItem } from './RowMenu';
 export { EvidenceBadge, useEvidenceLabel, type EvidenceBadgeProps } from './EvidenceBadge';
 export { ActionCard, useActionStatus, type ActionCardProps } from './ActionCard';
 export { FitBreakdown, type FitBreakdownProps } from './FitBreakdown';

@@ -131,7 +131,7 @@ export const ArtifactEditor: React.FC<ArtifactEditorProps> = ({ workspace, kind,
                     hint={current ? t('careeros.artifact.savedAt', 'Saved {date} · revision {rev}').replace('{date}', formatDate(current.updatedAt, undefined, true)).replace('{rev}', String(current.revision)) : t('careeros.artifact.unsaved', 'Not saved yet')}
                 />
                 {notes.length > 0 && (
-                    <div role="status" className="mt-3 rounded-xl border border-status-info/30 bg-status-info/10 p-3 text-[13px] text-content-primary">
+                    <div role="status" className="mt-3 rounded-xl bg-surface-canvas px-3.5 py-3 text-[13px] text-content-primary">
                         <p className="font-semibold">{t('careeros.artifact.generatedNotes', 'Notes from the generator')}</p>
                         <ul className="mt-1 list-disc space-y-0.5 pl-5">{notes.map((n, i) => <li key={i}>{n}</li>)}</ul>
                     </div>
